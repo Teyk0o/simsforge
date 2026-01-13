@@ -46,7 +46,7 @@
     "stripe": "^14.10.0",
     "unzipper": "^0.12.3",
     "winston": "^3.11.0",
-    "zod": "^3.22.4"
+    "zod": "^4.3.5"
   },
   "devDependencies": {
     "@types/compression": "^1.7.5",
