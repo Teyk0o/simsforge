@@ -1,0 +1,34 @@
+# GitHub CODEOWNERS file
+# This file defines code ownership and review requirements
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Global owner for everything
+* @Teyk0o
+
+# Backend
+/backend/ @Teyk0o
+/backend/src/services/ @Teyk0o
+/backend/src/controllers/ @Teyk0o
+/backend/src/database/ @Teyk0o
+
+# Frontend
+/app/ @Teyk0o
+/app/src/components/ @Teyk0o
+/app/src/app/ @Teyk0o
+/app/src-tauri/ @Teyk0o
+
+# Documentation
+/docs/ @Teyk0o
+/README.md @Teyk0o
+
+# GitHub configuration
+/.github/ @Teyk0o
+
+# CurseForge API wrapper
+/sources/curseforge-api/ @Teyk0o
+
+# Configuration files
+tsconfig.json @Teyk0o
+package.json @Teyk0o
+.eslintrc.json @Teyk0o
+.prettierrc @Teyk0o

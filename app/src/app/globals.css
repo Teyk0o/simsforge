@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #52525b;
+}
+
+/* Animations */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+/* Mod row hover effect */
+.mod-row {
+  transition: all 0.2s ease;
+}
+
+.mod-row:hover {
+  transform: translateY(-2px);
+}
+
+/* Filter chip active state */
+.filter-chip.active {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border-color: #10b981;
+}
+
+/* Button actions */
+.btn-action {
+  transition: all 0.2s ease;
+}
+
+.btn-action:active {
+  transform: scale(0.96);
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide password field eye icon from browser */
+input[type="password"]::-webkit-textfield-decoration-container {
+  display: none !important;
+}
+
+/* For Chrome, Edge, Safari - hide the password reveal button */
+input[type="password"] {
+  position: relative;
+}
+
+input[type="password"]::-webkit-reveal-button {
+  display: none !important;
+}

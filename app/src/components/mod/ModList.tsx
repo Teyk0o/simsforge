@@ -1,0 +1,333 @@
+'use client';
+
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { List } from 'react-window';
+import { AutoSizer } from 'react-virtualized-auto-sizer';
+import ModListItem from '@/components/mod/ModListItem';
+import ModGridRow from '@/components/mod/ModGridRow';
+import { searchCurseForgeMods } from '@/lib/curseforgeApi';
+import { CurseForgeMod } from '@/types/curseforge';
+import { ViewMode } from '@/hooks/useViewMode';
+import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
+
+interface ModListProps {
+  searchQuery: string;
+  sortBy: 'downloads' | 'date' | 'trending' | 'relevance';
+  category?: string;
+  viewMode: ViewMode;
+}
+
+interface PaginationState {
+  index: number;
+  pageSize: number;
+  resultCount: number;
+  totalCount: number;
+}
+
+export default function ModList({ searchQuery, sortBy, category, viewMode }: ModListProps) {
+  const { isLoading: authLoading } = useAuth();
+  const [mods, setMods] = useState<CurseForgeMod[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pagination, setPagination] = useState<PaginationState>({
+    index: 0,
+    pageSize: 50,
+    resultCount: 0,
+    totalCount: 0,
+  });
+  const [hasMore, setHasMore] = useState(true);
+  const [gridColumns, setGridColumns] = useState(4);
+  const loaderRef = useRef<HTMLDivElement>(null);
+  const paginationRef = useRef<PaginationState>(pagination);
+  const listRef = useRef<any>(null);
+
+  /**
+   * Calculate number of grid columns based on viewport width
+   */
+  useEffect(() => {
+    const updateGridColumns = () => {
+      const width = window.innerWidth;
+      // xs/sm: 1, sm/md: 2, md/lg: 3, lg/xl: 4, xl/2xl: 5
+      if (width < 640) setGridColumns(1);
+      else if (width < 1024) setGridColumns(2);
+      else if (width < 1280) setGridColumns(3);
+      else if (width < 1536) setGridColumns(4);
+      else setGridColumns(5);
+    };
+
+    updateGridColumns();
+    window.addEventListener('resize', updateGridColumns);
+    return () => window.removeEventListener('resize', updateGridColumns);
+  }, []);
+
+  // Keep ref updated
+  useEffect(() => {
+    paginationRef.current = pagination;
+  }, [pagination]);
+
+  /**
+   * Group mods into rows for grid view
+   * Each row contains `gridColumns` number of mods
+   */
+  const gridRows = useMemo(() => {
+    const rows: CurseForgeMod[][] = [];
+    for (let i = 0; i < mods.length; i += gridColumns) {
+      rows.push(mods.slice(i, i + gridColumns));
+    }
+    return rows;
+  }, [mods, gridColumns]);
+
+  // Convert UI sort names to API sort names
+  const getSortByForAPI = () => {
+    switch (sortBy) {
+      case 'relevance':
+        return 'relevance';
+      case 'trending':
+        return 'popularity';
+      case 'date':
+        return 'date';
+      case 'downloads':
+      default:
+        return 'downloads';
+    }
+  };
+
+  const fetchModsForPage = useCallback(async (pageIndex: number) => {
+    if (pageIndex === 0) {
+      setIsLoading(true);
+    } else {
+      setIsLoadingMore(true);
+    }
+
+    const apiParams = {
+      query: searchQuery || undefined,
+      pageSize: 50,
+      pageIndex,
+      sortBy: getSortByForAPI() as 'downloads' | 'date' | 'popularity' | 'relevance',
+      categoryName: category || undefined,
+    };
+
+    try {
+      const result = await searchCurseForgeMods(apiParams);
+
+      setMods((prev) => (pageIndex === 0 ? result.mods : [...prev, ...result.mods]));
+
+      setPagination({
+        index: pageIndex,
+        pageSize: 50,
+        resultCount: result.pagination.resultCount,
+        totalCount: result.pagination.totalCount,
+      });
+
+      // Check if there are more pages
+      const loadedCount = (pageIndex + 1) * 50;
+      setHasMore(loadedCount < result.pagination.totalCount);
+    } catch (err: any) {
+      if (err.response?.data?.error?.code === 'API_KEY_REQUIRED') {
+        setError('api_key_required');
+      } else {
+        setError(
+          err.response?.data?.error?.message || 'Failed to load mods'
+        );
+      }
+      if (pageIndex === 0) setMods([]);
+    } finally {
+      if (pageIndex === 0) {
+        setIsLoading(false);
+      } else {
+        setIsLoadingMore(false);
+      }
+    }
+  }, [searchQuery, sortBy, category]);
+
+  // Load first page when query or sort changes
+  useEffect(() => {
+    if (!authLoading) {
+      setMods([]);
+      setPagination({
+        index: 0,
+        pageSize: 50,
+        resultCount: 0,
+        totalCount: 0,
+      });
+      setError(null);
+      setHasMore(true);
+      fetchModsForPage(0);
+    }
+  }, [searchQuery, sortBy, category, authLoading, fetchModsForPage]);
+
+  // Virtualized infinite scroll - load when approaching end
+  const handleRowsRendered = useCallback(
+    (visibleRows: any, allRows: any) => {
+      // Use gridRows for grid view, mods for list view
+      const totalRows = viewMode === 'grid' ? gridRows.length : mods.length;
+      const { stopIndex } = visibleRows;
+
+      // Trigger load when we're in the last 10 items
+      if (stopIndex >= totalRows - 10 && hasMore && !isLoadingMore) {
+        const nextPageIndex = paginationRef.current.index + 1;
+        fetchModsForPage(nextPageIndex).catch((err) => {
+          setError('Failed to load more mods');
+        });
+      }
+    },
+    [hasMore, isLoadingMore, fetchModsForPage, mods.length, viewMode, gridRows.length]
+  );
+
+  // Row renderer for virtualized list (list view)
+  const Row = useCallback(
+    ({ index, style }: { index: number; style: React.CSSProperties }) => {
+      const mod = mods[index];
+
+      if (!mod) {
+        return <div style={style} />;
+      }
+
+      return (
+        <div style={style} className="px-4 lg:px-8 flex items-center">
+          <div className="w-full mb-4">
+            <ModListItem mod={mod} />
+          </div>
+        </div>
+      );
+    },
+    [mods]
+  ) as any;
+
+  // Row renderer for virtualized grid (grid view)
+  const GridRowComponent = useCallback(
+    ({ index, style }: { index: number; style: React.CSSProperties }) => {
+      const row = gridRows[index];
+
+      if (!row || row.length === 0) {
+        return <div style={style} />;
+      }
+
+      return (
+        <div style={style}>
+          <ModGridRow mods={row} index={index} columns={gridColumns} />
+        </div>
+      );
+    },
+    [gridRows, gridColumns]
+  ) as any;
+
+  // Loading state for first load
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-gray-700 border-t-green-600 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // Error state - API key required
+  if (error === 'api_key_required') {
+    return (
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="text-center max-w-md bg-gray-800/50 rounded-lg p-8 border border-gray-700">
+          <div className="text-4xl mb-4">🔑</div>
+          <h3 className="text-xl font-semibold mb-2 text-white">
+            CurseForge API Key Required
+          </h3>
+          <p className="text-gray-400 mb-6">
+            To browse CurseForge mods, please configure your API key in Settings.
+          </p>
+          <Link
+            href="/settings"
+            className="inline-block bg-green-600 hover:bg-green-700 px-6 py-2 rounded font-medium text-white transition"
+          >
+            Go to Settings
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state - other errors
+  if (error) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="text-center max-w-md bg-red-900/20 rounded-lg p-8 border border-red-700">
+          <h3 className="text-lg font-semibold mb-2 text-red-300">Error</h3>
+          <p className="text-red-200 mb-4">{error}</p>
+          <button
+            onClick={() => fetchModsForPage(0)}
+            className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded font-medium text-white transition"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Calculate row heights
+  const listRowHeight = 96; // 80px for item + 16px for spacing
+  const gridRowHeight = 400; // Height for grid row (cards with image + content + padding)
+
+  return (
+    <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      {/* Column Headers - Only for list view */}
+      {viewMode === 'list' && (
+        <div className="flex-shrink-0 grid grid-cols-12 gap-4 px-4 lg:px-8 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider bg-gray-50 dark:bg-ui-dark border-b border-gray-200 dark:border-ui-border">
+          <div className="col-span-6 lg:col-span-5">Mod</div>
+          <div className="col-span-3 lg:col-span-2 hidden md:block">Catégories</div>
+          <div className="col-span-2 hidden lg:block">Téléchargements</div>
+          <div className="col-span-3 lg:col-span-2 hidden lg:block text-right">Dernière MAJ</div>
+          <div className="col-span-6 md:col-span-3 lg:col-span-1 text-right" />
+        </div>
+      )}
+
+      {/* Virtualized List / Grid */}
+      {mods.length > 0 ? (
+        viewMode === 'list' ? (
+          // LIST VIEW - Virtualized with ModListItem rows
+          <List
+            listRef={listRef}
+            height={800}
+            width="100%"
+            rowCount={mods.length}
+            rowHeight={listRowHeight}
+            rowComponent={Row}
+            rowProps={{}}
+            onRowsRendered={handleRowsRendered}
+            className="scrollbar-hide"
+            style={{
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              paddingTop: '12px'
+            }}
+          />
+        ) : (
+          // GRID VIEW - Virtualized with ModCard rows
+          <List
+            listRef={listRef}
+            height={800}
+            width="100%"
+            rowCount={gridRows.length}
+            rowHeight={gridRowHeight}
+            rowComponent={GridRowComponent}
+            rowProps={{}}
+            onRowsRendered={handleRowsRendered}
+            className="scrollbar-hide"
+            style={{
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              paddingTop: '12px'
+            }}
+          />
+        )
+      ) : (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center py-12 text-gray-500">
+            <p>Aucun mod trouvé correspondant à votre recherche.</p>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}
