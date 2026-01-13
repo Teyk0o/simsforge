@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 /.vscode/
 /.next/
+
+# Claude Code temporary files
+tmpclaude-*-cwd

@@ -5,3 +5,6 @@
 /design/
 /.idea/
 /.claude/
+
+# Claude Code temporary files
+tmpclaude-*-cwd

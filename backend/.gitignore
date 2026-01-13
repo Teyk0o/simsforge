@@ -41,3 +41,6 @@ uploads/
 # Temporary files
 tmp/
 temp/
+
+# Claude Code temporary files
+tmpclaude-*-cwd

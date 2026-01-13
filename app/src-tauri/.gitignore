@@ -6,3 +6,6 @@
 # will have schema files for capabilities auto-completion
 /gen/schemas
 /2
+
+# Claude Code temporary files
+tmpclaude-*-cwd
