@@ -1,3 +1,4 @@
+![banner.png](../assets/banner.png)
 # Security Policy
 
 ## Reporting a Vulnerability
