@@ -7,6 +7,7 @@ import { CurseForgeMod } from '@/types/curseforge';
 import { formatDownloadCount, formatRelativeDate } from '@/utils/formatters';
 import { DownloadSimple, Spinner } from "@phosphor-icons/react";
 import { useToast } from '@/context/ToastContext';
+import { useProfiles } from '@/context/ProfileContext';
 import { modInstallationService } from '@/lib/services/ModInstallationService';
 
 interface ModListItemProps {
@@ -17,6 +18,7 @@ export default function ModListItem({ mod }: ModListItemProps) {
   const authorNames = mod.authors.map((a) => a.name).join(', ');
   const categoryNames = mod.categories.slice(0, 2);
   const { showToast, updateToast } = useToast();
+  const { refreshProfiles } = useProfiles();
   const [isInstalling, setIsInstalling] = useState(false);
 
   /**
@@ -121,6 +123,8 @@ export default function ModListItem({ mod }: ModListItemProps) {
           message: `${result.modName} has been installed successfully`,
           duration: 3000,
         });
+        // Refresh profiles to update the library
+        await refreshProfiles();
       } else {
         updateToast(toastId, {
           type: 'error',
