@@ -145,31 +145,48 @@ export default function FilterBar({
   }, []);
 
   return (
-    <div className="px-8 py-4 flex flex-col md:flex-row md:items-center gap-4 bg-white/50 dark:bg-ui-dark border-b border-gray-200 dark:border-ui-border sticky top-0 z-10 backdrop-blur-md">
+    <div className="px-8 py-4 flex flex-col md:flex-row md:items-center gap-4 border-b sticky top-0 z-10 backdrop-blur-md" style={{ backgroundColor: 'var(--ui-panel)', borderColor: 'var(--ui-border)' }}>
       {/* Dropdowns */}
       <div className="flex items-center gap-2" ref={dropdownRef}>
         {/* Category Dropdown */}
         <div className="relative">
           <button
             onClick={() => setOpenDropdown(openDropdown === 'category' ? null : 'category')}
-            className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-ui-panel border border-gray-300 dark:border-gray-700 rounded-lg text-sm font-medium hover:border-brand-green dark:hover:border-brand-green transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 border rounded-lg text-sm font-medium hover:border-brand-green transition-colors cursor-pointer"
+            style={{ backgroundColor: 'var(--ui-panel)', borderColor: 'var(--ui-border)' }}
           >
             <span>Catégorie:</span>
             <span className="text-brand-green">{selectedCategory || 'Aucune'}</span>
-            <CaretDown size={16} className={`text-gray-400 transition-transform ${openDropdown === 'category' ? 'rotate-180' : ''}`} />
+            <CaretDown size={16} className={`transition-transform ${openDropdown === 'category' ? 'rotate-180' : ''}`} style={{ color: 'var(--text-secondary)' }} />
           </button>
           {openDropdown === 'category' && (
-            <div className="absolute left-0 mt-1 bg-white dark:bg-ui-panel border border-gray-300 dark:border-gray-700 rounded-lg shadow-lg z-20 flex h-96 overflow-hidden">
+            <div className="absolute left-0 mt-1 border rounded-lg shadow-lg z-20 flex h-96 overflow-hidden" style={{ backgroundColor: 'var(--ui-panel)', borderColor: 'var(--ui-border)' }}>
               {/* Left: Category Groups */}
-              <div className="w-80 border-r border-gray-300 dark:border-gray-700 overflow-y-auto">
+              <div className="w-80 border-r overflow-y-auto" style={{ borderColor: 'var(--ui-border)' }}>
                 {/* None option */}
                 <button
                   onClick={() => handleCategorySelect('')}
-                  className={`w-full text-left px-3 py-2 border-b border-gray-200 dark:border-gray-700 transition-colors ${
+                  className={`w-full text-left px-3 py-2 border-b transition-colors ${
                     selectedCategory === ''
                       ? 'bg-brand-green/10 text-brand-green font-medium'
-                      : 'hover:bg-gray-50 dark:hover:bg-ui-hover text-gray-900 dark:text-gray-300'
+                      : ''
                   }`}
+                  style={{
+                    borderColor: 'var(--ui-border)',
+                    backgroundColor: selectedCategory === '' ? undefined : 'transparent',
+                    color: selectedCategory === '' ? undefined : 'var(--text-primary)',
+                    cursor: 'pointer',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (selectedCategory !== '') {
+                      e.currentTarget.style.backgroundColor = 'var(--ui-hover)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (selectedCategory !== '') {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }
+                  }}
                 >
                   <div className="text-sm font-medium">Aucune catégorie</div>
                 </button>
@@ -178,14 +195,30 @@ export default function FilterBar({
                   <button
                     key={group.name}
                     onClick={() => setActiveGroup(group.name)}
-                    className={`w-full text-left px-3 py-2 border-b border-gray-200 dark:border-gray-700 transition-colors ${
+                    className={`w-full text-left px-3 py-2 border-b transition-colors ${
                       activeGroup === group.name
-                        ? 'bg-gray-100/10 text-white font-medium'
-                        : 'hover:bg-gray-50 dark:hover:bg-ui-hover text-gray-900 dark:text-gray-300'
+                        ? 'font-medium'
+                        : ''
                     }`}
+                    style={{
+                      borderColor: 'var(--ui-border)',
+                      backgroundColor: activeGroup === group.name ? 'var(--ui-hover)' : 'transparent',
+                      color: activeGroup === group.name ? 'var(--text-primary)' : 'var(--text-primary)',
+                      cursor: 'pointer',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (activeGroup !== group.name) {
+                        e.currentTarget.style.backgroundColor = 'var(--ui-hover)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (activeGroup !== group.name) {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                      }
+                    }}
                   >
                     <div className="text-sm font-medium truncate">{group.name}</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{group.description}</div>
+                    <div className="text-xs truncate" style={{ color: 'var(--text-tertiary)' }}>{group.description}</div>
                   </button>
                 ))}
               </div>
@@ -201,8 +234,23 @@ export default function FilterBar({
                         className={`block text-left px-3 py-2 text-sm rounded transition-colors whitespace-nowrap ${
                           selectedCategory === subcat
                             ? 'bg-brand-green/10 text-brand-green'
-                            : 'hover:bg-gray-100 dark:hover:bg-ui-hover text-gray-700 dark:text-gray-300'
+                            : ''
                         }`}
+                        style={{
+                          backgroundColor: selectedCategory === subcat ? undefined : 'transparent',
+                          color: selectedCategory === subcat ? undefined : 'var(--text-primary)',
+                          cursor: 'pointer',
+                        }}
+                        onMouseEnter={(e) => {
+                          if (selectedCategory !== subcat) {
+                            e.currentTarget.style.backgroundColor = 'var(--ui-hover)';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (selectedCategory !== subcat) {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }
+                        }}
                       >
                         {subcat}
                       </button>
@@ -218,23 +266,39 @@ export default function FilterBar({
         <div className="relative">
           <button
             onClick={() => setOpenDropdown(openDropdown === 'sort' ? null : 'sort')}
-            className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-ui-panel border border-gray-300 dark:border-gray-700 rounded-lg text-sm font-medium hover:border-brand-green dark:hover:border-brand-green transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 border rounded-lg text-sm font-medium hover:border-brand-green transition-colors cursor-pointer"
+            style={{ backgroundColor: 'var(--ui-panel)', borderColor: 'var(--ui-border)' }}
           >
             <span>Trier par:</span>
             <span className="text-brand-green">
               {SORT_OPTIONS.find((o) => o.value === activeSort)?.label}
             </span>
-            <CaretDown size={16} className={`text-gray-400 transition-transform ${openDropdown === 'sort' ? 'rotate-180' : ''}`} />
+            <CaretDown size={16} className={`transition-transform ${openDropdown === 'sort' ? 'rotate-180' : ''}`} style={{ color: 'var(--text-secondary)' }} />
           </button>
           {openDropdown === 'sort' && (
-            <div className="absolute left-0 mt-1 w-40 bg-white dark:bg-ui-panel border border-gray-300 dark:border-gray-700 rounded-lg shadow-lg z-20">
+            <div className="absolute left-0 mt-1 w-40 border rounded-lg shadow-lg z-20" style={{ backgroundColor: 'var(--ui-panel)', borderColor: 'var(--ui-border)' }}>
               {SORT_OPTIONS.map(({ value, label }) => (
                 <button
                   key={value}
                   onClick={() => handleSortSelect(value)}
-                  className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-ui-hover transition-colors ${
-                    activeSort === value ? 'bg-brand-green/10 text-brand-green' : 'text-gray-700 dark:text-gray-300'
+                  className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                    activeSort === value ? 'bg-brand-green/10 text-brand-green' : ''
                   }`}
+                  style={{
+                    backgroundColor: activeSort === value ? undefined : 'transparent',
+                    color: activeSort === value ? undefined : 'var(--text-primary)',
+                    cursor: 'pointer',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (activeSort !== value) {
+                      e.currentTarget.style.backgroundColor = 'var(--ui-hover)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (activeSort !== value) {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }
+                  }}
                 >
                   {label}
                 </button>
@@ -244,7 +308,7 @@ export default function FilterBar({
         </div>
       </div>
 
-      <div className="w-px h-6 bg-gray-300 dark:bg-gray-700 hidden md:block mx-2" />
+      <div className="w-px h-6 hidden md:block mx-2" style={{ backgroundColor: 'var(--ui-border)' }} />
 
       {/* Quick Filter Chips */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
@@ -252,11 +316,26 @@ export default function FilterBar({
           <button
             key={id}
             onClick={() => onFilterChange(id as any)}
-            className={`filter-chip px-3 py-1.5 rounded-full border text-xs font-bold whitespace-nowrap transition-colors flex items-center gap-1 ${
+            className={`filter-chip px-3 py-1.5 rounded-full border text-xs font-bold whitespace-nowrap transition-colors flex items-center gap-1 cursor-pointer ${
               activeFilter === id
                 ? 'active border-brand-green bg-brand-green/10 text-brand-green'
-                : 'border-gray-300 dark:border-gray-700 bg-white dark:bg-ui-panel text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-ui-hover'
+                : ''
             }`}
+            style={{
+              backgroundColor: activeFilter === id ? undefined : 'var(--ui-panel)',
+              borderColor: activeFilter === id ? undefined : 'var(--ui-border)',
+              color: activeFilter === id ? undefined : 'var(--text-secondary)'
+            }}
+            onMouseEnter={(e) => {
+              if (activeFilter !== id) {
+                e.currentTarget.style.backgroundColor = 'var(--ui-hover)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (activeFilter !== id) {
+                e.currentTarget.style.backgroundColor = 'var(--ui-panel)';
+              }
+            }}
           >
             {Icon && <Icon size={16} />}
             {label}
