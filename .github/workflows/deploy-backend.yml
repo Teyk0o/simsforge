@@ -1,0 +1,138 @@
+name: Deploy Backend to Production
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  deploy:
+    name: Deploy Backend to Server
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2 # Needed to detect changes
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Build TypeScript
+        working-directory: ./backend
+        run: npm run build
+
+      - name: Prepare deployment package
+        run: |
+          mkdir -p deploy_package
+          cd backend
+
+          # Copy built files
+          cp -r dist ../deploy_package/
+
+          # Copy necessary files for production
+          cp package.json package-lock.json ../deploy_package/
+
+          # Copy scripts if needed for migrations
+          if [ -d "scripts" ]; then
+            cp -r scripts ../deploy_package/
+          fi
+
+          # Copy environment example as reference
+          if [ -f ".env.example" ]; then
+            cp .env.example ../deploy_package/
+          fi
+
+      - name: Create tarball
+        run: |
+          cd deploy_package
+          tar -czf ../backend-deploy.tar.gz .
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to server
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          # Upload tarball
+          scp -i ~/.ssh/deploy_key backend-deploy.tar.gz ${SSH_USER}@${SSH_HOST}:/tmp/
+
+          # Execute deployment on server
+          ssh -i ~/.ssh/deploy_key ${SSH_USER}@${SSH_HOST} << 'EOF'
+            set -e
+
+            echo "Starting deployment..."
+
+            # Create backup of current deployment
+            if [ -d /var/www/simsforge/api ]; then
+              BACKUP_DIR="/var/www/simsforge/backups/api-$(date +%Y%m%d-%H%M%S)"
+              mkdir -p /var/www/simsforge/backups
+              echo "Creating backup at $BACKUP_DIR"
+              cp -r /var/www/simsforge/api $BACKUP_DIR
+            fi
+
+            # Create target directory if it doesn't exist
+            mkdir -p /var/www/simsforge/api
+
+            # Extract new version
+            cd /var/www/simsforge/api
+            tar -xzf /tmp/backend-deploy.tar.gz
+
+            # Install production dependencies
+            echo "Installing production dependencies..."
+            npm ci --only=production
+
+            # Clean up
+            rm /tmp/backend-deploy.tar.gz
+
+            # Restart systemd service
+            echo "Restarting systemd service..."
+            sudo systemctl restart simsforge-api
+
+            # Check service status
+            if sudo systemctl is-active --quiet simsforge-api; then
+              echo "Service restarted successfully and is running"
+            else
+              echo "Error: Service failed to start"
+              sudo systemctl status simsforge-api
+              exit 1
+            fi
+
+            echo "Deployment completed successfully!"
+          EOF
+
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -f ~/.ssh/deploy_key
+          rm -f backend-deploy.tar.gz
+
+      - name: Deployment notification
+        if: success()
+        run: |
+          echo "✅ Backend successfully deployed to production!"
+          echo "Deployment time: $(date)"
+
+      - name: Deployment failed
+        if: failure()
+        run: |
+          echo "❌ Deployment failed. Please check the logs above."
+          exit 1
