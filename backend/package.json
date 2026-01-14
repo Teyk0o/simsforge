@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon --exec ts-node src/server.ts",
     "build": "tsc --project .",
-    "start": "node dist/server.js",
+    "start": "node --require tsconfig-paths/register dist/server.js",
     "test": "jest --coverage",
     "test:watch": "jest --watch",
     "test:integration": "jest --testMatch='**/integration/**/*.test.ts'",
