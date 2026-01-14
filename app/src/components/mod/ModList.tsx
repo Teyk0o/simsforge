@@ -227,12 +227,12 @@ export default function ModList({ searchQuery, sortBy, category, viewMode }: Mod
   if (error === 'api_key_required') {
     return (
       <div className="flex-1 flex items-center justify-center p-8">
-        <div className="text-center max-w-md bg-gray-800/50 rounded-lg p-8 border border-gray-700">
+        <div className="text-center max-w-md rounded-lg p-8 border" style={{ backgroundColor: 'var(--ui-panel)', borderColor: 'var(--ui-border)' }}>
           <div className="text-4xl mb-4">🔑</div>
-          <h3 className="text-xl font-semibold mb-2 text-white">
+          <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
             CurseForge API Key Required
           </h3>
-          <p className="text-gray-400 mb-6">
+          <p className="text-gray-400 mb-6" style={{ color: 'var(--text-secondary)' }}>
             To browse CurseForge mods, please configure your API key in Settings.
           </p>
           <Link
@@ -250,9 +250,9 @@ export default function ModList({ searchQuery, sortBy, category, viewMode }: Mod
   if (error) {
     return (
       <div className="flex-1 flex items-center justify-center p-8">
-        <div className="text-center max-w-md bg-red-900/20 rounded-lg p-8 border border-red-700">
-          <h3 className="text-lg font-semibold mb-2 text-red-300">Error</h3>
-          <p className="text-red-200 mb-4">{error}</p>
+        <div className="text-center max-w-md rounded-lg p-8 border" style={{ backgroundColor: 'var(--ui-panel)', borderColor: 'var(--ui-border)' }}>
+          <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Error</h3>
+          <p className="text-red-200 mb-4" style={{ color: 'var(--text-secondary)' }}>{error}</p>
           <button
             onClick={() => fetchModsForPage(0)}
             className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded font-medium text-white transition"
@@ -272,7 +272,7 @@ export default function ModList({ searchQuery, sortBy, category, viewMode }: Mod
     <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
       {/* Column Headers - Only for list view */}
       {viewMode === 'list' && (
-        <div className="flex-shrink-0 grid grid-cols-12 gap-4 px-4 lg:px-8 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider bg-gray-50 dark:bg-ui-dark border-b border-gray-200 dark:border-ui-border">
+        <div className="flex-shrink-0 grid grid-cols-12 gap-4 px-4 lg:px-8 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider bg-gray-50 border-b" style={{ backgroundColor: 'var(--ui-dark)', color: 'var(--text-secondary)', borderColor: 'var(--ui-border)' }}>
           <div className="col-span-6 lg:col-span-5">Mod</div>
           <div className="col-span-3 lg:col-span-2 hidden md:block">Catégories</div>
           <div className="col-span-2 hidden lg:block">Téléchargements</div>

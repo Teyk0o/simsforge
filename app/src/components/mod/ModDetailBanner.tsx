@@ -16,7 +16,12 @@ export default function ModDetailBanner({
   return (
     <div className="relative">
       {/* Banner */}
-      <div className="h-48 md:h-64 bg-gradient-to-br from-ui-panel to-ui-dark relative overflow-hidden">
+      <div
+        className="h-48 md:h-64 relative overflow-hidden"
+        style={{
+          background: `linear-gradient(to bottom right, var(--ui-panel), var(--ui-dark))`,
+        }}
+      >
         {bannerImage ? (
           <Image
             src={bannerImage}
@@ -38,18 +43,34 @@ export default function ModDetailBanner({
               priority
             />
             {/* Gradient overlay for logo */}
-            <div className="absolute inset-0 bg-gradient-to-br from-ui-panel/60 via-ui-dark/40 to-ui-dark opacity-80" />
+            <div
+              className="absolute inset-0 opacity-80"
+              style={{
+                background: `linear-gradient(to bottom right, color-mix(in srgb, var(--ui-panel) 60%, transparent), color-mix(in srgb, var(--ui-dark) 40%, transparent), var(--ui-dark))`,
+              }}
+            />
           </>
         ) : null}
 
         {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-ui-dark via-transparent to-transparent opacity-90" />
+        <div
+          className="absolute inset-0 opacity-90"
+          style={{
+            background: `linear-gradient(to top, var(--ui-dark), transparent, transparent)`,
+          }}
+        />
         <div className="absolute inset-0 bg-black/20" />
       </div>
 
       {/* Logo overlapping banner */}
       <div className="px-6 lg:px-10 -mt-20 relative z-10 flex justify-center md:justify-start">
-        <div className="w-32 h-32 md:w-40 md:h-40 rounded-2xl shadow-2xl border-4 border-white dark:border-ui-panel bg-gray-800 overflow-hidden relative flex-shrink-0">
+        <div
+          className="w-32 h-32 md:w-40 md:h-40 rounded-2xl overflow-hidden relative flex-shrink-0"
+          style={{
+            backgroundColor: 'var(--ui-bg-dark)',
+            borderColor: 'var(--ui-panel)',
+          }}
+        >
           {logo ? (
             <Image
               src={logo}
@@ -59,7 +80,10 @@ export default function ModDetailBanner({
               unoptimized
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-500 text-6xl">
+            <div
+              className="w-full h-full flex items-center justify-center text-6xl"
+              style={{ color: 'var(--text-tertiary)' }}
+            >
               📦
             </div>
           )}
