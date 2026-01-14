@@ -4,7 +4,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { useProfiles } from '@/context/ProfileContext';
 import { MagnifyingGlass, DownloadSimple, ArrowsClockwise, Heart, Moon, Sun, Plus, GameController, SignOut, GearSix } from '@phosphor-icons/react';
+import ProfileSelector from '@/components/profile/ProfileSelector';
 
 interface SidebarProps {
   onThemeToggle: () => void;
@@ -15,6 +17,7 @@ export default function Sidebar({ onThemeToggle, theme }: SidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { logout, user } = useAuth();
+  const { activeProfile, profiles, activateProfile, isLoading } = useProfiles();
 
   // Map current pathname to active nav item
   const getActiveNav = () => {
@@ -64,33 +67,23 @@ export default function Sidebar({ onThemeToggle, theme }: SidebarProps) {
       </div>
 
       {/* Profiles Section */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-4">
+      <div className="flex-1 overflow-y-auto p-3 space-y-2">
         <div
-          className="hidden lg:block text-xs font-bold uppercase tracking-wider px-2 mb-2"
+          className="hidden lg:block text-xs font-semibold uppercase tracking-wider"
           style={{
             color: 'var(--text-secondary)',
+            fontSize: '11px',
+            letterSpacing: '0.05em',
           }}
         >
           Profil Actif
         </div>
 
-        <button
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md transition-all mb-4 cursor-pointer"
-          style={{
-            backgroundColor: 'var(--ui-hover)',
-            color: 'var(--text-secondary)',
-            opacity: 0.5,
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.opacity = '1';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.opacity = '0.5';
-          }}
-        >
-          <Plus size={20} weight="bold" />
-          <span className="hidden lg:block text-sm">Créer un profil</span>
-        </button>
+        <ProfileSelector
+          activeProfile={activeProfile}
+          profiles={profiles}
+          onActivate={activateProfile}
+        />
 
         <div
           className="border-t my-2"
@@ -106,7 +99,7 @@ export default function Sidebar({ onThemeToggle, theme }: SidebarProps) {
             { id: 'library', label: 'Bibliothèque', icon: DownloadSimple, href: '/library' },
             { id: 'updates', label: 'Mises à jour', icon: ArrowsClockwise, href: '/updates' },
             { id: 'favorites', label: 'Favoris', icon: Heart, href: '/favorites' },
-          ].map(({ id, label, icon: Icon, badge, href }) => {
+          ].map(({ id, label, icon: Icon, href }) => {
             const isActive = getActiveNav() === id;
             return (
               <button
@@ -132,11 +125,6 @@ export default function Sidebar({ onThemeToggle, theme }: SidebarProps) {
               >
                 <Icon size={20} />
                 <span className="hidden lg:block">{label}</span>
-                {badge && (
-                  <span className="hidden lg:flex w-5 h-5 bg-brand-orange text-white text-[10px] font-bold rounded items-center justify-center ml-auto">
-                    {badge}
-                  </span>
-                )}
               </button>
             );
           })}
