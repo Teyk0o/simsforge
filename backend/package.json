@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@types/unzipper": "^0.10.11",
-    "argon2": "^0.44.0",
+    "bcrypt": "^6.0.0",
     "compression": "^1.8.1",
     "cors": "^2.8.5",
     "curseforge-api": "^1.3.0",
@@ -49,6 +49,7 @@
     "zod": "^4.3.5"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/compression": "^1.8.1",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",

@@ -1,25 +1,22 @@
-import { hash, verify } from 'argon2';
+import { hash, compare } from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { logger } from '@utils/logger';
 
 /**
  * Password service for secure password hashing and verification.
- * Uses Argon2id algorithm for superior security compared to bcrypt.
+ * Uses bcrypt algorithm for password security.
  */
 export class PasswordService {
+  private readonly saltRounds = 12;
+
   /**
-   * Hash a password using Argon2id algorithm.
+   * Hash a password using bcrypt.
    * @param password Plain text password to hash
    * @returns Hashed password string
    */
   public async hashPassword(password: string): Promise<string> {
     try {
-      return await hash(password, {
-        type: 2, // Argon2id
-        memoryCost: 19 * 1024, // 19MB
-        timeCost: 2,
-        parallelism: 1,
-      });
+      return await hash(password, this.saltRounds);
     } catch (error) {
       logger.error('Password hashing failed', {
         error: error instanceof Error ? error.message : String(error),
@@ -31,12 +28,12 @@ export class PasswordService {
   /**
    * Verify a password against its hash.
    * @param password Plain text password to verify
-   * @param hash Hash to verify against
+   * @param passwordHash Hash to verify against
    * @returns True if password matches, false otherwise
    */
-  public async verifyPassword(password: string, hash: string): Promise<boolean> {
+  public async verifyPassword(password: string, passwordHash: string): Promise<boolean> {
     try {
-      return await verify(hash, password);
+      return await compare(password, passwordHash);
     } catch (error) {
       logger.error('Password verification failed', {
         error: error instanceof Error ? error.message : String(error),
