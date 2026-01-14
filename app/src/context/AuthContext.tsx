@@ -39,9 +39,11 @@ export interface AuthContextType {
   user: User | null;
   token: string | null;
   isLoading: boolean;
+  isOfflineMode: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, username: string) => Promise<void>;
   logout: () => void;
+  continueWithoutAuth: () => void;
   isAuthenticated: boolean;
 }
 
@@ -81,6 +83,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const initialAuth = initializeAuthState();
   const [user, setUser] = useState<User | null>(initialAuth.user);
   const [token, setToken] = useState<string | null>(initialAuth.token);
+  const [isOfflineMode, setIsOfflineMode] = useState(
+    typeof window !== 'undefined' ? localStorage.getItem('offline_mode') === 'true' : false
+  );
   const [isLoading, setIsLoading] = useState(typeof window === 'undefined' ? false : true);
 
   /**
@@ -88,6 +93,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * This prevents hydration mismatch by ensuring consistent rendering
    */
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsOfflineMode(localStorage.getItem('offline_mode') === 'true');
+    }
     setIsLoading(false);
   }, []);
 
@@ -164,13 +172,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [login]
   );
 
+  const continueWithoutAuth = useCallback(() => {
+    const offlineUser: User = {
+      id: 'offline',
+      email: 'offline@local',
+      username: 'Offline User',
+      role: 'user',
+    };
+    const offlineToken = 'offline_mode_token';
+
+    localStorage.setItem('offline_mode', 'true');
+    localStorage.setItem('auth_token', offlineToken);
+    localStorage.setItem('auth_user', JSON.stringify(offlineUser));
+
+    setIsOfflineMode(true);
+    setToken(offlineToken);
+    setUser(offlineUser);
+  }, []);
+
   const logout = useCallback(() => {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('auth_refresh_token');
     localStorage.removeItem('auth_user');
+    localStorage.removeItem('offline_mode');
     clearAuthCookie();
     setToken(null);
     setUser(null);
+    setIsOfflineMode(false);
   }, []);
 
   return (
@@ -179,9 +207,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         token,
         isLoading,
+        isOfflineMode,
         login,
         register,
         logout,
+        continueWithoutAuth,
         isAuthenticated: !!token && !!user,
       }}
     >

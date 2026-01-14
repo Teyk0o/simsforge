@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { List } from 'react-window';
 import { AutoSizer } from 'react-virtualized-auto-sizer';
 import ModListItem from '@/components/mod/ModListItem';
@@ -285,40 +285,52 @@ export default function ModList({ searchQuery, sortBy, category, viewMode }: Mod
       {mods.length > 0 ? (
         viewMode === 'list' ? (
           // LIST VIEW - Virtualized with ModListItem rows
-          <List
-            listRef={listRef}
-            height={800}
-            width="100%"
-            rowCount={mods.length}
-            rowHeight={listRowHeight}
-            rowComponent={Row}
-            rowProps={{}}
-            onRowsRendered={handleRowsRendered}
-            className="scrollbar-hide"
-            style={{
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none',
-              paddingTop: '12px'
-            }}
-          />
+          <div className="flex-1 flex flex-col min-w-0">
+            {/* @ts-ignore */}
+            <AutoSizer>
+              {({ height, width }: { height: number; width: number }) => {
+                const ListComponent = List as any;
+                return (<ListComponent
+                  height={height}
+                  itemCount={mods.length}
+                  itemSize={listRowHeight}
+                  width={width}
+                  onItemsRendered={handleRowsRendered}
+                  style={{
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                  }}
+                >
+                  {Row}
+                </ListComponent>
+                );
+              }}
+            </AutoSizer>
+          </div>
         ) : (
           // GRID VIEW - Virtualized with ModCard rows
-          <List
-            listRef={listRef}
-            height={800}
-            width="100%"
-            rowCount={gridRows.length}
-            rowHeight={gridRowHeight}
-            rowComponent={GridRowComponent}
-            rowProps={{}}
-            onRowsRendered={handleRowsRendered}
-            className="scrollbar-hide"
-            style={{
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none',
-              paddingTop: '12px'
-            }}
-          />
+          <div className="flex-1 flex flex-col min-w-0">
+            {/* @ts-ignore */}
+            <AutoSizer>
+              {({ height, width }: { height: number; width: number }) => {
+                const ListComponent = List as any;
+                return (<ListComponent
+                  height={height}
+                  itemCount={gridRows.length}
+                  itemSize={gridRowHeight}
+                  width={width}
+                  onItemsRendered={handleRowsRendered}
+                  style={{
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                  }}
+                >
+                  {GridRowComponent}
+                </ListComponent>
+                );
+              }}
+            </AutoSizer>
+          </div>
         )
       ) : (
         <div className="flex-1 flex items-center justify-center">

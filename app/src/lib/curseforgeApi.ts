@@ -13,7 +13,7 @@ export interface SearchModsParams {
   query?: string;
   pageSize?: number;
   pageIndex?: number;
-  sortBy?: 'downloads' | 'date' | 'popularity';
+  sortBy?: 'downloads' | 'date' | 'popularity' | 'relevance';
   categoryName?: string;
 }
 

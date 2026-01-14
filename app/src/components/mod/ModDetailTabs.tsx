@@ -7,6 +7,7 @@ import { formatFileSize, formatDate } from '@/utils/formatters';
 import { Download, Spinner } from '@phosphor-icons/react';
 import ImageLightbox from '@/components/mod/ImageLightbox';
 import { useToast } from '@/context/ToastContext';
+import { useProfiles } from '@/context/ProfileContext';
 import { modInstallationService } from '@/lib/services/ModInstallationService';
 
 interface ModDetailTabsProps {
@@ -26,6 +27,7 @@ const tabs = [
 
 export default function ModDetailTabs({ mod, activeTab, onTabChange }: ModDetailTabsProps) {
   const { showToast } = useToast();
+  const { refreshProfiles } = useProfiles();
   const [lightboxImage, setLightboxImage] = useState<number | null>(null);
   const [installingFileId, setInstallingFileId] = useState<number | null>(null);
 
@@ -109,11 +111,9 @@ export default function ModDetailTabs({ mod, activeTab, onTabChange }: ModDetail
         modsPath,
         (progress) => {
           showToast({
-            id: toastId,
-            type: 'download',
+            type: 'info',
             title: `Installing ${mod.name}`,
             message: progress.message,
-            progress: progress.percent,
             duration: 0,
           });
         }
@@ -122,15 +122,15 @@ export default function ModDetailTabs({ mod, activeTab, onTabChange }: ModDetail
       // Show result
       if (result.success) {
         showToast({
-          id: toastId,
           type: 'success',
           title: 'Installation complete!',
           message: `${result.modName} has been installed successfully`,
           duration: 3000,
         });
+        // Refresh profiles to update the library
+        await refreshProfiles();
       } else {
         showToast({
-          id: toastId,
           type: 'error',
           title: 'Installation failed',
           message: result.error || 'Unknown error',

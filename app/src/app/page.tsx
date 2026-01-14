@@ -14,7 +14,7 @@ type SortOption = 'downloads' | 'date' | 'trending' | 'relevance';
 type FilterChip = 'all' | 'updates' | 'early-access' | 'installed';
 
 export default function Home() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, continueWithoutAuth, isOfflineMode } = useAuth();
   const router = useRouter();
   const { viewMode, toggleViewMode } = useViewMode();
   const [isMounted, setIsMounted] = useState(false);
@@ -45,13 +45,6 @@ export default function Home() {
     }
   }, [searchQuery, activeSort, previousSort]);
 
-  useEffect(() => {
-    // Redirect to login if not authenticated
-    if (!isLoading && !isAuthenticated) {
-      router.push('/auth/login');
-    }
-  }, [isLoading, isAuthenticated, router]);
-
   // Show loading state while checking authentication
   if (isMounted && isLoading) {
     return (
@@ -69,9 +62,69 @@ export default function Home() {
     );
   }
 
-  // Don't render anything if not authenticated
-  if (isMounted && !isAuthenticated) {
-    return null;
+  // Show login screen if not authenticated and not in offline mode
+  if (isMounted && !isAuthenticated && !isOfflineMode) {
+    return (
+      <div
+        className="h-screen flex items-center justify-center"
+        style={{
+          background: `linear-gradient(to bottom right, #111827, var(--ui-dark), #111827)`,
+        }}
+      >
+        <div className="flex flex-col items-center gap-6 max-w-md">
+          <h1
+            className="text-3xl font-bold text-center"
+            style={{ color: 'var(--text-primary)' }}
+          >
+            SimsForge
+          </h1>
+          <p
+            className="text-center"
+            style={{ color: 'var(--text-secondary)' }}
+          >
+            Mod manager for The Sims 4
+          </p>
+
+          <div className="flex flex-col gap-3 w-full">
+            <button
+              onClick={() => router.push('/auth/login')}
+              className="w-full px-6 py-3 rounded-md transition-colors font-medium text-white"
+              style={{
+                backgroundColor: '#46C89B',
+                cursor: 'pointer',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.opacity = '0.9';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.opacity = '1';
+              }}
+            >
+              Sign In
+            </button>
+
+            <button
+              onClick={continueWithoutAuth}
+              className="w-full px-6 py-3 rounded-md border transition-colors font-medium"
+              style={{
+                backgroundColor: 'var(--ui-panel)',
+                borderColor: 'var(--border-color)',
+                color: 'var(--text-primary)',
+                cursor: 'pointer',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--ui-hover)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--ui-panel)';
+              }}
+            >
+              Continue Without Login
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // Render empty while mounting

@@ -13,8 +13,12 @@ import {
   readDir,
   remove,
 } from '@tauri-apps/plugin-fs';
-import { getModDownloadUrl } from '@/lib/curseforgeApi';
+import { getModDownloadUrl, getCurseForgeMod } from '@/lib/curseforgeApi';
 import { join, basename } from '@tauri-apps/api/path';
+import { modCacheService } from './ModCacheService';
+import { profileService } from './ProfileService';
+import { symlinkService } from './SymlinkService';
+import type { ProfileMod } from '@/types/profile';
 
 /**
  * Installation progress callback
@@ -60,6 +64,27 @@ export class ModInstallationService {
 
       const downloadInfo = await getModDownloadUrl(modId, fileId);
       const { modName, fileName, downloadUrl, fileSize } = downloadInfo;
+
+      // Get mod details for library display
+      let modLogo: string | undefined;
+      let modAuthors: string[] | undefined;
+      let lastUpdateDate: string | undefined;
+      let versionNumber: string = '1.0.0';
+
+      try {
+        const modDetails = await getCurseForgeMod(modId);
+        modLogo = modDetails.logo || undefined;
+        modAuthors = modDetails.authors?.map((author) => author.name);
+        lastUpdateDate = modDetails.dateModified;
+
+        // Get version from latest file if available
+        if (modDetails.latestFiles && modDetails.latestFiles.length > 0) {
+          versionNumber = modDetails.latestFiles[0].displayName || '1.0.0';
+        }
+      } catch (error) {
+        console.warn('Failed to fetch mod details:', error);
+        // Continue with defaults if fetch fails
+      }
 
       const tempDir = await join(await this.getTempDir(), `mod_${modId}_${Date.now()}`);
       await mkdir(tempDir, { recursive: true });
@@ -123,12 +148,82 @@ export class ModInstallationService {
       });
 
       const ext = fileName.toLowerCase().split('.').pop() || '';
-      let installedFiles: string[];
 
-      if (ext === 'zip') {
-        installedFiles = await this.installZipMod(tempFilePath, modsPath, modName, onProgress);
-      } else {
+      if (ext !== 'zip') {
         throw new Error(`Unsupported file format: ${ext}`);
+      }
+
+      onProgress?.({
+        stage: 'installing',
+        percent: 70,
+        message: 'Adding to profile cache...',
+      });
+
+      // Initialize services
+      await modCacheService.initialize();
+      await profileService.initialize();
+
+      // Get active profile
+      const activeProfile = await profileService.getActiveProfile();
+      if (!activeProfile) {
+        throw new Error(
+          'No active profile. Please create or activate a profile before installing mods.'
+        );
+      }
+
+      // Add mod to cache (handles deduplication)
+      const cachedMod = await modCacheService.addToCache(
+        modId,
+        fileName,
+        tempFilePath,
+        activeProfile.id
+      );
+
+      // Add mod to active profile
+      const profileMod: ProfileMod = {
+        modId,
+        modName,
+        versionId: fileId || 0,
+        versionNumber,
+        fileHash: cachedMod.fileHash,
+        fileName,
+        installDate: new Date().toISOString(),
+        enabled: true,
+        cacheLocation: cachedMod.fileHash,
+        logo: modLogo,
+        authors: modAuthors,
+        lastUpdateDate,
+      };
+
+      await profileService.addModToProfile(activeProfile.id, profileMod);
+
+      // If modsPath is provided, create symlink
+      let installedFiles: string[] = [];
+      if (modsPath && (await exists(modsPath))) {
+        onProgress?.({
+          stage: 'installing',
+          percent: 85,
+          message: 'Creating symlink to profile mods...',
+        });
+
+        const cachePath = await modCacheService.getCachePath(
+          cachedMod.fileHash
+        );
+        const sanitizedModName = this.sanitizeModName(modName);
+
+        const symlinkResult = await symlinkService.activateProfile(modsPath, [
+          { source: cachePath, modName: sanitizedModName },
+        ]);
+
+        if (!symlinkResult.success) {
+          console.warn('Failed to create symlink:', symlinkResult.errors);
+          // Don't fail - mod is in cache and profile
+        }
+
+        installedFiles = cachedMod.files.map((f) => f.fileName);
+      } else {
+        // If modsPath not provided, just return the cached files
+        installedFiles = cachedMod.files.map((f) => f.fileName);
       }
 
       await this.cleanupTempDir(tempDir);

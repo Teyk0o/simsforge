@@ -66,6 +66,9 @@ export async function getApiClient(token?: string): Promise<AxiosInstance> {
             originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
 
             // Retry original request with new token
+            if (!apiClient) {
+              return Promise.reject(new Error('API client not initialized'));
+            }
             return apiClient.request(originalRequest);
           } catch (refreshError) {
             // Refresh failed, redirect to login

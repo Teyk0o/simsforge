@@ -2,6 +2,7 @@
 const nextConfig = {
   // Tauri expects a static export
   output: process.env.TAURI_PLATFORM ? 'export' : 'standalone',
+  devIndicators: false,
 
   // Optimize images for Tauri
   images: {
