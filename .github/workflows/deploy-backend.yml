@@ -40,9 +40,14 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Verify backend directory
+        run: |
+          echo "Checking backend directory..."
+          ls -la backend/
+
       - name: Install dependencies
         working-directory: ./backend
-        run: npm ci
+        run: npm install --omit=dev
 
       - name: Build TypeScript
         working-directory: ./backend
