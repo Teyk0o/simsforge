@@ -157,21 +157,34 @@ export default function ModDetailTabs({ mod, activeTab, onTabChange }: ModDetail
   return (
     <div className="flex-1">
       {/* Tab Navigation */}
-      <div className="flex border-b border-gray-700 mb-6 overflow-x-auto">
+      <div className="flex border-b mb-6 overflow-x-auto" style={{ borderColor: 'var(--ui-border)' }}>
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => !tab.disabled && onTabChange(tab.id)}
             disabled={tab.disabled}
-            className={`px-6 py-3 text-sm font-semibold whitespace-nowrap transition-colors ${
+            className={`px-6 py-3 text-sm font-semibold whitespace-nowrap transition-colors cursor-pointer ${
               activeTab === tab.id
                 ? 'border-b-2 border-brand-green text-brand-green'
-                : 'text-gray-400 hover:text-gray-200 disabled:cursor-not-allowed'
+                : 'disabled:cursor-not-allowed'
             } ${tab.disabled ? 'opacity-50' : ''}`}
+            style={{
+              color: activeTab === tab.id ? undefined : 'var(--text-secondary)',
+            }}
+            onMouseEnter={(e) => {
+              if (!tab.disabled && activeTab !== tab.id) {
+                e.currentTarget.style.color = '#46C89B';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!tab.disabled && activeTab !== tab.id) {
+                e.currentTarget.style.color = 'var(--text-secondary)';
+              }
+            }}
           >
             {tab.label}
             {(tab.id === 'files' || tab.id === 'images') && tabCount[tab.id] > 0 && (
-              <span className="ml-2 px-2 py-0.5 rounded-full bg-gray-700 text-xs text-gray-300">
+              <span className="ml-2 px-2 py-0.5 rounded-full text-xs" style={{ backgroundColor: 'var(--ui-hover)', color: 'var(--text-secondary)' }}>
                 {tabCount[tab.id]}
               </span>
             )}
@@ -183,14 +196,15 @@ export default function ModDetailTabs({ mod, activeTab, onTabChange }: ModDetail
       <div>
         {/* Description Tab */}
         {activeTab === 'description' && (
-          <div className="prose dark:prose-invert max-w-none text-gray-300">
+          <div className="prose max-w-none" style={{ color: 'var(--text-primary)' }}>
             {/* Summary */}
             <p className="lead text-lg font-semibold mb-4">{mod.summary}</p>
 
             {/* Full description */}
             {mod.description ? (
               <div
-                className="text-gray-300 leading-relaxed space-y-3 mb-4"
+                className="leading-relaxed space-y-3 mb-4"
+                style={{ color: 'var(--text-primary)' }}
                 dangerouslySetInnerHTML={{
                   __html: mod.description
                     .replace(/\n\n/g, '</p><p>')
@@ -200,14 +214,14 @@ export default function ModDetailTabs({ mod, activeTab, onTabChange }: ModDetail
                 }}
               />
             ) : (
-              <div className="bg-ui-hover/50 border border-ui-border rounded-lg p-4 text-gray-300">
+              <div className="border rounded-lg p-4" style={{ backgroundColor: 'var(--ui-hover)', color: 'var(--text-primary)', borderColor: 'var(--ui-border)' }}>
                 <p className="mb-2">This mod is sourced from the CurseForge API. For detailed information, visit the mod page on CurseForge:</p>
                 {mod.websiteUrl && (
                   <a
                     href={mod.websiteUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-block text-brand-green hover:text-brand-dark transition-colors font-semibold"
+                    className="inline-block text-brand-green hover:text-brand-dark transition-colors font-semibold cursor-pointer"
                   >
                     View on CurseForge
                   </a>
@@ -221,13 +235,13 @@ export default function ModDetailTabs({ mod, activeTab, onTabChange }: ModDetail
         {activeTab === 'files' && (
           <div className="overflow-x-auto">
             {mod.latestFiles && mod.latestFiles.length > 0 ? (
-              <table className="w-full text-sm text-gray-300">
+              <table className="w-full text-sm" style={{ color: 'var(--text-secondary)' }}>
                 <thead>
-                  <tr className="border-b border-gray-700">
-                    <th className="text-left py-3 px-4 font-semibold text-white">Name</th>
-                    <th className="text-left py-3 px-4 font-semibold text-white">Date</th>
-                    <th className="text-left py-3 px-4 font-semibold text-white">Size</th>
-                    <th className="text-center py-3 px-4 font-semibold text-white">Action</th>
+                  <tr style={{ borderColor: 'var(--ui-border)' }} className="border-b">
+                    <th className="text-left py-3 px-4 font-semibold" style={{ color: 'var(--text-primary)' }}>Name</th>
+                    <th className="text-left py-3 px-4 font-semibold" style={{ color: 'var(--text-primary)' }}>Date</th>
+                    <th className="text-left py-3 px-4 font-semibold" style={{ color: 'var(--text-primary)' }}>Size</th>
+                    <th className="text-center py-3 px-4 font-semibold" style={{ color: 'var(--text-primary)' }}>Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -236,9 +250,11 @@ export default function ModDetailTabs({ mod, activeTab, onTabChange }: ModDetail
                     .map((file, index) => (
                       <tr
                         key={file.id}
-                        className={`border-b transition-colors ${
-                          index === 0 ? 'bg-gray-800/20 hover:bg-gray-800/40' : 'border-gray-800 hover:bg-gray-800/30'
-                        }`}
+                        className="border-b transition-colors"
+                        style={{
+                          backgroundColor: index === 0 ? 'var(--ui-hover)' : 'transparent',
+                          borderColor: 'var(--ui-border)',
+                        }}
                       >
                         <td className="py-3 px-4 font-medium">
                           <div className="flex items-center gap-2">
@@ -250,15 +266,15 @@ export default function ModDetailTabs({ mod, activeTab, onTabChange }: ModDetail
                             )}
                           </div>
                         </td>
-                        <td className="py-3 px-4 text-gray-400">{formatDate(file.fileDate)}</td>
-                        <td className="py-3 px-4 text-gray-400">
+                        <td className="py-3 px-4" style={{ color: 'var(--text-secondary)' }}>{formatDate(file.fileDate)}</td>
+                        <td className="py-3 px-4" style={{ color: 'var(--text-secondary)' }}>
                           {formatFileSize(file.fileLength)}
                         </td>
                         <td className="py-3 px-4 text-center">
                           <button
                             onClick={() => handleInstallFile(file)}
                             disabled={installingFileId === file.id}
-                            className="inline-flex items-center gap-1 text-brand-green hover:text-brand-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="inline-flex items-center gap-1 text-brand-green hover:text-brand-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                             title={installingFileId === file.id ? "Installing..." : "Install file"}
                           >
                             {installingFileId === file.id ? (
@@ -273,7 +289,7 @@ export default function ModDetailTabs({ mod, activeTab, onTabChange }: ModDetail
                 </tbody>
               </table>
             ) : (
-              <p className="text-gray-400 py-8">No files available.</p>
+              <p className="py-8" style={{ color: 'var(--text-secondary)' }}>No files available.</p>
             )}
           </div>
         )}
@@ -286,7 +302,8 @@ export default function ModDetailTabs({ mod, activeTab, onTabChange }: ModDetail
                 {mod.screenshots.map((screenshot, index) => (
                   <div
                     key={index}
-                    className="relative h-48 rounded-xl overflow-hidden bg-gray-800 group cursor-pointer"
+                    className="relative h-48 rounded-xl overflow-hidden group cursor-pointer"
+                    style={{ backgroundColor: 'var(--ui-dark)' }}
                     onClick={() => setLightboxImage(index)}
                   >
                     <Image
@@ -302,14 +319,14 @@ export default function ModDetailTabs({ mod, activeTab, onTabChange }: ModDetail
                 ))}
               </div>
             ) : (
-              <p className="text-gray-400 py-8">No images available.</p>
+              <p className="py-8" style={{ color: 'var(--text-secondary)' }}>No images available.</p>
             )}
           </div>
         )}
 
         {/* Changelog Tab */}
         {activeTab === 'changelog' && (
-          <div className="text-gray-400 py-8 text-center">
+          <div className="py-8 text-center" style={{ color: 'var(--text-secondary)' }}>
             <p className="text-lg font-semibold mb-2">Coming soon</p>
             <p className="text-sm">Changelog view will be available in the next update.</p>
           </div>
