@@ -18,6 +18,9 @@ export interface ProfileMod {
   installDate: string;
   enabled: boolean;
   cacheLocation: string;
+  logo?: string;
+  authors?: string[];
+  lastUpdateDate?: string;
 }
 
 /**
