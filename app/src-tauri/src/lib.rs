@@ -152,6 +152,21 @@ fn get_file_size(file_path: String) -> Result<u64, String> {
     Ok(metadata.len())
 }
 
+/// Toggle developer tools (console) for debugging
+#[tauri::command]
+fn toggle_devtools(window: tauri::Window) {
+    #[cfg(debug_assertions)]
+    window.open_devtools();
+    #[cfg(not(debug_assertions))]
+    {
+        if window.is_devtools_open() {
+            window.close_devtools();
+        } else {
+            window.open_devtools();
+        }
+    }
+}
+
 /// Copy a directory recursively from source to target
 #[tauri::command]
 fn copy_directory(source: String, target: String) -> Result<(), String> {
@@ -207,7 +222,8 @@ pub fn run() {
             list_symlinks,
             calculate_file_hash,
             get_file_size,
-            copy_directory
+            copy_directory,
+            toggle_devtools
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
