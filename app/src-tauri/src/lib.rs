@@ -1,7 +1,8 @@
-use std::fs::{create_dir_all, File};
-use std::io::copy;
+use std::fs::{create_dir_all, File, metadata, read_dir};
+use std::io::{copy, Read};
 use std::path::Path;
 use zip::ZipArchive;
+use sha2::{Sha256, Digest};
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -32,6 +33,125 @@ fn extract_zip(zip_path: String, dest_dir: String) -> Result<(), String> {
     Ok(())
 }
 
+/// Create a symbolic link (directory junction on Windows, symlink on Unix)
+#[tauri::command]
+fn create_symlink(source: String, target: String) -> Result<(), String> {
+    let source_path = Path::new(&source);
+    let target_path = Path::new(&target);
+
+    // Remove existing target if it exists
+    if target_path.exists() || target_path.is_symlink() {
+        std::fs::remove_dir_all(target_path).map_err(|e| e.to_string())?;
+    }
+
+    // On Windows, use directory junctions (no admin required)
+    #[cfg(target_os = "windows")]
+    {
+        use std::os::windows::fs::symlink_dir;
+        symlink_dir(source_path, target_path).map_err(|e| {
+            format!("Failed to create symlink: {} -> {}: {}", source, target, e)
+        })?;
+    }
+
+    // On Unix-like systems, use standard symlinks
+    #[cfg(not(target_os = "windows"))]
+    {
+        use std::os::unix::fs::symlink;
+        symlink(source_path, target_path).map_err(|e| {
+            format!("Failed to create symlink: {} -> {}: {}", source, target, e)
+        })?;
+    }
+
+    Ok(())
+}
+
+/// Remove a symbolic link or directory
+#[tauri::command]
+fn remove_symlink(path: String) -> Result<(), String> {
+    let symlink_path = Path::new(&path);
+
+    if !symlink_path.exists() && !symlink_path.is_symlink() {
+        return Ok(());
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        // On Windows, remove directory junction
+        std::fs::remove_dir(symlink_path).map_err(|e| {
+            format!("Failed to remove symlink {}: {}", path, e)
+        })?;
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    {
+        // On Unix, remove symlink
+        std::fs::remove_file(symlink_path).map_err(|e| {
+            format!("Failed to remove symlink {}: {}", path, e)
+        })?;
+    }
+
+    Ok(())
+}
+
+/// List all symlinks in a directory
+#[tauri::command]
+fn list_symlinks(directory: String) -> Result<Vec<String>, String> {
+    let dir_path = Path::new(&directory);
+    let mut symlinks = Vec::new();
+
+    if !dir_path.exists() {
+        return Ok(symlinks);
+    }
+
+    let entries = read_dir(dir_path).map_err(|e| e.to_string())?;
+
+    for entry in entries {
+        let entry = entry.map_err(|e| e.to_string())?;
+        let path = entry.path();
+
+        if path.is_symlink() {
+            if let Some(path_str) = path.to_str() {
+                symlinks.push(path_str.to_string());
+            }
+        }
+    }
+
+    Ok(symlinks)
+}
+
+/// Calculate SHA-256 hash of a file
+#[tauri::command]
+fn calculate_file_hash(file_path: String) -> Result<String, String> {
+    let mut file = File::open(&file_path)
+        .map_err(|e| format!("Failed to open file {}: {}", file_path, e))?;
+
+    let mut hasher = Sha256::new();
+    let mut buffer = [0; 1024 * 64]; // 64KB buffer
+
+    loop {
+        let bytes_read = file.read(&mut buffer)
+            .map_err(|e| format!("Failed to read file {}: {}", file_path, e))?;
+
+        if bytes_read == 0 {
+            break;
+        }
+
+        hasher.update(&buffer[..bytes_read]);
+    }
+
+    let result = hasher.finalize();
+    Ok(format!("{:x}", result))
+}
+
+/// Get file size in bytes
+#[tauri::command]
+fn get_file_size(file_path: String) -> Result<u64, String> {
+    let metadata = metadata(&file_path)
+        .map_err(|e| format!("Failed to get file size {}: {}", file_path, e))?;
+
+    Ok(metadata.len())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -40,8 +160,15 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
-        .invoke_handler(tauri::generate_handler![greet])
-        .invoke_handler(tauri::generate_handler![extract_zip])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            extract_zip,
+            create_symlink,
+            remove_symlink,
+            list_symlinks,
+            calculate_file_hash,
+            get_file_size
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
