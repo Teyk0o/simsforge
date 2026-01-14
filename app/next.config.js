@@ -8,11 +8,6 @@ const nextConfig = {
     unoptimized: true,
   },
 
-  // ESLint configuration
-  eslint: {
-    ignoreDuringBuilds: false,
-  },
-
   // Disable static optimizations for Tauri
   staticPageGenerationTimeout: 1000,
 };
