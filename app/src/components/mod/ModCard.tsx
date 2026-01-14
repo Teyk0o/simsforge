@@ -152,10 +152,18 @@ export default function ModCard({ mod }: ModCardProps) {
 
   return (
     <Link href={`/mods/${mod.id}`}>
-      <div className="group bg-ui-panel hover:bg-ui-hover border border-ui-border rounded-lg overflow-hidden transition-all duration-200 h-full flex flex-col">
+      <div
+        className="group rounded-lg overflow-hidden transition-all duration-200 h-full flex flex-col"
+        style={{
+          backgroundColor: 'var(--ui-panel)',
+          border: '1px solid var(--ui-border)',
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--ui-hover)')}
+        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--ui-panel)')}
+      >
 
         {/* Image Section */}
-        <div className="relative aspect-video bg-gray-800 overflow-hidden">
+        <div className="relative aspect-video overflow-hidden" style={{ backgroundColor: '#1a1a1a' }}>
           {mod.logo ? (
             <Image
               src={mod.logo}
@@ -165,7 +173,7 @@ export default function ModCard({ mod }: ModCardProps) {
               unoptimized
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-500 text-4xl">
+            <div className="w-full h-full flex items-center justify-center text-4xl" style={{ color: 'var(--text-tertiary)' }}>
               📦
             </div>
           )}
@@ -179,17 +187,17 @@ export default function ModCard({ mod }: ModCardProps) {
 
           {/* Title and Author */}
           <div className="h-14">
-            <h3 className="text-sm font-semibold text-white line-clamp-2">
+            <h3 className="text-sm font-semibold line-clamp-2" style={{ color: 'var(--text-primary)' }}>
               {mod.name}
             </h3>
-            <p className="text-xs text-gray-400 line-clamp-1">
+            <p className="text-xs line-clamp-1" style={{ color: 'var(--text-secondary)' }}>
               by {authorNames || 'Unknown'}
             </p>
           </div>
 
           {/* Summary */}
           {mod.summary && (
-            <p className="text-xs text-gray-300 line-clamp-2 overflow-hidden min-h-8">
+            <p className="text-xs line-clamp-2 overflow-hidden min-h-8" style={{ color: 'var(--text-secondary)' }}>
               {mod.summary}
             </p>
           )}
@@ -200,7 +208,11 @@ export default function ModCard({ mod }: ModCardProps) {
               {categoryNames.map((cat, i) => (
                 <span
                   key={i}
-                  className="text-xs bg-ui-hover text-gray-300 px-2 py-1 rounded truncate flex-shrink-0"
+                  className="text-xs px-2 py-1 rounded truncate flex-shrink-0"
+                  style={{
+                    backgroundColor: 'var(--ui-hover)',
+                    color: 'var(--text-secondary)',
+                  }}
                   title={cat}
                 >
                   {cat}
@@ -210,7 +222,7 @@ export default function ModCard({ mod }: ModCardProps) {
           )}
 
           {/* Stats */}
-          <div className="flex items-center gap-2 text-xs text-gray-400">
+          <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--text-secondary)' }}>
             <span>{formatDownloadCount(mod.downloadCount)}</span>
             <span>•</span>
             <span>{formatRelativeDate(mod.dateModified)}</span>
@@ -220,7 +232,7 @@ export default function ModCard({ mod }: ModCardProps) {
           <button
             onClick={handleInstall}
             disabled={isInstalling}
-            className="w-full px-3 py-2.5 bg-brand-green hover:bg-brand-dark text-white font-medium rounded text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full px-3 py-2.5 bg-brand-green hover:bg-brand-dark text-white font-medium rounded text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
             title={isInstalling ? 'Installing...' : 'Install'}
           >
             {isInstalling ? (

@@ -142,14 +142,22 @@ export default function ModListItem({ mod }: ModListItemProps) {
   };
 
   return (
-    <div className="group bg-ui-panel hover:bg-ui-hover border border-ui-border rounded-lg px-4 py-3 transition-all duration-200">
+    <div
+      className="group rounded-lg px-4 py-3 transition-all duration-200"
+      style={{
+        backgroundColor: 'var(--ui-panel)',
+        border: '1px solid var(--ui-border)',
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--ui-hover)')}
+      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--ui-panel)')}
+    >
       <Link href={`/mods/${mod.id}`}>
         <div className="grid grid-cols-12 gap-4 items-center">
           {/* Mod Info */}
           <div className="col-span-6 lg:col-span-5">
             <div className="flex items-center gap-3">
               {/* Logo Image */}
-              <div className="relative h-14 w-14 rounded-md overflow-hidden flex-shrink-0 bg-gray-700">
+              <div className="relative h-14 w-14 rounded-md overflow-hidden flex-shrink-0" style={{ backgroundColor: 'var(--ui-dark)' }}>
                 {mod.logo ? (
                   <Image
                     src={mod.logo}
@@ -159,7 +167,7 @@ export default function ModListItem({ mod }: ModListItemProps) {
                     unoptimized
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-500 text-xl">
+                  <div className="w-full h-full flex items-center justify-center text-xl" style={{ color: 'var(--text-tertiary)' }}>
                     📦
                   </div>
                 )}
@@ -167,10 +175,10 @@ export default function ModListItem({ mod }: ModListItemProps) {
 
               {/* Title and Author */}
               <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-semibold text-white truncate">
+                <h3 className="text-sm font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
                   {mod.name}
                 </h3>
-                <p className="text-xs text-gray-400 truncate">
+                <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>
                   by {authorNames || 'Unknown'}
                 </p>
               </div>
@@ -183,14 +191,18 @@ export default function ModListItem({ mod }: ModListItemProps) {
               {categoryNames.map((category, i) => (
                 <span
                   key={i}
-                  className="text-xs bg-ui-hover text-gray-300 px-2 py-1 rounded truncate flex-shrink-0"
+                  className="text-xs px-2 py-1 rounded truncate flex-shrink-0"
+                  style={{
+                    backgroundColor: 'var(--ui-hover)',
+                    color: 'var(--text-secondary)',
+                  }}
                   title={category}
                 >
                   {category}
                 </span>
               ))}
               {mod.categories.length > 2 && (
-                <span className="text-xs text-gray-500 flex-shrink-0">
+                <span className="text-xs flex-shrink-0" style={{ color: 'var(--text-tertiary)' }}>
                   +{mod.categories.length - 2}
                 </span>
               )}
@@ -199,14 +211,14 @@ export default function ModListItem({ mod }: ModListItemProps) {
 
           {/* Downloads */}
           <div className="col-span-2 hidden lg:block lg:col-span-1">
-            <span className="text-sm text-gray-300">
+            <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
               {formatDownloadCount(mod.downloadCount)}
             </span>
           </div>
 
           {/* Last Update */}
           <div className="col-span-3 lg:col-span-2 hidden lg:block text-right">
-            <span className="text-xs text-gray-400">
+            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
               {formatRelativeDate(mod.dateModified)}
             </span>
           </div>
@@ -215,7 +227,7 @@ export default function ModListItem({ mod }: ModListItemProps) {
             <button
               onClick={handleInstall}
               disabled={isInstalling}
-              className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-1.5 bg-brand-green hover:bg-brand-dark text-white font-medium rounded text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               title={isInstalling ? "Installing..." : "Install"}
             >
               {isInstalling ? <Spinner size={24} className="animate-spin" /> : <DownloadSimple size={24} />}
