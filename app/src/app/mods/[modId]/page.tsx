@@ -54,9 +54,9 @@ export default function ModDetailPage() {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="inline-block">
-              <div className="w-12 h-12 border-4 border-gray-700 border-t-green-600 rounded-full animate-spin" />
+              <div className="w-12 h-12 border-4 rounded-full animate-spin" style={{ borderColor: 'var(--ui-border)', borderTopColor: 'var(--brand-green)' }} />
             </div>
-            <p className="text-gray-400 mt-4">Loading mod details...</p>
+            <p className="mt-4" style={{ color: 'var(--text-secondary)' }}>Loading mod details...</p>
           </div>
         </div>
       </Layout>
@@ -73,7 +73,7 @@ export default function ModDetailPage() {
               {error === 'Mod not found' ? 'Mod Not Found' : 'Error'}
             </h3>
             <p className="text-red-200 mb-4">{error || 'Failed to load mod'}</p>
-            <Link href="/dashboard" className="inline-block bg-brand-green hover:bg-brand-dark px-4 py-2 rounded text-white font-medium transition-colors">
+            <Link href="/" className="inline-block bg-brand-green hover:bg-brand-dark px-4 py-2 rounded text-white font-medium transition-colors">
               Back to Dashboard
             </Link>
           </div>
@@ -88,10 +88,19 @@ export default function ModDetailPage() {
     <Layout>
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
       {/* Back button */}
-      <div className="flex-shrink-0 px-6 lg:px-10 py-4 border-b border-gray-700">
+      <div className="flex-shrink-0 px-6 lg:px-10 py-4 border-b" style={{ borderColor: 'var(--ui-border)' }}>
         <button
           onClick={() => window.history.back()}
-          className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm font-medium"
+          className="inline-flex items-center gap-2 transition-colors text-sm font-medium cursor-pointer px-2 py-1 rounded"
+          style={{ color: 'var(--text-secondary)' }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = '#46C89B';
+            e.currentTarget.style.backgroundColor = 'var(--ui-hover)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'var(--text-secondary)';
+            e.currentTarget.style.backgroundColor = 'transparent';
+          }}
         >
           <ArrowLeft size={18} />
           Back
