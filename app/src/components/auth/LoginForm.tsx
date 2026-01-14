@@ -22,7 +22,7 @@ export function LoginForm() {
 
     try {
       await login(email, password);
-      router.push(searchParams.get('callbackUrl') || '/dashboard');
+      router.push(searchParams.get('callbackUrl') || '/');
     } catch (err: any) {
       setError(err.message || 'Invalid credentials');
       console.error(err);
