@@ -127,7 +127,7 @@ export default function FilterBar({
     setOpenDropdown(null);
   };
 
-  const handleSortSelect = (value: 'downloads' | 'date' | 'trending') => {
+  const handleSortSelect = (value: 'relevance' | 'downloads' | 'date' | 'trending') => {
     onSortChange(value);
     setOpenDropdown(null);
   };
