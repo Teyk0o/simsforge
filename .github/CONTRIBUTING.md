@@ -1,4 +1,4 @@
-![banner.png](../assets/banner.png)
+![banner.png](/assets/banner.png)
 # Contributing to SimsForge
 
 Thank you for your interest in contributing to SimsForge! This document provides guidelines and instructions for contributing to the project.
