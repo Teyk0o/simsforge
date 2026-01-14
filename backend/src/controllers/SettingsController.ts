@@ -7,7 +7,7 @@ import { z } from 'zod';
  */
 const addApiKeySchema = z.object({
   serviceName: z.enum(['curseforge', 'patreon'], {
-    errorMap: () => ({ message: 'Service must be one of: curseforge, patreon' })
+    message: 'Service must be one of: curseforge, patreon'
   }),
   apiKey: z.string()
     .min(10, 'API key is too short')
@@ -37,7 +37,7 @@ export class SettingsController {
         if (error instanceof z.ZodError) {
           res.status(400).json({
             success: false,
-            error: { message: error.errors[0].message }
+            error: { message: error.issues[0].message }
           });
         }
         return;
@@ -89,7 +89,7 @@ export class SettingsController {
       const { serviceName } = req.params;
 
       // Validate service name
-      if (!['curseforge', 'patreon'].includes(serviceName)) {
+      if (!['curseforge', 'patreon'].includes(serviceName as string)) {
         res.status(400).json({
           success: false,
           error: { message: 'Invalid service name' }
@@ -97,7 +97,7 @@ export class SettingsController {
         return;
       }
 
-      const deleted = await userApiKeyRepository.delete(userId, serviceName);
+      const deleted = await userApiKeyRepository.delete(userId, serviceName as string);
 
       if (!deleted) {
         res.status(404).json({

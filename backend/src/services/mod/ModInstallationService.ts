@@ -12,7 +12,6 @@ import * as path from 'path';
 import * as https from 'https';
 import * as http from 'http';
 import { createWriteStream, createReadStream } from 'fs';
-import { pipeline } from 'stream/promises';
 import { Extract } from 'unzipper';
 
 /**

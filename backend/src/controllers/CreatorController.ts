@@ -88,7 +88,7 @@ export class CreatorController {
     const { username } = req.params;
 
     // Find user by username
-    const user = await this.userRepository.findByUsername(username);
+    const user = await this.userRepository.findByUsername(username as string);
     if (!user) {
       throw new NotFoundError('Creator');
     }

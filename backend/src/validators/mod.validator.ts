@@ -11,7 +11,7 @@ export const createModSchema = z.object({
   description: z.string().max(5000, 'Description must be at most 5000 characters').optional(),
   accessType: z
     .enum(['free', 'early_access'], {
-      errorMap: () => ({ message: 'Access type must be either free or early_access' }),
+      message: 'Access type must be either free or early_access'
     })
     .optional(),
   earlyAccessPrice: z
@@ -37,7 +37,7 @@ export const updateModSchema = z.object({
   description: z.string().max(5000, 'Description must be at most 5000 characters').nullable().optional(),
   accessType: z
     .enum(['free', 'early_access'], {
-      errorMap: () => ({ message: 'Access type must be either free or early_access' }),
+      message: 'Access type must be either free or early_access'
     })
     .optional(),
   earlyAccessPrice: z
@@ -48,7 +48,7 @@ export const updateModSchema = z.object({
     .optional(),
   status: z
     .enum(['draft', 'published', 'hidden', 'removed'], {
-      errorMap: () => ({ message: 'Status must be one of: draft, published, hidden, removed' }),
+      message: 'Status must be one of: draft, published, hidden, removed'
     })
     .optional(),
   categoryIds: z.array(z.number().positive()).optional(),

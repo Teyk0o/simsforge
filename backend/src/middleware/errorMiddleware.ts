@@ -49,7 +49,7 @@ export function errorMiddleware(
       error: {
         message: 'Validation failed',
         statusCode: 400,
-        details: err.errors.map((e) => ({
+        details: err.issues.map((e: any) => ({
           path: e.path.join('.'),
           message: e.message,
           code: e.code,

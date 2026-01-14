@@ -13,12 +13,12 @@ const envSchema = z.object({
   NODE_ENV: z
     .enum(['development', 'production', 'test'])
     .default('development'),
-  PORT: z.string().transform(Number).default('5000'),
+  PORT: z.string().default('5000').transform(Number),
   API_BASE_URL: z.string().url().default('http://localhost:5000'),
 
   // Database
   DATABASE_HOST: z.string().default('localhost'),
-  DATABASE_PORT: z.string().transform(Number).default('5432'),
+  DATABASE_PORT: z.string().default('5432').transform(Number),
   DATABASE_NAME: z.string(),
   DATABASE_USER: z.string(),
   DATABASE_PASSWORD: z.string(),
@@ -30,7 +30,7 @@ const envSchema = z.object({
 
   // File Upload
   UPLOAD_PATH: z.string().default('./uploads'),
-  MAX_FILE_SIZE: z.string().transform(Number).default('104857600'),
+  MAX_FILE_SIZE: z.string().default('104857600').transform(Number),
   ALLOWED_FILE_TYPES: z.string().default('.package,.ts4script,.zip'),
 
   // CORS
@@ -41,8 +41,8 @@ const envSchema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   PLATFORM_COMMISSION_RATE: z
     .string()
-    .transform(Number)
-    .default('0.15'),
+    .default('0.15')
+    .transform(Number),
 
   // Email
   SMTP_HOST: z.string().optional(),
@@ -54,12 +54,12 @@ const envSchema = z.object({
   // Rate Limiting
   RATE_LIMIT_WINDOW_MS: z
     .string()
-    .transform(Number)
-    .default('900000'),
+    .default('900000')
+    .transform(Number),
   RATE_LIMIT_MAX_REQUESTS: z
     .string()
-    .transform(Number)
-    .default('100'),
+    .default('100')
+    .transform(Number),
 
   // Logging
   LOG_LEVEL: z

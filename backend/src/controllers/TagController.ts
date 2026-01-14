@@ -41,7 +41,7 @@ export class TagController {
   public async getTagById(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const tag = await this.tagRepository.findById(parseInt(id));
+      const tag = await this.tagRepository.findById(parseInt(id as string));
 
       if (!tag) {
         res.status(404).json({

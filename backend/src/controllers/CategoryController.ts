@@ -39,7 +39,7 @@ export class CategoryController {
   public async getCategoryById(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const category = await this.categoryRepository.findById(parseInt(id));
+      const category = await this.categoryRepository.findById(parseInt(id as string));
 
       if (!category) {
         res.status(404).json({

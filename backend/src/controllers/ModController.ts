@@ -88,13 +88,13 @@ export class ModController {
   public async getModByIdentifier(req: Request, res: Response): Promise<void> {
     try {
       const { identifier } = req.params;
-      const isNumeric = /^\d+$/.test(identifier);
+      const isNumeric = /^\d+$/.test(identifier as string);
 
       let mod;
       if (isNumeric) {
-        mod = await this.modService.getModById(parseInt(identifier));
+        mod = await this.modService.getModById(parseInt(identifier as string));
       } else {
-        mod = await this.modService.getModBySlug(identifier);
+        mod = await this.modService.getModBySlug(identifier as string);
       }
 
       if (!mod) {
@@ -135,7 +135,7 @@ export class ModController {
         throw new ValidationError('Invalid mod data', { errors });
       }
 
-      const mod = await this.modService.updateMod(parseInt(modId), req.user!.id, validationResult.data);
+      const mod = await this.modService.updateMod(parseInt(modId as string), req.user!.id, validationResult.data);
 
       res.status(200).json({
         success: true,
@@ -159,7 +159,7 @@ export class ModController {
     try {
       const { modId } = req.params;
 
-      const mod = await this.modService.publishMod(parseInt(modId), req.user!.id);
+      const mod = await this.modService.publishMod(parseInt(modId as string), req.user!.id);
 
       res.status(200).json({
         success: true,
@@ -183,7 +183,7 @@ export class ModController {
     try {
       const { modId } = req.params;
 
-      const mod = await this.modService.hideMod(parseInt(modId), req.user!.id);
+      const mod = await this.modService.hideMod(parseInt(modId as string), req.user!.id);
 
       res.status(200).json({
         success: true,
@@ -222,13 +222,13 @@ export class ModController {
       // Upload file
       const fileMetadata = await this.fileService.uploadModFile(
         req.file,
-        parseInt(modId),
+        parseInt(modId as string),
         validationResult.data.versionNumber
       );
 
       // Create version
       const version = await this.versionService.createVersion(
-        parseInt(modId),
+        parseInt(modId as string),
         req.user!.id,
         {
           ...validationResult.data,
@@ -260,7 +260,7 @@ export class ModController {
     try {
       const { modId } = req.params;
 
-      const versions = await this.versionService.getVersionsByModId(parseInt(modId));
+      const versions = await this.versionService.getVersionsByModId(parseInt(modId as string));
 
       res.status(200).json({
         success: true,
@@ -284,8 +284,8 @@ export class ModController {
       const { modId, versionId } = req.params;
 
       await this.versionService.setRecommendedVersion(
-        parseInt(modId),
-        parseInt(versionId),
+        parseInt(modId as string),
+        parseInt(versionId as string),
         req.user!.id
       );
 

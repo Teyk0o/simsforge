@@ -41,7 +41,7 @@ export class CurseForgeController {
         if (error instanceof z.ZodError) {
           res.status(400).json({
             success: false,
-            error: { message: error.errors[0].message }
+            error: { message: error.issues[0].message }
           });
         }
         return;
@@ -132,7 +132,7 @@ export class CurseForgeController {
   async getMod(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.user!.id;
-      const modId = parseInt(req.params.modId);
+      const modId = parseInt(req.params.modId as string);
 
       // Validate mod ID
       if (isNaN(modId) || modId < 1) {
@@ -207,7 +207,7 @@ export class CurseForgeController {
         if (error instanceof z.ZodError) {
           res.status(400).json({
             success: false,
-            error: { message: error.errors[0].message }
+            error: { message: error.issues[0].message }
           });
         }
         return;
