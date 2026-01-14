@@ -17,11 +17,16 @@ export default function Home() {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const { viewMode, toggleViewMode } = useViewMode();
+  const [isMounted, setIsMounted] = useState(false);
   const [activeSort, setActiveSort] = useState<SortOption>('trending');
   const [activeFilter, setActiveFilter] = useState<FilterChip>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [previousSort, setPreviousSort] = useState<SortOption>('trending');
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Debounce search query to avoid spamming API while user types
   // API call will only trigger 500ms after user stops typing
@@ -48,78 +53,99 @@ export default function Home() {
   }, [isLoading, isAuthenticated, router]);
 
   // Show loading state while checking authentication
-  if (isLoading) {
+  if (isMounted && isLoading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-ui-dark to-gray-900">
-        <div className="flex flex-col items-center gap-4">
-          <Spinner size={48} className="animate-spin text-brand-green" />
-          <p className="text-gray-400">Chargement...</p>
+        <div
+          className="h-screen flex items-center justify-center"
+          style={{
+            background: `linear-gradient(to bottom right, #111827, var(--ui-dark), #111827)`,
+          }}
+        >
+          <div className="flex flex-col items-center gap-4">
+            <Spinner size={48} className="animate-spin text-brand-green" />
+            <p style={{ color: 'var(--text-secondary)' }}>Chargement...</p>
+          </div>
         </div>
-      </div>
     );
   }
 
   // Don't render anything if not authenticated
-  if (!isAuthenticated) {
+  if (isMounted && !isAuthenticated) {
+    return null;
+  }
+
+  // Render empty while mounting
+  if (!isMounted) {
     return null;
   }
 
   return (
-    <Layout>
-      <main className="flex-1 flex flex-col min-w-0 bg-gray-50 dark:bg-ui-dark relative">
-        {/* Header avec search */}
-        <header className="h-16 flex items-center justify-between px-8 border-b border-gray-200 dark:border-ui-border bg-white dark:bg-ui-panel shrink-0 z-10">
-          <div className="flex-1 max-w-xl relative">
-            <svg
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="m21 21-4.35-4.35" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Rechercher des mods..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-gray-100 dark:bg-ui-dark border-none text-gray-900 dark:text-gray-200 rounded-full text-sm py-2.5 pl-10 pr-4 focus:ring-2 focus:ring-brand-green transition-all placeholder-gray-500"
-            />
-          </div>
-          <div className="flex items-center gap-4 ml-4">
-            <button className="text-gray-500 hover:text-brand-green transition-colors">
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+      <Layout>
+        <main
+          className="flex-1 flex flex-col min-w-0 relative"
+          style={{
+            backgroundColor: 'var(--bg-primary)',
+          }}
+        >
+          {/* Header avec search */}
+          <header
+            className="h-16 flex items-center justify-between px-8 border-b shrink-0 z-10"
+            style={{
+              borderColor: 'var(--border-color)',
+              backgroundColor: 'var(--ui-panel)',
+            }}
+          >
+            <div className="flex-1 max-w-xl relative">
+              <svg
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
+                  style={{ color: 'var(--text-secondary)' }}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.35-4.35" />
               </svg>
-            </button>
-            <button className="text-gray-500 hover:text-brand-green transition-colors">
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                <circle cx="12" cy="12" r="1" />
-                <circle cx="12" cy="5" r="1" />
-                <circle cx="12" cy="19" r="1" />
-              </svg>
-            </button>
-          </div>
-        </header>
+              <input
+                  type="text"
+                  placeholder="Rechercher des mods..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full rounded-full text-sm py-2.5 pl-10 pr-4 transition-all"
+                  style={{
+                    backgroundColor: 'var(--bg-secondary)',
+                    color: 'var(--text-primary)',
+                    border: '2px solid var(--ui-border)',
+                    outline: 'none',
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = '#46C89B';
+                    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(70, 200, 155, 0.1)';
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--ui-border)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+              />
+            </div>
+          </header>
 
-        {/* Filter Bar */}
-        <FilterBar
-          onSortChange={setActiveSort}
-          activeSort={activeSort}
-          onFilterChange={setActiveFilter}
-          activeFilter={activeFilter}
-          onCategoryChange={setSelectedCategory}
-          selectedCategory={selectedCategory}
-          viewMode={viewMode}
-          onViewModeChange={toggleViewMode}
-        />
+          {/* Filter Bar */}
+          <FilterBar
+              onSortChange={setActiveSort}
+              activeSort={activeSort}
+              onFilterChange={setActiveFilter}
+              activeFilter={activeFilter}
+              onCategoryChange={setSelectedCategory}
+              selectedCategory={selectedCategory}
+              viewMode={viewMode}
+              onViewModeChange={toggleViewMode}
+          />
 
-        {/* Mod List */}
-        <ModList searchQuery={debouncedSearchQuery} sortBy={activeSort} category={selectedCategory} viewMode={viewMode} />
-      </main>
-    </Layout>
+          {/* Mod List */}
+          <ModList searchQuery={debouncedSearchQuery} sortBy={activeSort} category={selectedCategory} viewMode={viewMode} />
+        </main>
+      </Layout>
   );
 }
