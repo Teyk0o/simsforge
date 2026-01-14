@@ -2,6 +2,7 @@
  * Sims 4 Path Detector
  *
  * Auto-detects Sims 4 installation path and mods folder.
+ * First checks user-configured paths in localStorage, then falls back to auto-detection.
  * Supports multiple installation locations (Origin, Steam, EA App).
  */
 
@@ -11,13 +12,82 @@ import { Sims4Paths, Sims4PathValidation } from '@/types/profile';
 
 export class Sims4PathDetector {
   /**
-   * Detect Sims 4 installation paths (game and mods folder)
+   * Helper to decrypt data stored in localStorage
    */
-  async detectPaths(): Promise<Sims4Paths> {
-    const gamePath = await this.detectGamePath();
-    const modsPath = await this.detectModsPath();
+  private async decryptData(encryptedData: string, password: string = 'simsforge-settings'): Promise<string | null> {
+    try {
+      const encoder = new TextEncoder();
+      const password_encoded = encoder.encode(password);
+
+      // Create a hash of the password
+      const hash_buffer = await crypto.subtle.digest('SHA-256', password_encoded);
+      const key = await crypto.subtle.importKey('raw', hash_buffer, 'AES-GCM', false, ['decrypt']);
+
+      // Decode from base64
+      const binaryString = atob(encryptedData);
+      const combined = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        combined[i] = binaryString.charCodeAt(i);
+      }
+
+      // Extract IV and encrypted data
+      const iv = combined.slice(0, 12);
+      const encrypted = combined.slice(12);
+
+      // Decrypt
+      const decrypted = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv: iv },
+        key,
+        encrypted
+      );
+      const decoder = new TextDecoder();
+      return decoder.decode(decrypted);
+    } catch (error) {
+      console.error('Decryption failed:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get paths from localStorage first, then fall back to auto-detection
+   */
+  async getPaths(): Promise<Sims4Paths> {
+    let gamePath: string | null = null;
+    let modsPath: string | null = null;
+
+    // Try to load from localStorage (user-configured paths from Settings)
+    if (typeof window !== 'undefined') {
+      const encryptedGamePath = localStorage.getItem('simsforge_game_path');
+      if (encryptedGamePath) {
+        gamePath = await this.decryptData(encryptedGamePath);
+      }
+
+      const encryptedModsPath = localStorage.getItem('simsforge_mods_path');
+      if (encryptedModsPath) {
+        modsPath = await this.decryptData(encryptedModsPath);
+      }
+    }
+
+    // If paths found in localStorage, validate and return them
+    if (gamePath || modsPath) {
+      console.log('[Sims4PathDetector] Using user-configured paths from Settings');
+      return { gamePath, modsPath };
+    }
+
+    // Fall back to auto-detection if not configured
+    console.log('[Sims4PathDetector] No user-configured paths found, attempting auto-detection...');
+    gamePath = await this.detectGamePath();
+    modsPath = await this.detectModsPath();
 
     return { gamePath, modsPath };
+  }
+
+  /**
+   * Detect Sims 4 installation paths (game and mods folder)
+   * @deprecated Use getPaths() instead, which checks localStorage first
+   */
+  async detectPaths(): Promise<Sims4Paths> {
+    return this.getPaths();
   }
 
   /**

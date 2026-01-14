@@ -1,12 +1,13 @@
 /**
- * Symlink Service
+ * Symlink Service (now File Copy Service)
  *
- * Manages symlink creation and deletion for profile activation.
- * Handles Windows junctions and Unix symlinks transparently.
+ * Manages file copying for profile activation.
+ * Copies mod files from cache to mods directory instead of using symlinks.
  */
 
 import { invoke } from '@tauri-apps/api/core';
 import { join } from '@tauri-apps/api/path';
+import { readDir, remove } from '@tauri-apps/plugin-fs';
 import { SymlinkResult, SymlinkError } from '@/types/profile';
 
 interface SymlinkPath {
@@ -16,8 +17,8 @@ interface SymlinkPath {
 
 export class SymlinkService {
   /**
-   * Activate profile by creating symlinks for all mods
-   * Atomically removes old symlinks before creating new ones
+   * Activate profile by copying all mod files from cache to mods directory
+   * Removes old profile files before copying new ones
    */
   async activateProfile(
     modsPath: string,
@@ -27,7 +28,7 @@ export class SymlinkService {
     let created = 0;
     let failed = 0;
 
-    // Step 1: Remove all existing symlinks first (deactivate current)
+    // Step 1: Remove all existing profile mod files first (deactivate current)
     try {
       await this.deactivateProfile(modsPath);
     } catch (error) {
@@ -35,13 +36,13 @@ export class SymlinkService {
       // Don't fail here - we'll attempt to overwrite
     }
 
-    // Step 2: Create symlinks for new profile
+    // Step 2: Copy files from cache for new profile
     for (const { source, modName } of cachePaths) {
       try {
         const targetPath = await join(modsPath, modName);
 
-        // Create symlink
-        await invoke('create_symlink', {
+        // Copy files from cache to mods directory
+        await invoke('copy_directory', {
           source,
           target: targetPath,
         });
@@ -66,34 +67,33 @@ export class SymlinkService {
   }
 
   /**
-   * Deactivate profile by removing all symlinks from mods directory
+   * Deactivate profile by removing all mod files from mods directory
+   * Only removes directories that are copied from cache (not user files)
    */
   async deactivateProfile(modsPath: string): Promise<SymlinkResult> {
     const errors: SymlinkError[] = [];
-    let created = 0; // Not used, but part of result
+    let created = 0;
     let failed = 0;
 
     try {
-      // Get list of symlinks in mods directory
-      const symlinks = await invoke<string[]>('list_symlinks', {
-        directory: modsPath,
-      });
+      // List all entries in mods directory
+      const entries = await readDir(modsPath);
 
-      // Remove each symlink
-      for (const symlinkPath of symlinks) {
-        try {
-          await invoke('remove_symlink', {
-            path: symlinkPath,
-          });
-
-          created++; // Count removals as "created" for consistency
-        } catch (error: any) {
-          failed++;
-          errors.push({
-            sourcePath: '',
-            targetPath: symlinkPath,
-            error: error.toString(),
-          });
+      // Remove each directory (these are copied mod files)
+      for (const entry of entries) {
+        if (entry.isDirectory) {
+          try {
+            const fullPath = await join(modsPath, entry.name);
+            await remove(fullPath, { recursive: true });
+            created++;
+          } catch (error: any) {
+            failed++;
+            errors.push({
+              sourcePath: '',
+              targetPath: await join(modsPath, entry.name),
+              error: error.toString(),
+            });
+          }
         }
       }
     } catch (error: any) {
@@ -101,7 +101,7 @@ export class SymlinkService {
       errors.push({
         sourcePath: '',
         targetPath: modsPath,
-        error: `Failed to list symlinks: ${error.toString()}`,
+        error: `Failed to read mods directory: ${error.toString()}`,
       });
     }
 
@@ -114,60 +114,57 @@ export class SymlinkService {
   }
 
   /**
-   * Verify that symlinks are correctly pointing to cache
+   * Verify that mod files are correctly copied
    */
   async verifySymlinks(
     modsPath: string,
     expectedCount: number
   ): Promise<boolean> {
     try {
-      const symlinks = await invoke<string[]>('list_symlinks', {
-        directory: modsPath,
-      });
-
-      return symlinks.length === expectedCount;
+      const entries = await readDir(modsPath);
+      const dirCount = entries.filter((e) => e.isDirectory).length;
+      return dirCount === expectedCount;
     } catch (error) {
-      console.error('Failed to verify symlinks:', error);
+      console.error('Failed to verify mod files:', error);
       return false;
     }
   }
 
   /**
-   * Get list of current symlinks in mods directory
+   * Get list of current mod directories in mods directory
    */
   async listSymlinks(modsPath: string): Promise<string[]> {
     try {
-      const symlinks = await invoke<string[]>('list_symlinks', {
-        directory: modsPath,
-      });
+      const entries = await readDir(modsPath);
+      const modDirs = await Promise.all(
+        entries
+          .filter((e) => e.isDirectory)
+          .map((e) => join(modsPath, e.name))
+      );
 
-      return symlinks;
+      return modDirs;
     } catch (error) {
-      console.error('Failed to list symlinks:', error);
+      console.error('Failed to list mod directories:', error);
       return [];
     }
   }
 
   /**
-   * Check if we have permission to create symlinks
-   * (For Windows, this checks if junctions can be created)
+   * Check if we can copy files (should always work)
    */
   async canCreateSymlinks(): Promise<boolean> {
-    // Try to detect if user has necessary permissions
-    // On Windows, junctions work without admin if filesystem supports them
-    // For now, assume we can - errors will be caught during activation
     return true;
   }
 
   /**
-   * Suggest fixing symlink permission issues
+   * Get permission help message (not needed for file copy)
    */
   getSymlinkPermissionFix(): {
     windows: string;
     unix: string;
   } {
     return {
-      windows: 'Enable Developer Mode in Windows Settings > Update & Security > For developers',
+      windows: 'Ensure you have write permissions to the Mods directory',
       unix: 'Ensure you have write permissions to the Mods directory',
     };
   }

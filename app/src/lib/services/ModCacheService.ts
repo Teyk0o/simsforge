@@ -247,8 +247,6 @@ export class ModCacheService {
   }
 
   private async getIndex(): Promise<ModCacheIndex> {
-    await this.ensureInitialized();
-
     try {
       const content = await readFile(this.indexFile!);
       const decoder = new TextDecoder();
@@ -265,8 +263,6 @@ export class ModCacheService {
   }
 
   private async saveIndex(index: ModCacheIndex): Promise<void> {
-    await this.ensureInitialized();
-
     await writeFile(
       this.indexFile!,
       new TextEncoder().encode(JSON.stringify(index, null, 2))

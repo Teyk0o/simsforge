@@ -31,25 +31,44 @@ export class ProfileService {
       return;
     }
 
-    const appData = await appDataDir();
-    this.profilesDir = await join(appData, 'SimsForge', 'Profiles');
-    this.metadataFile = await join(this.profilesDir, 'profiles.meta.json');
+    try {
+      console.log('[ProfileService] initialize() starting');
 
-    if (!(await exists(this.profilesDir))) {
-      await mkdir(this.profilesDir, { recursive: true });
+      console.log('[ProfileService] getting appDataDir');
+      const appData = await appDataDir();
+      console.log('[ProfileService] appData path:', appData);
+
+      console.log('[ProfileService] joining paths');
+      this.profilesDir = await join(appData, 'SimsForge', 'Profiles');
+      this.metadataFile = await join(this.profilesDir, 'profiles.meta.json');
+      console.log('[ProfileService] profilesDir:', this.profilesDir);
+
+      console.log('[ProfileService] checking if profilesDir exists');
+      if (!(await exists(this.profilesDir))) {
+        console.log('[ProfileService] creating profilesDir');
+        await mkdir(this.profilesDir, { recursive: true });
+        console.log('[ProfileService] profilesDir created');
+      }
+
+      // Initialize metadata if not exists
+      console.log('[ProfileService] checking if metadataFile exists');
+      if (!(await exists(this.metadataFile))) {
+        console.log('[ProfileService] creating default metadata');
+        const defaultMetadata: ProfileMetadata = {
+          activeProfileId: null,
+          profiles: [],
+          lastSync: new Date().toISOString(),
+        };
+        await this.saveMetadata(defaultMetadata);
+        console.log('[ProfileService] default metadata created');
+      }
+
+      this.initialized = true;
+      console.log('[ProfileService] initialize() complete');
+    } catch (error) {
+      console.error('[ProfileService] initialize() error:', error);
+      throw error;
     }
-
-    // Initialize metadata if not exists
-    if (!(await exists(this.metadataFile))) {
-      const defaultMetadata: ProfileMetadata = {
-        activeProfileId: null,
-        profiles: [],
-        lastSync: new Date().toISOString(),
-      };
-      await this.saveMetadata(defaultMetadata);
-    }
-
-    this.initialized = true;
   }
 
   /**
@@ -60,40 +79,50 @@ export class ProfileService {
     description: string,
     tags: string[] = []
   ): Promise<ModProfile> {
-    await this.ensureInitialized();
+    try {
+      await this.ensureInitialized();
 
-    // Validate name uniqueness
-    const existing = await this.getAllProfiles();
-    if (existing.some((p) => p.name === name)) {
-      throw new Error(`Profile "${name}" already exists`);
+      // Validate name uniqueness
+      const existing = await this.getAllProfiles();
+      if (existing.some((p) => p.name === name)) {
+        throw new Error(`Profile "${name}" already exists`);
+      }
+
+      const profile: ModProfile = {
+        id: uuidv4(),
+        name,
+        description,
+        tags,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        mods: [],
+        isActive: false,
+        iconColor: this.generateRandomColor(),
+      };
+
+      // Save profile file
+      const profilePath = await join(this.profilesDir!, `${profile.id}.json`);
+      console.log('[ProfileService] Writing profile to:', profilePath);
+
+      await writeFile(
+        profilePath,
+        new TextEncoder().encode(JSON.stringify(profile, null, 2))
+      );
+
+      console.log('[ProfileService] Profile file written successfully');
+
+      // Update metadata
+      const metadata = await this.getMetadata();
+      metadata.profiles.push(profile.id);
+      metadata.lastSync = new Date().toISOString();
+      await this.saveMetadata(metadata);
+
+      console.log('[ProfileService] Profile created successfully:', profile.id);
+      return profile;
+    } catch (error) {
+      console.error('[ProfileService] Error creating profile:', error);
+      throw error;
     }
-
-    const profile: ModProfile = {
-      id: uuidv4(),
-      name,
-      description,
-      tags,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      mods: [],
-      isActive: false,
-      iconColor: this.generateRandomColor(),
-    };
-
-    // Save profile file
-    const profilePath = await join(this.profilesDir!, `${profile.id}.json`);
-    await writeFile(
-      profilePath,
-      new TextEncoder().encode(JSON.stringify(profile, null, 2))
-    );
-
-    // Update metadata
-    const metadata = await this.getMetadata();
-    metadata.profiles.push(profile.id);
-    metadata.lastSync = new Date().toISOString();
-    await this.saveMetadata(metadata);
-
-    return profile;
   }
 
   /**
@@ -307,13 +336,15 @@ export class ProfileService {
 
   private async ensureInitialized(): Promise<void> {
     if (!this.initialized) {
+      console.log('[ProfileService] ensureInitialized: not initialized, calling initialize()');
       await this.initialize();
+      console.log('[ProfileService] ensureInitialized: initialize() complete');
+    } else {
+      console.log('[ProfileService] ensureInitialized: already initialized');
     }
   }
 
   private async getMetadata(): Promise<ProfileMetadata> {
-    await this.ensureInitialized();
-
     try {
       const content = await readFile(this.metadataFile!);
       const decoder = new TextDecoder();
@@ -330,8 +361,6 @@ export class ProfileService {
   }
 
   private async saveMetadata(metadata: ProfileMetadata): Promise<void> {
-    await this.ensureInitialized();
-
     await writeFile(
       this.metadataFile!,
       new TextEncoder().encode(JSON.stringify(metadata, null, 2))
