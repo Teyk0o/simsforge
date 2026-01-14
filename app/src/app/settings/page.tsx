@@ -383,21 +383,21 @@ export default function SettingsPage() {
             {/* SECTION: CONNECTED ACCOUNTS */}
             <section id="accounts">
               <div className="mb-6">
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <h2 className="text-lg font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
                   <Users size={20} className="text-brand-purple" /> Connected Accounts
                 </h2>
               </div>
 
-              <div className="bg-white dark:bg-ui-panel border border-gray-200 dark:border-ui-border rounded-xl overflow-hidden shadow-sm">
+              <div className="border rounded-xl overflow-hidden shadow-sm" style={{ backgroundColor: 'var(--ui-panel)', borderColor: 'var(--ui-border)' }}>
                 {/* Patreon */}
-                <div className="p-6 flex items-center justify-between border-b border-gray-200 dark:border-ui-border">
+                <div className="p-6 flex items-center justify-between border-b" style={{ borderColor: 'var(--ui-border)' }}>
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-[#FF424D] rounded-full flex items-center justify-center text-white text-xl">
                       <PatreonLogo size={32} />
                     </div>
                     <div>
-                      <div className="font-bold text-gray-900 dark:text-white">Patreon</div>
-                      <div className="text-sm text-gray-500">Not connected</div>
+                      <div className="font-bold" style={{ color: 'var(--text-primary)' }}>Patreon</div>
+                      <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>Not connected</div>
                     </div>
                   </div>
                   <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg transition-colors shadow-lg shadow-blue-500/20">
@@ -412,8 +412,8 @@ export default function SettingsPage() {
                       <DiscordLogo size={32} />
                     </div>
                     <div>
-                      <div className="font-bold text-gray-900 dark:text-white">Discord</div>
-                      <div className="text-sm text-gray-500">Not connected</div>
+                      <div className="font-bold" style={{ color: 'var(--text-primary)' }}>Discord</div>
+                      <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>Not connected</div>
                     </div>
                   </div>
                   <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg transition-colors shadow-lg shadow-blue-500/20">
