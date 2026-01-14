@@ -22,10 +22,7 @@
         "fullscreen": false,
         "focus": true,
         "transparent": false,
-        "decorations": true,
-        "webviewAttributes": {
-          "devTools": true
-        }
+        "decorations": true
       }
     ],
     "security": {
