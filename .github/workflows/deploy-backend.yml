@@ -38,8 +38,21 @@ jobs:
           echo "🚀 Deploying from branch: ${{ github.event.inputs.branch || github.ref_name }}"
           echo "Trigger: ${{ github.event_name }}"
 
-      - name: Create backend tarball
-        run: tar -czf backend-deploy.tar.gz backend/
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: 'backend/package-lock.json'
+
+      - name: Install and build backend
+        working-directory: ./backend
+        run: |
+          npm install
+          npm run build
+
+      - name: Create backend tarball with compiled modules
+        run: tar -czf backend-deploy.tar.gz -C backend dist/ node_modules/ package.json package-lock.json
 
       - name: Setup SSH key
         uses: webfactory/ssh-agent@v0.9.0
@@ -62,14 +75,9 @@ jobs:
           ssh ${SSH_USER}@${SSH_HOST} "export NVM_DIR=\$HOME/.nvm && \
           [ -s \"\$NVM_DIR/nvm.sh\" ] && . \"\$NVM_DIR/nvm.sh\" && \
           nvm use --lts && \
-          cd ${DEPLOY_PATH} && \
+          mkdir -p ${DEPLOY_PATH}/api && \
           echo '📝 Extracting new backend...' && \
-          tar -xzf /tmp/backend-deploy.tar.gz && \
-          echo '📦 Installing dependencies...' && \
-          cd backend && \
-          npm install && \
-          echo '🏗️  Building backend...' && \
-          npm run build && \
+          tar -xzf /tmp/backend-deploy.tar.gz -C ${DEPLOY_PATH}/api && \
           echo '🔄 Restarting service...' && \
           sudo systemctl restart simsforge-api && \
           echo '✅ Service restarted successfully' && \
