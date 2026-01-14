@@ -39,7 +39,7 @@ export default function ModDetailSidebar({ mod }: ModDetailSidebarProps) {
                 href={mod.websiteUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm font-semibold text-brand-green hover:text-brand-dark transition-colors"
+                className="text-sm font-semibold text-brand-green hover:text-brand-dark transition-colors cursor-pointer"
               >
                 View on CurseForge
               </a>
@@ -61,7 +61,7 @@ export default function ModDetailSidebar({ mod }: ModDetailSidebarProps) {
               href={mod.websiteUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-brand-green hover:text-brand-dark"
+              className="text-brand-green hover:text-brand-dark cursor-pointer"
             >
               View recommendations on CurseForge →
             </a>
@@ -72,7 +72,7 @@ export default function ModDetailSidebar({ mod }: ModDetailSidebarProps) {
       </div>
 
       {/* Report Button */}
-      <button className="text-center text-xs text-gray-400 hover:text-red-400 transition-colors py-2 flex items-center justify-center gap-1.5">
+      <button className="text-center text-xs text-gray-400 hover:text-red-400 transition-colors py-2 flex items-center justify-center gap-1.5 cursor-pointer">
         <Flag size={16} />
         Report this mod
       </button>
