@@ -3,6 +3,7 @@ import { Inter, Nunito } from 'next/font/google';
 import { SessionProvider } from '@/components/providers/SessionProvider';
 import { ToastProvider } from '@/context/ToastContext';
 import { ThemeProvider } from '@/context/ThemeContext';
+import { ProfileProvider } from '@/context/ProfileContext';
 import ToastContainer from '@/components/ui/ToastContainer';
 import './globals.css';
 
@@ -33,10 +34,12 @@ export default function RootLayout({
         <body className={`${inter.variable} ${nunito.variable} font-sans`} suppressHydrationWarning>
         <ThemeProvider>
             <SessionProvider>
-                <ToastProvider>
-                    {children}
-                    <ToastContainer />
-                </ToastProvider>
+                <ProfileProvider>
+                    <ToastProvider>
+                        {children}
+                        <ToastContainer />
+                    </ToastProvider>
+                </ProfileProvider>
             </SessionProvider>
         </ThemeProvider>
         </body>
