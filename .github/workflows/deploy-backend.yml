@@ -47,7 +47,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./backend
-        run: npm install --omit=dev
+        run: npm install
 
       - name: Build TypeScript
         working-directory: ./backend
