@@ -55,25 +55,35 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
 
   const initializeProfiles = async () => {
     try {
+      console.log('[ProfileContext] Initialize starting');
       setIsLoading(true);
       setError(null);
 
       // Initialize services
+      console.log('[ProfileContext] Initializing profileService');
       await profileService.initialize();
+      console.log('[ProfileContext] profileService initialized');
+
+      console.log('[ProfileContext] Initializing modCacheService');
       await modCacheService.initialize();
+      console.log('[ProfileContext] modCacheService initialized');
 
       // Try to detect Sims 4 mods path
+      console.log('[ProfileContext] Detecting Sims 4 paths');
       const paths = await sims4PathDetector.detectPaths();
       const validation = await sims4PathDetector.validatePaths(paths);
 
       if (validation.modsValid && paths.modsPath) {
         setModsPath(paths.modsPath);
+        console.log('[ProfileContext] Detected mods path:', paths.modsPath);
       } else {
         console.warn('Could not auto-detect Sims 4 mods path');
       }
 
       // Load profiles
+      console.log('[ProfileContext] Refreshing profiles');
       await refreshProfiles();
+      console.log('[ProfileContext] Profiles loaded');
     } catch (error: any) {
       console.error('Failed to initialize profiles:', error);
       setError(error.message || 'Unknown initialization error');
@@ -112,12 +122,21 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const createProfile = useCallback(
     async (name: string, description: string, tags: string[]) => {
       try {
+        console.log('[ProfileContext] createProfile called');
+        console.log('[ProfileContext] profileService initialized:', profileService);
+
         const newProfile = await profileService.createProfile(
           name,
           description,
           tags
         );
+
+        console.log('[ProfileContext] profileService.createProfile returned:', newProfile);
+        console.log('[ProfileContext] calling refreshProfiles');
+
         await refreshProfiles();
+
+        console.log('[ProfileContext] refreshProfiles done');
 
         showToast({
           type: 'success',
@@ -239,8 +258,16 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
           );
 
           if (!result.success) {
+            // Log detailed errors
+            console.error('[ProfileContext] Symlink creation errors:', result.errors);
+
+            // Build detailed error message
+            const errorDetails = result.errors
+              .map((err) => `${err.targetPath}: ${err.error}`)
+              .join('\n');
+
             throw new Error(
-              `Failed to create ${result.failed} symlinks. Check permissions and that The Sims 4 is not running.`
+              `Failed to create ${result.failed} symlinks:\n${errorDetails}\n\nCheck permissions and that The Sims 4 is not running.`
             );
           }
         }
@@ -248,15 +275,6 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
         // Update active profile in metadata
         await profileService.setActiveProfile(profileId);
         await refreshProfiles();
-
-        showToast({
-          type: 'success',
-          title: profileId ? 'Profile activated' : 'Profile deactivated',
-          message: profileId
-            ? `Profile activated successfully`
-            : 'All mods deactivated',
-          duration: 3000,
-        });
       } catch (error: any) {
         showToast({
           type: 'error',
@@ -293,7 +311,14 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
     async (profileId: string, modId: number) => {
       try {
         await profileService.removeModFromProfile(profileId, modId);
-        await refreshProfiles();
+
+        // If removing a mod from the active profile, re-activate it
+        // to sync the file system immediately
+        if (activeProfile?.id === profileId) {
+          await activateProfile(profileId);
+        } else {
+          await refreshProfiles();
+        }
 
         showToast({
           type: 'success',
@@ -311,7 +336,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
         throw error;
       }
     },
-    [refreshProfiles, showToast]
+    [refreshProfiles, showToast, activeProfile, activateProfile]
   );
 
   /**
@@ -321,13 +346,20 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
     async (profileId: string, modId: number, enabled: boolean) => {
       try {
         await profileService.toggleModInProfile(profileId, modId, enabled);
-        await refreshProfiles();
+
+        // If toggling a mod in the active profile, re-activate it
+        // to sync the file system immediately
+        if (activeProfile?.id === profileId) {
+          await activateProfile(profileId);
+        } else {
+          await refreshProfiles();
+        }
       } catch (error: any) {
         console.error('Failed to toggle mod:', error);
         throw error;
       }
     },
-    [refreshProfiles]
+    [refreshProfiles, activeProfile, activateProfile]
   );
 
   /**
