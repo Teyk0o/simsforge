@@ -53,6 +53,10 @@ jobs:
         working-directory: ./backend
         run: npm run build
 
+      - name: Install production dependencies
+        working-directory: ./backend
+        run: npm ci --only=production
+
       - name: Prepare deployment package
         run: |
           mkdir -p deploy_package
@@ -60,6 +64,9 @@ jobs:
 
           # Copy built files
           cp -r dist ../deploy_package/
+
+          # Copy node_modules with compiled native modules
+          cp -r node_modules ../deploy_package/
 
           # Copy necessary files for production
           cp package.json package-lock.json ../deploy_package/
@@ -117,10 +124,6 @@ jobs:
             # Extract new version
             cd /var/www/simsforge/api
             tar -xzf /tmp/backend-deploy.tar.gz
-
-            # Install production dependencies
-            echo "Installing production dependencies..."
-            npm ci --only=production
 
             # Clean up
             rm /tmp/backend-deploy.tar.gz
