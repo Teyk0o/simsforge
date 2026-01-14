@@ -1,4 +1,4 @@
-use std::fs::{create_dir_all, File, metadata, read_dir};
+use std::fs::{create_dir_all, File, metadata, read_dir, copy as fs_copy};
 use std::io::{copy, Read};
 use std::path::Path;
 use zip::ZipArchive;
@@ -152,6 +152,45 @@ fn get_file_size(file_path: String) -> Result<u64, String> {
     Ok(metadata.len())
 }
 
+/// Copy a directory recursively from source to target
+#[tauri::command]
+fn copy_directory(source: String, target: String) -> Result<(), String> {
+    let source_path = Path::new(&source);
+    let target_path = Path::new(&target);
+
+    // Remove existing target if it exists
+    if target_path.exists() {
+        std::fs::remove_dir_all(target_path).map_err(|e| e.to_string())?;
+    }
+
+    // Create target directory
+    create_dir_all(target_path).map_err(|e| e.to_string())?;
+
+    // Recursively copy all files and directories
+    copy_dir_recursive(source_path, target_path)
+        .map_err(|e| format!("Failed to copy directory: {} -> {}: {}", source, target, e))
+}
+
+/// Helper function to recursively copy directories
+fn copy_dir_recursive(src: &Path, dst: &Path) -> std::io::Result<()> {
+    for entry in read_dir(src)? {
+        let entry = entry?;
+        let path = entry.path();
+        let file_name = entry.file_name();
+        let target_path = dst.join(&file_name);
+
+        if path.is_dir() {
+            // Recursively copy subdirectory
+            create_dir_all(&target_path)?;
+            copy_dir_recursive(&path, &target_path)?;
+        } else {
+            // Copy file
+            fs_copy(&path, &target_path)?;
+        }
+    }
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -167,7 +206,8 @@ pub fn run() {
             remove_symlink,
             list_symlinks,
             calculate_file_hash,
-            get_file_size
+            get_file_size,
+            copy_directory
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
