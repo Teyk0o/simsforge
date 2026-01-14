@@ -14,15 +14,13 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('dark');
-  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    // Charger le thème depuis localStorage ou définir dark par défaut
+    // Load theme from localStorage or use dark as default
     const savedTheme = localStorage.getItem('theme') as Theme | null;
     const initialTheme = savedTheme || 'dark';
     setThemeState(initialTheme);
     applyTheme(initialTheme);
-    setIsMounted(true);
   }, []);
 
   const applyTheme = (newTheme: Theme) => {
@@ -45,11 +43,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setTheme(newTheme);
   };
 
-  // Éviter hydration mismatch
-  if (!isMounted) {
-    return <>{children}</>;
-  }
-
+  // Always provide context to avoid "useTheme must be used within a ThemeProvider" error
+  // useEffect applies the actual theme to DOM after hydration
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
       {children}

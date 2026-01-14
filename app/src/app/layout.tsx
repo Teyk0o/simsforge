@@ -1,10 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter, Nunito } from 'next/font/google';
-import { SessionProvider } from '@/components/providers/SessionProvider';
-import { ToastProvider } from '@/context/ToastContext';
-import { ThemeProvider } from '@/context/ThemeContext';
-import { ProfileProvider } from '@/context/ProfileContext';
-import ToastContainer from '@/components/ui/ToastContainer';
+import { RootLayoutClient } from '@/components/providers/RootLayoutClient';
 import './globals.css';
 
 const inter = Inter({
@@ -32,16 +28,9 @@ export default function RootLayout({
         <html lang="en" suppressHydrationWarning data-theme="dark">
         <head />
         <body className={`${inter.variable} ${nunito.variable} font-sans`} suppressHydrationWarning>
-        <ThemeProvider>
-            <SessionProvider>
-                <ProfileProvider>
-                    <ToastProvider>
-                        {children}
-                        <ToastContainer />
-                    </ToastProvider>
-                </ProfileProvider>
-            </SessionProvider>
-        </ThemeProvider>
+            <RootLayoutClient>
+                {children}
+            </RootLayoutClient>
         </body>
         </html>
     );
