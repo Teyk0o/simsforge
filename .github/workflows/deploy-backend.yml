@@ -98,6 +98,9 @@ jobs:
           ssh -i ~/.ssh/deploy_key ${SSH_USER}@${SSH_HOST} << 'EOF'
             set -e
 
+            # Load user profile to ensure npm is in PATH
+            source ~/.bashrc
+
             echo "Starting deployment..."
 
             # Create backup of current deployment
