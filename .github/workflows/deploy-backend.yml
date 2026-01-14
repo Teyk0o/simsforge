@@ -18,6 +18,9 @@ on:
           - develop
           - staging
 
+permissions:
+  contents: read
+
 jobs:
   deploy:
     name: Deploy Backend to Server
@@ -27,7 +30,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2 # Needed to detect changes
+          fetch-depth: 1
           ref: ${{ github.event.inputs.branch || github.ref }}
 
       - name: Display deployment info
@@ -35,122 +38,43 @@ jobs:
           echo "🚀 Deploying from branch: ${{ github.event.inputs.branch || github.ref_name }}"
           echo "Trigger: ${{ github.event_name }}"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
+      - name: Create backend tarball
+        run: tar -czf backend-deploy.tar.gz backend/
+
+      - name: Setup SSH key
+        uses: webfactory/ssh-agent@v0.9.0
         with:
-          node-version: 'latest'
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Verify backend directory
+      - name: Configure SSH known_hosts
         run: |
-          echo "Checking backend directory..."
-          ls -la backend/
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
 
-      - name: Install dependencies
-        working-directory: ./backend
-        run: npm install
-
-      - name: Build TypeScript
-        working-directory: ./backend
-        run: npm run build
-
-      - name: Install production dependencies
-        working-directory: ./backend
-        run: npm ci --only=production
-
-      - name: Prepare deployment package
+      - name: Upload and deploy backend
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          DEPLOY_PATH: /var/www/simsforge
         run: |
-          mkdir -p deploy_package
-          cd backend
+          scp backend-deploy.tar.gz ${SSH_USER}@${SSH_HOST}:/tmp/
 
-          # Copy built files
-          cp -r dist ../deploy_package/
+          ssh ${SSH_USER}@${SSH_HOST} "export NVM_DIR=\$HOME/.nvm && \
+          [ -s \"\$NVM_DIR/nvm.sh\" ] && . \"\$NVM_DIR/nvm.sh\" && \
+          nvm use --lts && \
+          cd ${DEPLOY_PATH} && \
+          echo '📝 Extracting new backend...' && \
+          tar -xzf /tmp/backend-deploy.tar.gz && \
+          echo '📦 Installing dependencies...' && \
+          cd backend && \
+          npm install && \
+          echo '🏗️  Building backend...' && \
+          npm run build && \
+          echo '🔄 Restarting service...' && \
+          sudo systemctl restart simsforge-api && \
+          echo '✅ Service restarted successfully' && \
+          sudo systemctl status simsforge-api && \
+          rm /tmp/backend-deploy.tar.gz"
 
-          # Copy node_modules with compiled native modules
-          cp -r node_modules ../deploy_package/
-
-          # Copy necessary files for production
-          cp package.json package-lock.json ../deploy_package/
-
-          # Copy scripts if needed for migrations
-          if [ -d "scripts" ]; then
-            cp -r scripts ../deploy_package/
-          fi
-
-          # Copy environment example as reference
-          if [ -f ".env.example" ]; then
-            cp .env.example ../deploy_package/
-          fi
-
-      - name: Create tarball
-        run: |
-          cd deploy_package
-          tar -czf ../backend-deploy.tar.gz .
-
-      - name: Upload deployment package
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "backend-deploy.tar.gz"
-          target: "/tmp/"
-
-      - name: Deploy to server
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            set -e
-
-            # Load nvm to ensure npm is available
-            export NVM_DIR="$HOME/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-
-            echo "Starting deployment..."
-
-            # Create backup of current deployment
-            if [ -d /var/www/simsforge/api ]; then
-              BACKUP_DIR="/var/www/simsforge/backups/api-$(date +%Y%m%d-%H%M%S)"
-              mkdir -p /var/www/simsforge/backups
-              echo "Creating backup at $BACKUP_DIR"
-              cp -r /var/www/simsforge/api $BACKUP_DIR
-            fi
-
-            # Create target directory if it doesn't exist
-            mkdir -p /var/www/simsforge/api
-
-            # Extract new version
-            cd /var/www/simsforge/api
-            tar -xzf /tmp/backend-deploy.tar.gz
-
-            # Clean up
-            rm /tmp/backend-deploy.tar.gz
-
-            # Restart systemd service
-            echo "Restarting systemd service..."
-            sudo systemctl restart simsforge-api
-
-            # Check service status
-            if sudo systemctl is-active --quiet simsforge-api; then
-              echo "Service restarted successfully and is running"
-            else
-              echo "Error: Service failed to start"
-              sudo systemctl status simsforge-api
-              exit 1
-            fi
-
-            echo "Deployment completed successfully!"
-
-      - name: Deployment notification
-        if: success()
-        run: |
-          echo "✅ Backend successfully deployed to production!"
-          echo "Deployment time: $(date)"
-
-      - name: Deployment failed
-        if: failure()
-        run: |
-          echo "❌ Deployment failed. Please check the logs above."
-          exit 1
+      - name: Deployment successful
+        run: echo "✅ Backend deployed successfully!"
