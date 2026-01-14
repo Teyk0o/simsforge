@@ -1,6 +1,50 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-brand-green: #46C89B;
+  --color-brand-dark: #059669;
+  --color-brand-blue: #0EA5E9;
+  --color-brand-purple: #8B5CF6;
+  --color-brand-orange: #F59E0B;
+  --color-ui-dark: #131313;
+  --color-ui-panel: #1E1E1E;
+  --color-ui-border: #2A2A2A;
+  --color-ui-hover: #2D2D2D;
+}
+
+/* Theme variables */
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f3f4f6;
+  --bg-tertiary: #e5e7eb;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-tertiary: #9ca3af;
+  --border-color: #d1d5db;
+  --ui-panel: #ffffff;
+  --ui-dark: #ffffff;
+  --ui-border: #e5e7eb;
+  --ui-hover: #f3f4f6;
+}
+
+[data-theme="dark"] {
+  --bg-primary: #131313;
+  --bg-secondary: #1e1e1e;
+  --bg-tertiary: #2a2a2a;
+  --text-primary: #f3f4f6;
+  --text-secondary: #d1d5db;
+  --text-tertiary: #9ca3af;
+  --border-color: #404040;
+  --ui-panel: #1e1e1e;
+  --ui-dark: #131313;
+  --ui-border: #2a2a2a;
+  --ui-hover: #2d2d2d;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
 
 /* Scrollbar styling */
 ::-webkit-scrollbar {
@@ -97,4 +141,25 @@ input[type="password"] {
 
 input[type="password"]::-webkit-reveal-button {
   display: none !important;
+}
+
+/* Input placeholder styling */
+input::placeholder {
+  color: var(--text-secondary);
+  opacity: 1;
+}
+
+input::-webkit-input-placeholder {
+  color: var(--text-secondary);
+  opacity: 1;
+}
+
+input::-moz-placeholder {
+  color: var(--text-secondary);
+  opacity: 1;
+}
+
+input:-ms-input-placeholder {
+  color: var(--text-secondary);
+  opacity: 1;
 }
