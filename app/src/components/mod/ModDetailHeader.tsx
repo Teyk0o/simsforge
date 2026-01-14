@@ -158,23 +158,22 @@ export default function ModDetailHeader({ mod }: ModDetailHeaderProps) {
                 href={mod.websiteUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F16436] text-white border border-[#c4491f] hover:bg-[#d65228] transition-colors text-shadow-md"
+                className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F16436] text-white border border-[#c4491f] hover:bg-[#d65228] transition-colors text-shadow-md cursor-pointer"
               >
                 <span className="font-bold text-xs uppercase tracking-wide">
                   CurseForge
                 </span>
-                <span>↗</span>
               </a>
             )}
           </div>
 
           {/* Author and date */}
-          <div className="flex items-center gap-2 text-gray-300 mb-4 font-medium text-sm">
+          <div className="flex items-center gap-2 mb-4 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>
             <span>
               By{' '}
-              <span className="font-bold text-white">{authorNames || 'Unknown'}</span>
+              <span className="font-bold" style={{ color: 'var(--text-primary)' }}>{authorNames || 'Unknown'}</span>
             </span>
-            <span className="w-1 h-1 bg-gray-500 rounded-full" />
+            <span className="w-1 h-1 rounded-full" style={{ backgroundColor: 'var(--text-tertiary)' }} />
             <span>Updated {formatRelativeDate(mod.dateModified)}</span>
           </div>
 
@@ -183,13 +182,18 @@ export default function ModDetailHeader({ mod }: ModDetailHeaderProps) {
             {categoryNames.map((category, i) => (
               <span
                 key={i}
-                className="px-2.5 py-1 rounded bg-gray-700/50 text-gray-300 text-xs font-bold border border-gray-600"
+                className="px-2.5 py-1 rounded text-xs font-bold"
+                style={{
+                  backgroundColor: 'var(--ui-hover)',
+                  color: 'var(--text-secondary)',
+                  border: '1px solid var(--ui-border)',
+                }}
               >
                 {category}
               </span>
             ))}
             {remainingCategories > 0 && (
-              <span className="px-2.5 py-1 text-gray-400 text-xs font-semibold">
+              <span className="px-2.5 py-1 text-xs font-semibold" style={{ color: 'var(--text-tertiary)' }}>
                 +{remainingCategories} more
               </span>
             )}
@@ -201,7 +205,7 @@ export default function ModDetailHeader({ mod }: ModDetailHeaderProps) {
           <button
             onClick={handleInstall}
             disabled={isInstalling}
-            className="w-full py-3 px-6 bg-brand-green hover:bg-brand-dark text-white font-bold rounded-xl shadow-lg shadow-brand-green/25 flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 px-6 bg-brand-green hover:bg-brand-dark text-white font-bold rounded-xl shadow-lg shadow-brand-green/25 flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             title={isInstalling ? "Installing..." : "Install"}
           >
             {isInstalling ? <Spinner size={20} className="animate-spin" /> : <DownloadSimple size={20} />}
@@ -209,13 +213,41 @@ export default function ModDetailHeader({ mod }: ModDetailHeaderProps) {
           </button>
 
           <div className="flex gap-2">
-            <button className="flex-1 py-2 px-4 bg-gray-800 border border-gray-700 hover:border-gray-600 hover:bg-gray-700 text-gray-200 font-semibold rounded-lg flex items-center justify-center gap-2 transition-colors">
+            <button
+              className="flex-1 py-2 px-4 border font-semibold rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              style={{
+                backgroundColor: 'var(--ui-panel)',
+                borderColor: 'var(--ui-border)',
+                color: 'var(--text-primary)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--ui-hover)';
+                e.currentTarget.style.borderColor = '#46C89B';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--ui-panel)';
+                e.currentTarget.style.borderColor = 'var(--ui-border)';
+              }}
+            >
               <Heart size={18} />
               Follow
             </button>
             <button
               onClick={handleShare}
-              className="py-2 px-3 bg-gray-800 border border-gray-700 hover:border-gray-600 hover:bg-gray-700 text-gray-200 rounded-lg transition-colors"
+              className="py-2 px-3 border rounded-lg transition-colors cursor-pointer"
+              style={{
+                backgroundColor: 'var(--ui-panel)',
+                borderColor: 'var(--ui-border)',
+                color: 'var(--text-primary)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--ui-hover)';
+                e.currentTarget.style.borderColor = '#46C89B';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--ui-panel)';
+                e.currentTarget.style.borderColor = 'var(--ui-border)';
+              }}
               title="Copy link to clipboard"
             >
               <ShareNetwork size={18} />
