@@ -23,13 +23,13 @@ simsforge/
 ## Technology Stack
 
 ### Frontend (`/app`)
-- **Framework**: Next.js 14.2 with React 18.3
-- **Styling**: Tailwind CSS 3.4 + PostCSS
-- **Desktop**: Tauri 2.0 (Windows MSI bundler)
-- **Language**: TypeScript 5.6
-- **Authentication**: NextAuth 4.24
-- **HTTP Client**: Axios 1.7
-- **UI Components**: Phosphor Icons
+- **Framework**: Next.js 16.1 with React 19.2
+- **Styling**: Tailwind CSS 4.1 + PostCSS 8.5
+- **Desktop**: Tauri 2.9 (Windows MSI bundler)
+- **Language**: TypeScript 5.9
+- **HTTP Client**: Axios 1.13
+- **UI Components**: Phosphor Icons 2.1
+- **Utilities**: Tailwind Merge 3.4, clsx 2.1
 
 **Key Features**:
 - Responsive web application
@@ -41,14 +41,15 @@ simsforge/
 
 ### Backend (`/backend`)
 - **Runtime**: Node.js 18+ with npm 9+
-- **Framework**: Express.js 4.18
-- **Language**: TypeScript 5.3 (strict mode)
-- **Database**: PostgreSQL with migrations
+- **Framework**: Express.js 5.2
+- **Language**: TypeScript 5.9 (strict mode)
+- **Database**: PostgreSQL 8.16 with migrations
 - **Authentication**: JWT + Argon2 password hashing
-- **Validation**: Zod schema validation
-- **Logging**: Winston
-- **Testing**: Jest with 70% coverage threshold
-- **Security**: Helmet, CORS, rate limiting
+- **Validation**: Zod 4.3 schema validation
+- **Logging**: Winston 3.19
+- **Testing**: Jest 30.2 with 70% coverage threshold
+- **Security**: Helmet 8.1, CORS, Rate Limiting 8.2
+- **Payment**: Stripe 20.1
 
 **Key Services**:
 - User authentication and authorization
@@ -212,8 +213,6 @@ The backend provides a REST API with the following main endpoints:
 - **Categories**: `/api/categories/*`
 - **Tags**: `/api/tags/*`
 - **CurseForge Integration**: `/api/curseforge/*`
-
-Detailed API documentation is available in `/docs/technical_doc.md`.
 
 ## Testing
 
