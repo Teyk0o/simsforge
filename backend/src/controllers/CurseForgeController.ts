@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { curseForgeProxyService } from '@services/curseforge/CurseForgeProxyService';
-import { userApiKeyRepository } from '@repositories/UserApiKeyRepository';
 import { z } from 'zod';
 
 /**
@@ -30,7 +29,18 @@ export class CurseForgeController {
    */
   async searchMods(req: Request, res: Response): Promise<void> {
     try {
-      const userId = req.user?.id || null;
+      // Extract API key from header
+      const apiKey = req.headers['x-curseforge-api-key'] as string;
+      if (!apiKey) {
+        res.status(403).json({
+          success: false,
+          error: {
+            message: 'CurseForge API key is required',
+            code: 'API_KEY_REQUIRED'
+          }
+        });
+        return;
+      }
 
       // Validate and parse query parameters
       let validated;
@@ -48,7 +58,7 @@ export class CurseForgeController {
 
       // Call proxy service
       const result = await curseForgeProxyService.searchMods({
-        userId,
+        apiKey,
         query: validated.query,
         pageSize: validated.pageSize || 50,
         pageIndex: validated.pageIndex || 0,
@@ -89,10 +99,21 @@ export class CurseForgeController {
    */
   async getCategories(req: Request, res: Response): Promise<void> {
     try {
-      const userId = req.user?.id || null;
+      // Extract API key from header
+      const apiKey = req.headers['x-curseforge-api-key'] as string;
+      if (!apiKey) {
+        res.status(403).json({
+          success: false,
+          error: {
+            message: 'CurseForge API key is required',
+            code: 'API_KEY_REQUIRED'
+          }
+        });
+        return;
+      }
 
       // Call proxy service
-      const categories = await curseForgeProxyService.getCategories(userId);
+      const categories = await curseForgeProxyService.getCategories(apiKey);
 
       res.status(200).json({
         success: true,
@@ -128,7 +149,19 @@ export class CurseForgeController {
    */
   async getMod(req: Request, res: Response): Promise<void> {
     try {
-      const userId = req.user?.id || null;
+      // Extract API key from header
+      const apiKey = req.headers['x-curseforge-api-key'] as string;
+      if (!apiKey) {
+        res.status(403).json({
+          success: false,
+          error: {
+            message: 'CurseForge API key is required',
+            code: 'API_KEY_REQUIRED'
+          }
+        });
+        return;
+      }
+
       const modId = parseInt(req.params.modId as string);
 
       // Validate mod ID
@@ -141,7 +174,7 @@ export class CurseForgeController {
       }
 
       // Call proxy service
-      const mod = await curseForgeProxyService.getMod(userId, modId);
+      const mod = await curseForgeProxyService.getMod(apiKey, modId);
 
       res.status(200).json({
         success: true,
@@ -182,26 +215,24 @@ export class CurseForgeController {
   /**
    * Get download URL for a mod file from CurseForge
    * POST /api/v1/curseforge/download-url
-   * @requires authentication - User must be authenticated to download
    * @body modId - CurseForge mod ID
    * @body fileId - Optional: specific file version to download
    * @returns Download URL and file info for frontend to download and install locally
    */
   async getDownloadUrl(req: Request, res: Response): Promise<void> {
     try {
-      // Require authentication for download operations
-      if (!req.user) {
-        res.status(401).json({
+      // Extract API key from header
+      const apiKey = req.headers['x-curseforge-api-key'] as string;
+      if (!apiKey) {
+        res.status(403).json({
           success: false,
           error: {
-            message: 'Authentication required to download mods',
-            code: 'AUTHENTICATION_REQUIRED'
+            message: 'CurseForge API key is required',
+            code: 'API_KEY_REQUIRED'
           }
         });
         return;
       }
-
-      const userId = req.user.id;
 
       // Validate request body
       const schema = z.object({
@@ -219,19 +250,6 @@ export class CurseForgeController {
             error: { message: error.issues[0].message }
           });
         }
-        return;
-      }
-
-      // Get API key
-      const apiKey = await userApiKeyRepository.findByUserAndService(userId, 'curseforge');
-      if (!apiKey) {
-        res.status(403).json({
-          success: false,
-          error: {
-            message: 'CurseForge API key not configured',
-            code: 'API_KEY_REQUIRED'
-          }
-        });
         return;
       }
 
