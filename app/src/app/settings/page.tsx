@@ -4,11 +4,6 @@ import { useState, useEffect } from 'react';
 import { Eye, EyeSlash, Trash, Folder, Users, Sliders, Warning, CheckCircle, FolderOpen, DiscordLogo, PatreonLogo, X } from '@phosphor-icons/react';
 import { open } from '@tauri-apps/plugin-dialog';
 import { exists } from '@tauri-apps/plugin-fs';
-import {
-  saveCurseForgeApiKey,
-  getConfiguredServices,
-  deleteApiKey,
-} from '@/lib/curseforgeApi';
 import Layout from '@/components/layouts/Layout';
 
 interface Message {
