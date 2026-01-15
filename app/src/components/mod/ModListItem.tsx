@@ -155,7 +155,7 @@ export default function ModListItem({ mod }: ModListItemProps) {
       onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--ui-hover)')}
       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--ui-panel)')}
     >
-      <Link href={`/mods/${mod.id}`}>
+      <Link href={`/mods?id=${mod.id}`}>
         <div className="grid grid-cols-12 gap-4 items-center">
           {/* Mod Info */}
           <div className="col-span-6 lg:col-span-5">

@@ -155,7 +155,7 @@ export default function ModCard({ mod }: ModCardProps) {
   };
 
   return (
-    <Link href={`/mods/${mod.id}`}>
+    <Link href={`/mods?id=${mod.id}`}>
       <div
         className="group rounded-lg overflow-hidden transition-all duration-200 h-full flex flex-col"
         style={{
