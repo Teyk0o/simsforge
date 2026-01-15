@@ -5,7 +5,6 @@ import { createCreatorRoutes } from './creators.routes';
 import { createModRoutes } from './mods.routes';
 import { createCategoryRoutes } from './categories.routes';
 import { createTagRoutes } from './tags.routes';
-import { createSettingsRoutes } from './settings.routes';
 import { createCurseForgeRoutes } from './curseforge.routes';
 
 /**
@@ -32,9 +31,6 @@ export function createApiRoutes(): Router {
 
   // Tag routes
   router.use('/tags', createTagRoutes());
-
-  // Settings routes
-  router.use('/settings', createSettingsRoutes());
 
   // CurseForge proxy routes
   router.use('/curseforge', createCurseForgeRoutes());
