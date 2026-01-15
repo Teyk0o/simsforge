@@ -6,5 +6,8 @@
 /.idea/
 /.claude/
 
+# Build output
+app/out/
+
 # Claude Code temporary files
 tmpclaude-*-cwd
