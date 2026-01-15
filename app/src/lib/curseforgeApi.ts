@@ -113,15 +113,12 @@ export interface SearchModsParams {
  * Search for mods on CurseForge
  * @param params Search parameters
  * @returns Search results with pagination
- * @throws Error if API key not configured or API call fails
+ * @throws Error if API call fails
  */
 export async function searchCurseForgeMods(
   params: SearchModsParams
 ): Promise<CurseForgeSearchResult> {
   const apiKey = await getCurseForgeApiKey();
-  if (!apiKey) {
-    throw new Error('CurseForge API key not configured. Please add your API key in Settings.');
-  }
 
   const queryParams = new URLSearchParams();
 
@@ -144,10 +141,13 @@ export async function searchCurseForgeMods(
   const queryString = queryParams.toString();
   const url = `/api/v1/curseforge/search?${queryString}`;
 
+  const headers: Record<string, string> = {};
+  if (apiKey) {
+    headers['X-CurseForge-API-Key'] = apiKey;
+  }
+
   const response = await apiGet<{ success: boolean; data: CurseForgeSearchResult }>(url, {
-    headers: {
-      'X-CurseForge-API-Key': apiKey
-    }
+    headers
   });
   return response.data;
 }
@@ -156,21 +156,19 @@ export async function searchCurseForgeMods(
  * Get details of a specific mod
  * @param modId CurseForge mod ID
  * @returns Mod details
- * @throws Error if API key not configured or mod not found
+ * @throws Error if mod not found or API call fails
  */
 export async function getCurseForgeMod(modId: number): Promise<CurseForgeMod> {
   const apiKey = await getCurseForgeApiKey();
-  if (!apiKey) {
-    throw new Error('CurseForge API key not configured. Please add your API key in Settings.');
+
+  const headers: Record<string, string> = {};
+  if (apiKey) {
+    headers['X-CurseForge-API-Key'] = apiKey;
   }
 
   const response = await apiGet<{ success: boolean; data: CurseForgeMod }>(
     `/api/v1/curseforge/${modId}`,
-    {
-      headers: {
-        'X-CurseForge-API-Key': apiKey
-      }
-    }
+    { headers }
   );
   return response.data;
 }
@@ -181,7 +179,7 @@ export async function getCurseForgeMod(modId: number): Promise<CurseForgeMod> {
  * @param modId CurseForge mod ID
  * @param fileId Optional: specific file version to download
  * @returns Download URL and file info
- * @throws Error if API key not configured or file not found
+ * @throws Error if API call fails or file not found
  */
 export async function getModDownloadUrl(modId: number, fileId?: number): Promise<{
   modId: number;
@@ -192,8 +190,10 @@ export async function getModDownloadUrl(modId: number, fileId?: number): Promise
   fileSize: number;
 }> {
   const apiKey = await getCurseForgeApiKey();
-  if (!apiKey) {
-    throw new Error('CurseForge API key not configured. Please add your API key in Settings.');
+
+  const headers: Record<string, string> = {};
+  if (apiKey) {
+    headers['X-CurseForge-API-Key'] = apiKey;
   }
 
   const response = await apiPost<{
@@ -206,32 +206,26 @@ export async function getModDownloadUrl(modId: number, fileId?: number): Promise
       downloadUrl: string;
       fileSize: number;
     };
-  }>('/api/v1/curseforge/download-url', { modId, fileId }, {
-    headers: {
-      'X-CurseForge-API-Key': apiKey
-    }
-  });
+  }>('/api/v1/curseforge/download-url', { modId, fileId }, { headers });
   return response.data;
 }
 
 /**
  * Get all available CurseForge categories for Sims 4 mods
  * @returns Array of categories
- * @throws Error if API key not configured or API call fails
+ * @throws Error if API call fails
  */
 export async function getCurseForgeCategories(): Promise<Array<{ id: number; name: string }>> {
   const apiKey = await getCurseForgeApiKey();
-  if (!apiKey) {
-    throw new Error('CurseForge API key not configured. Please add your API key in Settings.');
+
+  const headers: Record<string, string> = {};
+  if (apiKey) {
+    headers['X-CurseForge-API-Key'] = apiKey;
   }
 
   const response = await apiGet<{ success: boolean; data: Array<{ id: number; name: string }> }>(
     '/api/v1/curseforge/categories',
-    {
-      headers: {
-        'X-CurseForge-API-Key': apiKey
-      }
-    }
+    { headers }
   );
   return response.data;
 }
