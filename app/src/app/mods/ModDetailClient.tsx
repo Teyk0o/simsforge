@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getCurseForgeMod } from '@/lib/curseforgeApi';
 import { CurseForgeMod } from '@/types/curseforge';
@@ -14,9 +14,10 @@ import { ArrowLeft } from '@phosphor-icons/react';
 
 type TabId = 'description' | 'files' | 'images' | 'changelog';
 
-export default function ModDetailPage() {
-  const params = useParams();
-  const modId = Number(params.modId as string);
+export default function ModDetailClient() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const modId = Number(searchParams.get('id'));
 
   const [mod, setMod] = useState<CurseForgeMod | null>(null);
   const [isLoading, setIsLoading] = useState(true);

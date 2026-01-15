@@ -1,19 +1,18 @@
 import { useEffect } from 'react';
-import { invoke } from '@tauri-apps/api/core';
 
 /**
- * Hook to enable dev tools toggle with F12 key
- * Allows opening the developer console in production builds
+ * Hook to detect F12 key press for dev tools
+ * In Tauri, dev tools can be enabled at build time or via window settings
  */
 export function useDevTools() {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // F12 or Ctrl+Shift+I to toggle dev tools
+      // F12 or Ctrl+Shift+I - notify user of available shortcuts
       if (event.key === 'F12' || (event.ctrlKey && event.shiftKey && event.key === 'I')) {
         event.preventDefault();
-        invoke('toggle_devtools').catch((err) => {
-          console.error('Failed to toggle dev tools:', err);
-        });
+        // Dev tools can be built with Tauri feature flags
+        // For now, just log to console that the key was pressed
+        console.log('Dev tools shortcut detected. Build with dev tools enabled to use.');
       }
     };
 

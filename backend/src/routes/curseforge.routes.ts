@@ -1,16 +1,18 @@
 import { Router } from 'express';
 import { curseForgeController } from '@controllers/CurseForgeController';
-import { authMiddleware } from '@middleware/authMiddleware';
+import { authMiddleware, optionalAuthMiddleware } from '@middleware/authMiddleware';
 import { asyncHandler } from '@middleware/errorMiddleware';
 
 /**
  * Create CurseForge proxy routes
- * All CurseForge routes require authentication
+ * Browse operations (search, categories, details) accept anonymous users
+ * Download operations require authentication
  */
 export function createCurseForgeRoutes(): Router {
   const router = Router();
 
-  router.use(authMiddleware);
+  // Apply optional authentication middleware to allow anonymous browsing
+  router.use(optionalAuthMiddleware);
 
   /**
    * GET /api/v1/curseforge/categories

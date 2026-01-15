@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Tauri expects a static export
-  output: process.env.TAURI_PLATFORM ? 'export' : 'standalone',
+  output: 'export',
   devIndicators: false,
 
   // Optimize images for Tauri

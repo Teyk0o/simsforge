@@ -22,7 +22,6 @@ export class CurseForgeController {
   /**
    * Searches for mods on CurseForge
    * GET /api/v1/curseforge/search
-   * @requires authentication
    * @query query - Search query (optional)
    * @query pageSize - Results per page (1-50, default 50)
    * @query pageIndex - Page index for pagination (default 0)
@@ -31,7 +30,7 @@ export class CurseForgeController {
    */
   async searchMods(req: Request, res: Response): Promise<void> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user?.id || null;
 
       // Validate and parse query parameters
       let validated;
@@ -87,11 +86,10 @@ export class CurseForgeController {
   /**
    * Gets all available categories for Sims 4 mods
    * GET /api/v1/curseforge/categories
-   * @requires authentication
    */
   async getCategories(req: Request, res: Response): Promise<void> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user?.id || null;
 
       // Call proxy service
       const categories = await curseForgeProxyService.getCategories(userId);
@@ -126,12 +124,11 @@ export class CurseForgeController {
   /**
    * Gets details of a specific mod
    * GET /api/v1/curseforge/:modId
-   * @requires authentication
    * @param modId - CurseForge mod ID
    */
   async getMod(req: Request, res: Response): Promise<void> {
     try {
-      const userId = req.user!.id;
+      const userId = req.user?.id || null;
       const modId = parseInt(req.params.modId as string);
 
       // Validate mod ID
@@ -185,14 +182,26 @@ export class CurseForgeController {
   /**
    * Get download URL for a mod file from CurseForge
    * POST /api/v1/curseforge/download-url
-   * @requires authentication
+   * @requires authentication - User must be authenticated to download
    * @body modId - CurseForge mod ID
    * @body fileId - Optional: specific file version to download
    * @returns Download URL and file info for frontend to download and install locally
    */
   async getDownloadUrl(req: Request, res: Response): Promise<void> {
     try {
-      const userId = req.user!.id;
+      // Require authentication for download operations
+      if (!req.user) {
+        res.status(401).json({
+          success: false,
+          error: {
+            message: 'Authentication required to download mods',
+            code: 'AUTHENTICATION_REQUIRED'
+          }
+        });
+        return;
+      }
+
+      const userId = req.user.id;
 
       // Validate request body
       const schema = z.object({
