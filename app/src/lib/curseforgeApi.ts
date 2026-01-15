@@ -3,8 +3,100 @@
  * Provides functions for interacting with the backend CurseForge proxy API
  */
 
-import { apiGet, apiPost, apiDelete } from './apiClient';
+import { apiGet, apiPost } from './apiClient';
 import { CurseForgeSearchResult, CurseForgeMod } from '@/types/curseforge';
+
+/**
+ * Simple encryption/decryption helper using Web Crypto API
+ */
+const StorageHelper = {
+  async encryptData(data: string, password: string = 'simsforge-settings'): Promise<string> {
+    const encoder = new TextEncoder();
+    const data_encoded = encoder.encode(data);
+    const password_encoded = encoder.encode(password);
+
+    const hash_buffer = await crypto.subtle.digest('SHA-256', password_encoded);
+    const key = await crypto.subtle.importKey('raw', hash_buffer, 'AES-GCM', false, ['encrypt']);
+
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+
+    const encrypted = await crypto.subtle.encrypt(
+      { name: 'AES-GCM', iv: iv },
+      key,
+      data_encoded
+    );
+
+    const combined = new Uint8Array(iv.length + encrypted.byteLength);
+    combined.set(iv);
+    combined.set(new Uint8Array(encrypted), iv.length);
+
+    let binaryString = '';
+    for (let i = 0; i < combined.length; i++) {
+      binaryString += String.fromCharCode(combined[i]);
+    }
+    return btoa(binaryString);
+  },
+
+  async decryptData(encryptedData: string, password: string = 'simsforge-settings'): Promise<string | null> {
+    try {
+      const encoder = new TextEncoder();
+      const password_encoded = encoder.encode(password);
+
+      const hash_buffer = await crypto.subtle.digest('SHA-256', password_encoded);
+      const key = await crypto.subtle.importKey('raw', hash_buffer, 'AES-GCM', false, ['decrypt']);
+
+      const binaryString = atob(encryptedData);
+      const combined = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        combined[i] = binaryString.charCodeAt(i);
+      }
+
+      const iv = combined.slice(0, 12);
+      const encrypted = combined.slice(12);
+
+      const decrypted = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv: iv },
+        key,
+        encrypted
+      );
+      const decoder = new TextDecoder();
+      return decoder.decode(decrypted);
+    } catch (error) {
+      return null;
+    }
+  },
+
+  setLocal(key: string, value: string): void {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(key, value);
+    }
+  },
+
+  getLocal(key: string): string | null {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem(key);
+    }
+    return null;
+  },
+
+  removeLocal(key: string): void {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(key);
+    }
+  }
+};
+
+/**
+ * Get the CurseForge API key from local storage and decrypt it
+ * @returns The decrypted API key or null if not configured
+ */
+async function getCurseForgeApiKey(): Promise<string | null> {
+  const encryptedKey = StorageHelper.getLocal('simsforge_api_key');
+  if (!encryptedKey) {
+    return null;
+  }
+  return StorageHelper.decryptData(encryptedKey);
+}
 
 /**
  * Parameters for searching mods on CurseForge
@@ -26,6 +118,11 @@ export interface SearchModsParams {
 export async function searchCurseForgeMods(
   params: SearchModsParams
 ): Promise<CurseForgeSearchResult> {
+  const apiKey = await getCurseForgeApiKey();
+  if (!apiKey) {
+    throw new Error('CurseForge API key not configured. Please add your API key in Settings.');
+  }
+
   const queryParams = new URLSearchParams();
 
   // Always include query param (can be empty string for browsing all mods)
@@ -47,7 +144,11 @@ export async function searchCurseForgeMods(
   const queryString = queryParams.toString();
   const url = `/api/v1/curseforge/search?${queryString}`;
 
-  const response = await apiGet<{ success: boolean; data: CurseForgeSearchResult }>(url);
+  const response = await apiGet<{ success: boolean; data: CurseForgeSearchResult }>(url, {
+    headers: {
+      'X-CurseForge-API-Key': apiKey
+    }
+  });
   return response.data;
 }
 
@@ -58,35 +159,22 @@ export async function searchCurseForgeMods(
  * @throws Error if API key not configured or mod not found
  */
 export async function getCurseForgeMod(modId: number): Promise<CurseForgeMod> {
+  const apiKey = await getCurseForgeApiKey();
+  if (!apiKey) {
+    throw new Error('CurseForge API key not configured. Please add your API key in Settings.');
+  }
+
   const response = await apiGet<{ success: boolean; data: CurseForgeMod }>(
-    `/api/v1/curseforge/${modId}`
+    `/api/v1/curseforge/${modId}`,
+    {
+      headers: {
+        'X-CurseForge-API-Key': apiKey
+      }
+    }
   );
   return response.data;
 }
 
-/**
- * Save or update a CurseForge API key
- * @param apiKey The API key to save
- * @throws Error if API call fails
- */
-export async function saveCurseForgeApiKey(apiKey: string): Promise<void> {
-  await apiPost('/api/v1/settings/api-keys', {
-    serviceName: 'curseforge',
-    apiKey
-  });
-}
-
-/**
- * Get list of configured API key services for current user
- * @returns List of service names that have API keys configured
- * @throws Error if API call fails
- */
-export async function getConfiguredServices(): Promise<{ services: string[] }> {
-  const response = await apiGet<{ success: boolean; data: { services: string[] } }>(
-    '/api/v1/settings/api-keys'
-  );
-  return response.data;
-}
 
 /**
  * Get download URL for a mod file from CurseForge
@@ -103,6 +191,11 @@ export async function getModDownloadUrl(modId: number, fileId?: number): Promise
   downloadUrl: string;
   fileSize: number;
 }> {
+  const apiKey = await getCurseForgeApiKey();
+  if (!apiKey) {
+    throw new Error('CurseForge API key not configured. Please add your API key in Settings.');
+  }
+
   const response = await apiPost<{
     success: boolean;
     data: {
@@ -113,17 +206,12 @@ export async function getModDownloadUrl(modId: number, fileId?: number): Promise
       downloadUrl: string;
       fileSize: number;
     };
-  }>('/api/v1/curseforge/download-url', { modId, fileId });
+  }>('/api/v1/curseforge/download-url', { modId, fileId }, {
+    headers: {
+      'X-CurseForge-API-Key': apiKey
+    }
+  });
   return response.data;
-}
-
-/**
- * Delete a stored API key
- * @param serviceName Service name (e.g., 'curseforge')
- * @throws Error if API call fails or key not found
- */
-export async function deleteApiKey(serviceName: string): Promise<void> {
-  await apiDelete(`/api/v1/settings/api-keys/${serviceName}`);
 }
 
 /**
@@ -132,8 +220,18 @@ export async function deleteApiKey(serviceName: string): Promise<void> {
  * @throws Error if API key not configured or API call fails
  */
 export async function getCurseForgeCategories(): Promise<Array<{ id: number; name: string }>> {
+  const apiKey = await getCurseForgeApiKey();
+  if (!apiKey) {
+    throw new Error('CurseForge API key not configured. Please add your API key in Settings.');
+  }
+
   const response = await apiGet<{ success: boolean; data: Array<{ id: number; name: string }> }>(
-    '/api/v1/curseforge/categories'
+    '/api/v1/curseforge/categories',
+    {
+      headers: {
+        'X-CurseForge-API-Key': apiKey
+      }
+    }
   );
   return response.data;
 }
