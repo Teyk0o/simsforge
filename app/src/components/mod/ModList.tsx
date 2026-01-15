@@ -1,14 +1,12 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { List } from 'react-window';
-import { AutoSizer } from 'react-virtualized-auto-sizer';
+import { Virtuoso } from 'react-virtuoso';
 import ModListItem from '@/components/mod/ModListItem';
 import ModGridRow from '@/components/mod/ModGridRow';
 import { searchCurseForgeMods } from '@/lib/curseforgeApi';
 import { CurseForgeMod } from '@/types/curseforge';
 import { ViewMode } from '@/hooks/useViewMode';
-import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 
 interface ModListProps {
@@ -125,13 +123,8 @@ export default function ModList({ searchQuery, sortBy, category, viewMode }: Mod
       const loadedCount = (pageIndex + 1) * 50;
       setHasMore(loadedCount < result.pagination.totalCount);
     } catch (err: any) {
-      if (err.response?.data?.error?.code === 'API_KEY_REQUIRED') {
-        setError('api_key_required');
-      } else {
-        setError(
-          err.response?.data?.error?.message || 'Failed to load mods'
-        );
-      }
+      const errorMessage = err.response?.data?.error?.message || err.message || 'Failed to load mods';
+      setError(errorMessage);
       if (pageIndex === 0) setMods([]);
     } finally {
       if (pageIndex === 0) {
@@ -176,43 +169,6 @@ export default function ModList({ searchQuery, sortBy, category, viewMode }: Mod
     [hasMore, isLoadingMore, fetchModsForPage, mods.length, viewMode, gridRows.length]
   );
 
-  // Row renderer for virtualized list (list view)
-  const Row = useCallback(
-    ({ index, style }: { index: number; style: React.CSSProperties }) => {
-      const mod = mods[index];
-
-      if (!mod) {
-        return <div style={style} />;
-      }
-
-      return (
-        <div style={style} className="px-4 lg:px-8 flex items-center">
-          <div className="w-full mb-4">
-            <ModListItem mod={mod} />
-          </div>
-        </div>
-      );
-    },
-    [mods]
-  ) as any;
-
-  // Row renderer for virtualized grid (grid view)
-  const GridRowComponent = useCallback(
-    ({ index, style }: { index: number; style: React.CSSProperties }) => {
-      const row = gridRows[index];
-
-      if (!row || row.length === 0) {
-        return <div style={style} />;
-      }
-
-      return (
-        <div style={style}>
-          <ModGridRow mods={row} index={index} columns={gridColumns} />
-        </div>
-      );
-    },
-    [gridRows, gridColumns]
-  ) as any;
 
   // Loading state for first load
   if (isLoading) {
@@ -223,30 +179,7 @@ export default function ModList({ searchQuery, sortBy, category, viewMode }: Mod
     );
   }
 
-  // Error state - API key required
-  if (error === 'api_key_required') {
-    return (
-      <div className="flex-1 flex items-center justify-center p-8">
-        <div className="text-center max-w-md rounded-lg p-8 border" style={{ backgroundColor: 'var(--ui-panel)', borderColor: 'var(--ui-border)' }}>
-          <div className="text-4xl mb-4">🔑</div>
-          <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-            CurseForge API Key Required
-          </h3>
-          <p className="text-gray-400 mb-6" style={{ color: 'var(--text-secondary)' }}>
-            To browse CurseForge mods, please configure your API key in Settings.
-          </p>
-          <Link
-            href="/settings"
-            className="inline-block bg-green-600 hover:bg-green-700 px-6 py-2 rounded font-medium text-white transition"
-          >
-            Go to Settings
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  // Error state - other errors
+  // Error state
   if (error) {
     return (
       <div className="flex-1 flex items-center justify-center p-8">
@@ -284,53 +217,43 @@ export default function ModList({ searchQuery, sortBy, category, viewMode }: Mod
       {/* Virtualized List / Grid */}
       {mods.length > 0 ? (
         viewMode === 'list' ? (
-          // LIST VIEW - Virtualized with ModListItem rows
-          <div className="flex-1 flex flex-col min-w-0">
-            {/* @ts-ignore */}
-            <AutoSizer>
-              {({ height, width }: { height: number; width: number }) => {
-                const ListComponent = List as any;
-                return (<ListComponent
-                  height={height}
-                  itemCount={mods.length}
-                  itemSize={listRowHeight}
-                  width={width}
-                  onItemsRendered={handleRowsRendered}
-                  style={{
-                    scrollbarWidth: 'none',
-                    msOverflowStyle: 'none',
-                  }}
-                >
-                  {Row}
-                </ListComponent>
-                );
-              }}
-            </AutoSizer>
-          </div>
+          // LIST VIEW - Virtualized with Virtuoso
+          <Virtuoso
+            data={mods}
+            style={{ height: '100%' }}
+            itemContent={(index, mod) => (
+              <div className="px-4 lg:px-8 py-2">
+                <ModListItem mod={mod} />
+              </div>
+            )}
+            endReached={() => {
+              if (hasMore && !isLoadingMore) {
+                const nextPageIndex = paginationRef.current.index + 1;
+                fetchModsForPage(nextPageIndex).catch(() => {
+                  setError('Failed to load more mods');
+                });
+              }
+            }}
+            overscan={10}
+          />
         ) : (
-          // GRID VIEW - Virtualized with ModCard rows
-          <div className="flex-1 flex flex-col min-w-0">
-            {/* @ts-ignore */}
-            <AutoSizer>
-              {({ height, width }: { height: number; width: number }) => {
-                const ListComponent = List as any;
-                return (<ListComponent
-                  height={height}
-                  itemCount={gridRows.length}
-                  itemSize={gridRowHeight}
-                  width={width}
-                  onItemsRendered={handleRowsRendered}
-                  style={{
-                    scrollbarWidth: 'none',
-                    msOverflowStyle: 'none',
-                  }}
-                >
-                  {GridRowComponent}
-                </ListComponent>
-                );
-              }}
-            </AutoSizer>
-          </div>
+          // GRID VIEW - Virtualized with Virtuoso
+          <Virtuoso
+            data={gridRows}
+            style={{ height: '100%' }}
+            itemContent={(index, row) => (
+              <ModGridRow mods={row} index={index} columns={gridColumns} />
+            )}
+            endReached={() => {
+              if (hasMore && !isLoadingMore) {
+                const nextPageIndex = paginationRef.current.index + 1;
+                fetchModsForPage(nextPageIndex).catch(() => {
+                  setError('Failed to load more mods');
+                });
+              }
+            }}
+            overscan={10}
+          />
         )
       ) : (
         <div className="flex-1 flex items-center justify-center">
