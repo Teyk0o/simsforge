@@ -22,10 +22,12 @@ export function createApp(): Express {
 
   // CORS middleware
   const allowedOrigins = env.ALLOWED_ORIGINS;
+  const allowAllOrigins = allowedOrigins.includes('*');
+
   app.use(
     cors({
       origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
+        if (allowAllOrigins || !origin || allowedOrigins.includes(origin)) {
           callback(null, true);
         } else {
           callback(new Error('Not allowed by CORS'));
