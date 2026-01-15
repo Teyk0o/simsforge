@@ -1,5 +1,4 @@
 import { CurseForgeClient, CurseForgeGameEnum, CurseForgeModsSearchSortField, CurseForgeSortOrder } from 'curseforge-api';
-import { userApiKeyRepository } from '@repositories/UserApiKeyRepository';
 import { cacheManager } from '@services/cache/CacheManager';
 import { AdvancedSearchService } from '@services/search/AdvancedSearchService';
 
@@ -7,7 +6,7 @@ import { AdvancedSearchService } from '@services/search/AdvancedSearchService';
  * Options for searching mods on CurseForge
  */
 export interface SearchModsOptions {
-  userId: number;
+  apiKey: string;
   query?: string;
   pageSize?: number;
   pageIndex?: number;
@@ -75,9 +74,9 @@ export class CurseForgeProxyService {
 
   /**
    * Searches for mods on CurseForge with advanced search scoring
-   * @param options Search options including user ID, query, pagination, and sort
+   * @param options Search options including API key, query, pagination, and sort
    * @returns Transformed mods with pagination info
-   * @throws Error if API key not configured or API call fails
+   * @throws Error if API call fails
    *
    * @note When a text query is provided, this method fetches more results from CurseForge
    *       (up to 150 mods) and applies advanced scoring to prioritize search relevance
@@ -85,17 +84,10 @@ export class CurseForgeProxyService {
    *       sort criterion for mods with equal search scores.
    */
   async searchMods(options: SearchModsOptions): Promise<CurseForgeSearchResult> {
-    const { userId, query, pageSize = 50, pageIndex = 0, sortBy = 'downloads', categoryName } = options;
-
-    // Retrieve user's encrypted API key
-    const apiKey = await userApiKeyRepository.findByUserAndService(userId, 'curseforge');
-
-    if (!apiKey) {
-      throw new Error('CurseForge API key not configured. Please add your API key in Settings.');
-    }
+    const { apiKey, query, pageSize = 50, pageIndex = 0, sortBy = 'downloads', categoryName } = options;
 
     // Generate cache key based on search parameters
-    const cacheKey = `curseforge:search:${userId}:${query || 'all'}:${pageSize}:${pageIndex}:${sortBy}:${categoryName || 'all'}`;
+    const cacheKey = `curseforge:search:${query || 'all'}:${pageSize}:${pageIndex}:${sortBy}:${categoryName || 'all'}`;
 
     // Check cache first
     const cached = cacheManager.get<CurseForgeSearchResult>(cacheKey);
@@ -112,7 +104,7 @@ export class CurseForgeProxyService {
     // Convert category name to ID if provided
     let categoryId: number | undefined;
     if (categoryName) {
-      categoryId = await this.getCategoryIdByName(userId, categoryName);
+      categoryId = await this.getCategoryIdByName(apiKey, categoryName);
     }
 
     // Determine fetch strategy based on whether we have a text query
@@ -229,30 +221,25 @@ export class CurseForgeProxyService {
 
   /**
    * Converts a category name to its corresponding category ID
-   * @param userId User ID (for API key retrieval)
+   * @param apiKey CurseForge API key
    * @param categoryName The name of the category (e.g., "Teen", "Clothing")
    * @returns The category ID, or undefined if not found
    * @private
    */
-  private async getCategoryIdByName(userId: number, categoryName: string): Promise<number | undefined> {
-    const categories = await this.getCategories(userId);
+  private async getCategoryIdByName(apiKey: string, categoryName: string): Promise<number | undefined> {
+    const categories = await this.getCategories(apiKey);
     const category = categories.find(cat => cat.name.toLowerCase() === categoryName.toLowerCase());
     return category?.id;
   }
 
   /**
    * Gets details of a specific mod
-   * @param userId User ID (for API key retrieval)
+   * @param apiKey CurseForge API key
    * @param modId CurseForge mod ID
    * @returns Transformed mod details
-   * @throws Error if API key not configured or mod not found
+   * @throws Error if mod not found
    */
-  async getMod(userId: number, modId: number): Promise<TransformedMod> {
-    const apiKey = await userApiKeyRepository.findByUserAndService(userId, 'curseforge');
-
-    if (!apiKey) {
-      throw new Error('CurseForge API key not configured');
-    }
+  async getMod(apiKey: string, modId: number): Promise<TransformedMod> {
 
     // Check cache
     const cacheKey = `curseforge:mod:${modId}`;
@@ -312,16 +299,11 @@ export class CurseForgeProxyService {
 
   /**
    * Gets all available categories for Sims 4 mods from CurseForge
-   * @param userId User ID (for API key retrieval)
+   * @param apiKey CurseForge API key
    * @returns Array of categories
-   * @throws Error if API key not configured or API call fails
+   * @throws Error if API call fails
    */
-  async getCategories(userId: number): Promise<Array<{ id: number; name: string }>> {
-    const apiKey = await userApiKeyRepository.findByUserAndService(userId, 'curseforge');
-
-    if (!apiKey) {
-      throw new Error('CurseForge API key not configured');
-    }
+  async getCategories(apiKey: string): Promise<Array<{ id: number; name: string }>> {
 
     // Check cache
     const cacheKey = 'curseforge:categories:sims4';
