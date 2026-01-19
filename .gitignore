@@ -11,3 +11,5 @@ app/out/
 
 # Claude Code temporary files
 tmpclaude-*-cwd
+
+RELEASES.md
