@@ -88,7 +88,7 @@ jobs:
       - name: Write signing key
         working-directory: ./app/src-tauri
         run: |
-          echo "${{ secrets.TAURI_SIGNING_KEY }}" > tauri.key
+          "${{ secrets.TAURI_SIGNING_KEY }}" | Out-File -FilePath tauri.key -NoNewline -Encoding UTF8
 
       - name: Sign MSI for auto-update
         working-directory: ./app
@@ -98,7 +98,7 @@ jobs:
 
       - name: Clean up signing key
         working-directory: ./app/src-tauri
-        run: rm -f tauri.key
+        run: Remove-Item tauri.key -Force -ErrorAction SilentlyContinue
         if: always()
 
       - name: Generate update manifest
