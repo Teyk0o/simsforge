@@ -70,7 +70,7 @@ jobs:
         working-directory: ./app
         run: npx tauri build
         env:
-          TAURI_SIGNING_KEY: ${{ secrets.TAURI_SIGNING_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_KEY }}
           TAURI_SIGNING_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_KEY_PASSWORD }}
 
       - name: Get MSI filename
