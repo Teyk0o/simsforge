@@ -197,27 +197,34 @@ export class ModInstallationService {
 
       await profileService.addModToProfile(activeProfile.id, profileMod);
 
-      // If modsPath is provided, create symlink
+      // If modsPath is provided, activate all profile mods (not just the new one)
       let installedFiles: string[] = [];
       if (modsPath && (await exists(modsPath))) {
         onProgress?.({
           stage: 'installing',
           percent: 85,
-          message: 'Creating symlink to profile mods...',
+          message: 'Creating symlinks to profile mods...',
         });
 
-        const cachePath = await modCacheService.getCachePath(
-          cachedMod.fileHash
-        );
-        const sanitizedModName = this.sanitizeModName(modName);
+        // Get the updated profile with all mods
+        const updatedProfile = await profileService.getProfile(activeProfile.id);
+        if (!updatedProfile) {
+          throw new Error('Failed to retrieve updated profile');
+        }
 
-        const symlinkResult = await symlinkService.activateProfile(modsPath, [
-          { source: cachePath, modName: sanitizedModName },
-        ]);
+        // Build cache paths for ALL mods in the profile
+        const allModPaths: { source: string; modName: string }[] = [];
+        for (const mod of updatedProfile.mods) {
+          const cachePath = await modCacheService.getCachePath(mod.fileHash);
+          const sanitizedModName = this.sanitizeModName(mod.modName);
+          allModPaths.push({ source: cachePath, modName: sanitizedModName });
+        }
+
+        const symlinkResult = await symlinkService.activateProfile(modsPath, allModPaths);
 
         if (!symlinkResult.success) {
-          console.warn('Failed to create symlink:', symlinkResult.errors);
-          // Don't fail - mod is in cache and profile
+          console.warn('Failed to create symlinks:', symlinkResult.errors);
+          // Don't fail - mods are in cache and profile
         }
 
         installedFiles = cachedMod.files.map((f) => f.fileName);
