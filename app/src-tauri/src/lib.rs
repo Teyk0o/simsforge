@@ -2,7 +2,9 @@ use sha2::{Digest, Sha256};
 use std::fs::{copy as fs_copy, create_dir_all, metadata, read_dir, File};
 use std::io::{copy, Read};
 use std::path::Path;
+use std::sync::Mutex;
 use zip::ZipArchive;
+use rayon::prelude::*;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -15,19 +17,57 @@ fn extract_zip(zip_path: String, dest_dir: String) -> Result<(), String> {
     let file = File::open(&zip_path).map_err(|e| e.to_string())?;
     let mut archive = ZipArchive::new(file).map_err(|e| e.to_string())?;
 
+    // First pass: collect all file metadata and content (must be sequential due to ZipArchive)
+    let mut files_to_create: Vec<(String, Vec<u8>, bool)> = Vec::new();
+    let mut dirs_to_create: Vec<String> = Vec::new();
+
     for i in 0..archive.len() {
         let mut file = archive.by_index(i).map_err(|e| e.to_string())?;
-        let outpath = Path::new(&dest_dir).join(file.name());
+        let name = file.name().to_string();
 
-        if file.name().ends_with('/') {
-            create_dir_all(&outpath).map_err(|e| e.to_string())?;
+        if name.ends_with('/') {
+            dirs_to_create.push(name);
         } else {
-            if let Some(p) = outpath.parent() {
-                create_dir_all(p).map_err(|e| e.to_string())?;
-            }
-            let mut outfile = File::create(&outpath).map_err(|e| e.to_string())?;
-            copy(&mut file, &mut outfile).map_err(|e| e.to_string())?;
+            // Read file content into memory
+            let mut buffer = Vec::new();
+            copy(&mut file, &mut buffer).map_err(|e| e.to_string())?;
+            files_to_create.push((name, buffer, false));
         }
+    }
+
+    // Create all directories first (sequential to avoid race conditions)
+    for dir_name in dirs_to_create {
+        let outpath = Path::new(&dest_dir).join(&dir_name);
+        create_dir_all(&outpath).map_err(|e| e.to_string())?;
+    }
+
+    // Create parent directories for all files (sequential)
+    for (file_name, _, _) in &files_to_create {
+        let outpath = Path::new(&dest_dir).join(file_name);
+        if let Some(p) = outpath.parent() {
+            create_dir_all(p).map_err(|e| e.to_string())?;
+        }
+    }
+
+    // Second pass: write all files in parallel with rayon
+    let error_mutex = Mutex::new(Option::<String>::None);
+
+    files_to_create
+        .par_iter()
+        .for_each(|(file_name, content, _)| {
+            if error_mutex.lock().unwrap().is_some() {
+                return;
+            }
+
+            let outpath = Path::new(&dest_dir).join(file_name);
+            if let Err(e) = std::fs::write(&outpath, content) {
+                *error_mutex.lock().unwrap() = Some(format!("Failed to write {}: {}", file_name, e));
+            }
+        });
+
+    // Check for errors from parallel operations
+    if let Some(e) = error_mutex.into_inner().unwrap() {
+        return Err(e);
     }
 
     Ok(())
