@@ -86,18 +86,19 @@ jobs:
           echo "MSI_NAME=$($msiFile.Name)" >> $env:GITHUB_OUTPUT
 
       - name: Write signing key
-        working-directory: ./app/src-tauri
+        working-directory: ./app
         run: |
           "${{ secrets.TAURI_SIGNING_KEY }}" | Out-File -FilePath tauri.key -NoNewline -Encoding UTF8
 
       - name: Sign MSI for auto-update
         working-directory: ./app
-        run: npx tauri signer sign "${{ steps.msi_file.outputs.MSI_PATH }}"
+        run: npx tauri signer sign "${{ steps.msi_file.outputs.MSI_PATH }}" --key-path ./tauri.key
         env:
-          TAURI_SIGNING_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_KEY_PASSWORD }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_KEY_PASSWORD }}
 
       - name: Clean up signing key
-        working-directory: ./app/src-tauri
+        working-directory: ./app
         run: Remove-Item tauri.key -Force -ErrorAction SilentlyContinue
         if: always()
 
