@@ -1,6 +1,6 @@
 {
   "name": "simsforge-app",
-  "version": "0.2.55",
+  "version": "0.2.6",
   "private": true,
   "scripts": {
     "dev": "next dev",
