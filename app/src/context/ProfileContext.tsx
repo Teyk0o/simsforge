@@ -21,6 +21,7 @@ export interface ProfileContextType {
   profiles: ModProfile[];
   activeProfile: ModProfile | null;
   isLoading: boolean;
+  isInitialized: boolean;
   error: string | null;
   refreshProfiles: () => Promise<void>;
   createProfile: (name: string, description: string, tags: string[]) => Promise<ModProfile>;
@@ -42,6 +43,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const [profiles, setProfiles] = useState<ModProfile[]>([]);
   const [activeProfile, setActiveProfile] = useState<ModProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [modsPath, setModsPath] = useState<string | null>(null);
   const { showToast } = useToast();
@@ -55,35 +57,23 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
 
   const initializeProfiles = async () => {
     try {
-      console.log('[ProfileContext] Initialize starting');
       setIsLoading(true);
       setError(null);
 
       // Initialize services
-      console.log('[ProfileContext] Initializing profileService');
       await profileService.initialize();
-      console.log('[ProfileContext] profileService initialized');
-
-      console.log('[ProfileContext] Initializing modCacheService');
       await modCacheService.initialize();
-      console.log('[ProfileContext] modCacheService initialized');
 
       // Try to detect Sims 4 mods path
-      console.log('[ProfileContext] Detecting Sims 4 paths');
       const paths = await sims4PathDetector.detectPaths();
       const validation = await sims4PathDetector.validatePaths(paths);
 
       if (validation.modsValid && paths.modsPath) {
         setModsPath(paths.modsPath);
-        console.log('[ProfileContext] Detected mods path:', paths.modsPath);
-      } else {
-        console.warn('Could not auto-detect Sims 4 mods path');
       }
 
       // Load profiles
-      console.log('[ProfileContext] Refreshing profiles');
       await refreshProfiles();
-      console.log('[ProfileContext] Profiles loaded');
     } catch (error: any) {
       console.error('Failed to initialize profiles:', error);
       setError(error.message || 'Unknown initialization error');
@@ -95,6 +85,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
       });
     } finally {
       setIsLoading(false);
+      setIsInitialized(true);
     }
   };
 
@@ -122,21 +113,13 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const createProfile = useCallback(
     async (name: string, description: string, tags: string[]) => {
       try {
-        console.log('[ProfileContext] createProfile called');
-        console.log('[ProfileContext] profileService initialized:', profileService);
-
         const newProfile = await profileService.createProfile(
           name,
           description,
           tags
         );
 
-        console.log('[ProfileContext] profileService.createProfile returned:', newProfile);
-        console.log('[ProfileContext] calling refreshProfiles');
-
         await refreshProfiles();
-
-        console.log('[ProfileContext] refreshProfiles done');
 
         showToast({
           type: 'success',
@@ -222,6 +205,13 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const activateProfile = useCallback(
     async (profileId: string | null) => {
       try {
+        // Ensure initialization is complete before activating profiles
+        if (!isInitialized) {
+          throw new Error(
+            'Profile system is still initializing. Please wait a moment and try again.'
+          );
+        }
+
         if (!modsPath) {
           throw new Error(
             'Mods path not configured. Could not find The Sims 4 installation.'
@@ -258,9 +248,6 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
           );
 
           if (!result.success) {
-            // Log detailed errors
-            console.error('[ProfileContext] Symlink creation errors:', result.errors);
-
             // Build detailed error message
             const errorDetails = result.errors
               .map((err) => `${err.targetPath}: ${err.error}`)
@@ -285,7 +272,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
         throw error;
       }
     },
-    [activeProfile, modsPath, refreshProfiles, showToast]
+    [activeProfile, isInitialized, modsPath, refreshProfiles, showToast]
   );
 
   /**
@@ -297,7 +284,6 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
         await profileService.addModToProfile(profileId, mod);
         await refreshProfiles();
       } catch (error: any) {
-        console.error('Failed to add mod to profile:', error);
         throw error;
       }
     },
@@ -355,7 +341,6 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
           await refreshProfiles();
         }
       } catch (error: any) {
-        console.error('Failed to toggle mod:', error);
         throw error;
       }
     },
@@ -373,6 +358,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
     profiles,
     activeProfile,
     isLoading,
+    isInitialized,
     error,
     refreshProfiles,
     createProfile,

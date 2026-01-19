@@ -7,7 +7,7 @@ import CreateProfileModal from '@/components/profile/CreateProfileModal';
 import { Trash, PencilSimple, CheckCircle, Plus } from '@phosphor-icons/react';
 
 export default function ProfilesPage() {
-  const { profiles, activeProfile, activateProfile, deleteProfile, updateProfile, isLoading } =
+  const { profiles, activeProfile, activateProfile, deleteProfile, updateProfile, isLoading, isInitialized } =
     useProfiles();
   const { showToast } = useToast();
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -245,11 +245,11 @@ export default function ProfilesPage() {
                       {activeProfile?.id !== profile.id && (
                         <button
                           onClick={() => activateProfile(profile.id)}
-                          disabled={isLoading}
+                          disabled={isLoading || !isInitialized}
                           className="flex-1 px-3 py-2 rounded text-sm transition-colors font-medium text-white"
                           style={{
                             backgroundColor: '#46C89B',
-                            opacity: isLoading ? 0.5 : 1,
+                            opacity: isLoading || !isInitialized ? 0.5 : 1,
                           }}
                         >
                           Activate

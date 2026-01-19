@@ -32,39 +32,25 @@ export class ProfileService {
     }
 
     try {
-      console.log('[ProfileService] initialize() starting');
-
-      console.log('[ProfileService] getting appDataDir');
       const appData = await appDataDir();
-      console.log('[ProfileService] appData path:', appData);
-
-      console.log('[ProfileService] joining paths');
       this.profilesDir = await join(appData, 'SimsForge', 'Profiles');
       this.metadataFile = await join(this.profilesDir, 'profiles.meta.json');
-      console.log('[ProfileService] profilesDir:', this.profilesDir);
 
-      console.log('[ProfileService] checking if profilesDir exists');
       if (!(await exists(this.profilesDir))) {
-        console.log('[ProfileService] creating profilesDir');
         await mkdir(this.profilesDir, { recursive: true });
-        console.log('[ProfileService] profilesDir created');
       }
 
       // Initialize metadata if not exists
-      console.log('[ProfileService] checking if metadataFile exists');
       if (!(await exists(this.metadataFile))) {
-        console.log('[ProfileService] creating default metadata');
         const defaultMetadata: ProfileMetadata = {
           activeProfileId: null,
           profiles: [],
           lastSync: new Date().toISOString(),
         };
         await this.saveMetadata(defaultMetadata);
-        console.log('[ProfileService] default metadata created');
       }
 
       this.initialized = true;
-      console.log('[ProfileService] initialize() complete');
     } catch (error) {
       console.error('[ProfileService] initialize() error:', error);
       throw error;
@@ -102,14 +88,11 @@ export class ProfileService {
 
       // Save profile file
       const profilePath = await join(this.profilesDir!, `${profile.id}.json`);
-      console.log('[ProfileService] Writing profile to:', profilePath);
 
       await writeFile(
         profilePath,
         new TextEncoder().encode(JSON.stringify(profile, null, 2))
       );
-
-      console.log('[ProfileService] Profile file written successfully');
 
       // Update metadata
       const metadata = await this.getMetadata();
@@ -117,7 +100,6 @@ export class ProfileService {
       metadata.lastSync = new Date().toISOString();
       await this.saveMetadata(metadata);
 
-      console.log('[ProfileService] Profile created successfully:', profile.id);
       return profile;
     } catch (error) {
       console.error('[ProfileService] Error creating profile:', error);
@@ -336,11 +318,7 @@ export class ProfileService {
 
   private async ensureInitialized(): Promise<void> {
     if (!this.initialized) {
-      console.log('[ProfileService] ensureInitialized: not initialized, calling initialize()');
       await this.initialize();
-      console.log('[ProfileService] ensureInitialized: initialize() complete');
-    } else {
-      console.log('[ProfileService] ensureInitialized: already initialized');
     }
   }
 

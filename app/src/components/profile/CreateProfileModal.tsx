@@ -33,11 +33,9 @@ export default function CreateProfileModal({
 
     try {
       setIsLoading(true);
-      console.log('[CreateProfileModal] Creating profile:', { name, description, tags });
 
       const newProfile = await createProfile(name.trim(), description.trim(), tags);
 
-      console.log('[CreateProfileModal] Profile created successfully:', newProfile);
       setName('');
       setDescription('');
       setTags([]);

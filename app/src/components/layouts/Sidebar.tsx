@@ -17,7 +17,7 @@ export default function Sidebar({ onThemeToggle, theme }: SidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { logout, user } = useAuth();
-  const { activeProfile, profiles, activateProfile, isLoading } = useProfiles();
+  const { activeProfile, profiles, activateProfile, isLoading, isInitialized } = useProfiles();
 
   // Map current pathname to active nav item
   const getActiveNav = () => {
@@ -83,6 +83,7 @@ export default function Sidebar({ onThemeToggle, theme }: SidebarProps) {
           activeProfile={activeProfile}
           profiles={profiles}
           onActivate={activateProfile}
+          isInitialized={isInitialized}
         />
 
         <div

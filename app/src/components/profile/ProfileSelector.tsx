@@ -9,12 +9,14 @@ interface ProfileSelectorProps {
   activeProfile: ModProfile | null;
   profiles: ModProfile[];
   onActivate: (profileId: string | null) => Promise<void>;
+  isInitialized?: boolean;
 }
 
 export default function ProfileSelector({
   activeProfile,
   profiles,
   onActivate,
+  isInitialized = true,
 }: ProfileSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -38,17 +40,17 @@ export default function ProfileSelector({
         {/* Selector Button */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          disabled={isLoading}
+          disabled={isLoading || !isInitialized}
           className="w-full flex items-center gap-2 px-3 py-2.5 rounded-md border transition-all"
           style={{
             backgroundColor: 'var(--ui-panel)',
             borderColor: 'var(--border-color)',
             color: 'var(--text-primary)',
-            opacity: isLoading ? 0.7 : 1,
-            cursor: isLoading ? 'not-allowed' : 'pointer',
+            opacity: isLoading || !isInitialized ? 0.7 : 1,
+            cursor: isLoading || !isInitialized ? 'not-allowed' : 'pointer',
           }}
           onMouseEnter={(e) => {
-            if (!isLoading) {
+            if (!isLoading && isInitialized) {
               e.currentTarget.style.backgroundColor = 'var(--ui-hover)';
             }
           }}
@@ -91,9 +93,9 @@ export default function ProfileSelector({
                   <button
                     key={profile.id}
                     onClick={() => handleActivate(profile.id)}
-                    disabled={isLoading}
+                    disabled={isLoading || !isInitialized}
                     className={`w-full flex items-center gap-2 px-3 py-2 transition-colors text-left ${
-                      isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                      isLoading || !isInitialized ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                     }`}
                     style={{
                       backgroundColor:
@@ -103,7 +105,7 @@ export default function ProfileSelector({
                       color: 'var(--text-primary)',
                     }}
                     onMouseEnter={(e) => {
-                      if (activeProfile?.id !== profile.id && !isLoading) {
+                      if (activeProfile?.id !== profile.id && !isLoading && isInitialized) {
                         e.currentTarget.style.backgroundColor = 'var(--ui-hover)';
                       }
                     }}

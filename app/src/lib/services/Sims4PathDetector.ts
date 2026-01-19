@@ -70,12 +70,10 @@ export class Sims4PathDetector {
 
     // If paths found in localStorage, validate and return them
     if (gamePath || modsPath) {
-      console.log('[Sims4PathDetector] Using user-configured paths from Settings');
       return { gamePath, modsPath };
     }
 
     // Fall back to auto-detection if not configured
-    console.log('[Sims4PathDetector] No user-configured paths found, attempting auto-detection...');
     gamePath = await this.detectGamePath();
     modsPath = await this.detectModsPath();
 

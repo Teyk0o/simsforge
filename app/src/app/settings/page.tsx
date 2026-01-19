@@ -125,9 +125,7 @@ export default function SettingsPage() {
 
   async function checkPathExists(path: string): Promise<boolean> {
     try {
-      console.log('Checking path:', path);
       const result = await exists(path);
-      console.log('Path exists result:', result);
       return result;
     } catch (error) {
       console.error('Error checking path:', error);
