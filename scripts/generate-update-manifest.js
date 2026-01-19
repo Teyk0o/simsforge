@@ -40,7 +40,7 @@ async function generateManifest() {
     }
 
     // GitHub repository info (you can override these with env vars)
-    const owner = process.env.GITHUB_REPOSITORY_OWNER || 'YOUR_USERNAME';
+    const owner = process.env.GITHUB_REPOSITORY_OWNER || 'teyk0o';
     const repo = process.env.GITHUB_REPOSITORY?.split('/')[1] || 'simsforge';
     const downloadUrl = `https://github.com/${owner}/${repo}/releases/download/${tag}/${msiFile}`;
 
