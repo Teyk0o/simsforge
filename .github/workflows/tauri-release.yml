@@ -62,6 +62,11 @@ jobs:
         working-directory: ./app
         run: npm ci
 
+      - name: Create production env file
+        working-directory: ./app
+        run: |
+          echo "NEXT_PUBLIC_BACKEND_URL=https://api.simsforge.com" > .env.production.local
+
       - name: Build frontend
         working-directory: ./app
         run: npm run build
