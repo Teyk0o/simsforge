@@ -208,23 +208,59 @@ fn copy_directory(source: String, target: String) -> Result<(), String> {
         .map_err(|e| format!("Failed to copy directory: {} -> {}: {}", source, target, e))
 }
 
-/// Helper function to recursively copy directories
+/// Helper function to recursively copy directories using parallel processing
 fn copy_dir_recursive(src: &Path, dst: &Path) -> std::io::Result<()> {
-    for entry in read_dir(src)? {
-        let entry = entry?;
+    let entries: Vec<_> = read_dir(src)?
+        .collect::<Result<Vec<_>, std::io::Error>>()?;
+
+    // Create directories first (must be sequential to avoid conflicts)
+    for entry in &entries {
         let path = entry.path();
         let file_name = entry.file_name();
         let target_path = dst.join(&file_name);
 
         if path.is_dir() {
-            // Recursively copy subdirectory
             create_dir_all(&target_path)?;
-            copy_dir_recursive(&path, &target_path)?;
-        } else {
-            // Copy file
-            fs_copy(&path, &target_path)?;
         }
     }
+
+    // Collect errors from parallel operations
+    let error_mutex = Mutex::new(None);
+
+    // Process files in parallel with rayon
+    let results: Vec<_> = entries
+        .par_iter()
+        .map(|entry| {
+            let path = entry.path();
+            let file_name = entry.file_name();
+            let target_path = dst.join(&file_name);
+
+            if path.is_dir() {
+                // Recursively copy subdirectory
+                if let Err(e) = copy_dir_recursive(&path, &target_path) {
+                    return Err(e);
+                }
+            } else {
+                // Copy file
+                if let Err(e) = fs_copy(&path, &target_path) {
+                    return Err(e);
+                }
+            }
+            Ok(())
+        })
+        .collect();
+
+    // Check for any errors from parallel operations
+    for result in results {
+        if let Err(e) = result {
+            *error_mutex.lock().unwrap() = Some(e);
+        }
+    }
+
+    if let Some(e) = error_mutex.into_inner().unwrap() {
+        return Err(e);
+    }
+
     Ok(())
 }
 
