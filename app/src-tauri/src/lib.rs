@@ -1,8 +1,8 @@
-use std::fs::{create_dir_all, File, metadata, read_dir, copy as fs_copy};
+use sha2::{Digest, Sha256};
+use std::fs::{copy as fs_copy, create_dir_all, metadata, read_dir, File};
 use std::io::{copy, Read};
 use std::path::Path;
 use zip::ZipArchive;
-use sha2::{Sha256, Digest};
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -48,18 +48,16 @@ fn create_symlink(source: String, target: String) -> Result<(), String> {
     #[cfg(target_os = "windows")]
     {
         use std::os::windows::fs::symlink_dir;
-        symlink_dir(source_path, target_path).map_err(|e| {
-            format!("Failed to create symlink: {} -> {}: {}", source, target, e)
-        })?;
+        symlink_dir(source_path, target_path)
+            .map_err(|e| format!("Failed to create symlink: {} -> {}: {}", source, target, e))?;
     }
 
     // On Unix-like systems, use standard symlinks
     #[cfg(not(target_os = "windows"))]
     {
         use std::os::unix::fs::symlink;
-        symlink(source_path, target_path).map_err(|e| {
-            format!("Failed to create symlink: {} -> {}: {}", source, target, e)
-        })?;
+        symlink(source_path, target_path)
+            .map_err(|e| format!("Failed to create symlink: {} -> {}: {}", source, target, e))?;
     }
 
     Ok(())
@@ -77,17 +75,15 @@ fn remove_symlink(path: String) -> Result<(), String> {
     #[cfg(target_os = "windows")]
     {
         // On Windows, remove directory junction
-        std::fs::remove_dir(symlink_path).map_err(|e| {
-            format!("Failed to remove symlink {}: {}", path, e)
-        })?;
+        std::fs::remove_dir(symlink_path)
+            .map_err(|e| format!("Failed to remove symlink {}: {}", path, e))?;
     }
 
     #[cfg(not(target_os = "windows"))]
     {
         // On Unix, remove symlink
-        std::fs::remove_file(symlink_path).map_err(|e| {
-            format!("Failed to remove symlink {}: {}", path, e)
-        })?;
+        std::fs::remove_file(symlink_path)
+            .map_err(|e| format!("Failed to remove symlink {}: {}", path, e))?;
     }
 
     Ok(())
@@ -122,14 +118,15 @@ fn list_symlinks(directory: String) -> Result<Vec<String>, String> {
 /// Calculate SHA-256 hash of a file
 #[tauri::command]
 fn calculate_file_hash(file_path: String) -> Result<String, String> {
-    let mut file = File::open(&file_path)
-        .map_err(|e| format!("Failed to open file {}: {}", file_path, e))?;
+    let mut file =
+        File::open(&file_path).map_err(|e| format!("Failed to open file {}: {}", file_path, e))?;
 
     let mut hasher = Sha256::new();
     let mut buffer = [0; 1024 * 64]; // 64KB buffer
 
     loop {
-        let bytes_read = file.read(&mut buffer)
+        let bytes_read = file
+            .read(&mut buffer)
             .map_err(|e| format!("Failed to read file {}: {}", file_path, e))?;
 
         if bytes_read == 0 {
@@ -151,7 +148,6 @@ fn get_file_size(file_path: String) -> Result<u64, String> {
 
     Ok(metadata.len())
 }
-
 
 /// Copy a directory recursively from source to target
 #[tauri::command]
@@ -195,6 +191,7 @@ fn copy_dir_recursive(src: &Path, dst: &Path) -> std::io::Result<()> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_upload::init())
         .plugin(tauri_plugin_opener::init())

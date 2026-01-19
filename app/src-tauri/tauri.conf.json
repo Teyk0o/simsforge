@@ -31,6 +31,7 @@
   },
   "bundle": {
     "active": true,
+	"createUpdaterArtifacts": true,
     "targets": [
       "msi"
     ],
@@ -41,12 +42,12 @@
       "icons/icon.ico"
     ]
   },
-  "updater": {
-    "active": true,
-    "endpoints": [
-      "https://YOUR_GITHUB_USERNAME.github.io/simsforge/latest.json"
-    ],
-    "dialog": true,
-    "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEQzMzZGNEVGRUY5QzBGMDUKUldRRkQ1enY3L1EyMDA3WXBKQU5ZNEYrYXBGbVhVQ2s4aTVsWGpUaERlTCtwV0JkNWhZVytlVmgK"
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEQzMzZGNEVGRUY5QzBGMDUKUldRRkQ1enY3L1EyMDA3WXBKQU5ZNEYrYXBGbVhVQ2s4aTVsWGpUaERlTCtwV0JkNWhZVytlVmgK",
+      "endpoints": [
+        "https://teyk0o.github.io/simsforge/latest.json"
+      ]
+    }
   }
 }
