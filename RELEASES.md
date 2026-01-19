@@ -6,51 +6,48 @@ SimsForge uses Tauri's built-in auto-update system to deliver updates to users a
 
 ### Setup (One-time)
 
-#### 1. Generate Signing Keys
+#### 1. Find Your Signing Keys
 
-The auto-updater uses cryptographic signing to verify update authenticity. Generate keys locally:
+Tauri already generated keys for you. They're in `app/src-tauri/`:
+- `tauri.key` (private key - already in .gitignore)
+- `tauri.key.pub` (public key - safe to see)
 
-```bash
-cd app
-npx tauri signer generate -- --write-keys
-```
+The public key is already set in `app/src-tauri/tauri.conf.json` ✓
 
-This creates two files:
-- `src-tauri/tauri.key` (private key - **keep secret**)
-- `src-tauri/tauri.key.pub` (public key)
+#### 2. Update GitHub Username in Config
 
-#### 2. Add Public Key to Config
-
-Update `app/src-tauri/tauri.conf.json`:
+Edit `app/src-tauri/tauri.conf.json` and replace:
 
 ```json
-"updater": {
-  "active": true,
-  "endpoints": [
-    "https://updates.tauri.app/releases/{{target}}/{{arch}}/{{current_version}}"
-  ],
-  "dialog": true,
-  "pubkey": "YOUR_PUBLIC_KEY_HERE"
-}
+"endpoints": [
+  "https://YOUR_GITHUB_USERNAME.github.io/simsforge/latest.json"
+]
 ```
 
-Replace `YOUR_PUBLIC_KEY_HERE` with the content of `src-tauri/tauri.key.pub` (without the "-----BEGIN PUBLIC KEY-----" and "-----END PUBLIC KEY-----" lines).
+With your actual GitHub username, e.g.:
+
+```json
+"endpoints": [
+  "https://teyk0o.github.io/simsforge/latest.json"
+]
+```
 
 #### 3. Add Private Key to GitHub Secrets
 
-1. Go to **Settings → Secrets and variables → Actions**
+1. Go to `https://github.com/YOUR_REPO/settings/secrets/actions`
 2. Click **New repository secret**
 3. Name: `TAURI_SIGNING_KEY`
-4. Value: Content of `src-tauri/tauri.key` (entire file including the header/footer)
+4. Value: Copy entire content of `app/src-tauri/tauri.key` (with `-----BEGIN PRIVATE KEY-----` header)
 5. Click **Add secret**
 
-**Optional**: Also add `TAURI_SIGNING_KEY_PASSWORD` if your key has a password.
+#### 4. Enable GitHub Pages (One-time)
 
-#### 4. Keep Keys Safe
+1. Go to **Settings → Pages**
+2. Under "Build and deployment"
+3. Select **Source: GitHub Actions**
+4. Click **Save**
 
-- **`src-tauri/tauri.key`**: Add to `.gitignore` (already done)
-- **`src-tauri/tauri.key.pub`**: Safe to commit
-- **GitHub Secret**: Encrypted by GitHub, only accessible in Actions
+That's it! The workflow will auto-deploy updates to GitHub Pages on each release.
 
 ### Publishing a Release
 
@@ -95,42 +92,70 @@ When a user runs SimsForge:
 4. The app downloads, verifies the signature, and installs the update
 5. App restarts with the new version
 
-### Update Endpoints
+### Update Endpoints (Self-Hosted)
 
-The endpoint configured in `tauri.conf.json`:
+This setup uses **GitHub Pages** to host update manifests:
 
 ```
-https://updates.tauri.app/releases/{{target}}/{{arch}}/{{current_version}}
+https://YOUR_GITHUB_USERNAME.github.io/simsforge/latest.json
 ```
 
-The app will request:
-- `https://updates.tauri.app/releases/windows/x86_64/0.1.0`
+The app will request this file and get:
+```json
+{
+  "version": "0.2.0",
+  "notes": "SimsForge 0.2.0 - Auto-update release",
+  "pub_date": "2024-01-19T12:34:56Z",
+  "platforms": {
+    "windows-x86_64": {
+      "signature": "...",
+      "url": "https://github.com/user/simsforge/releases/download/v0.2.0/SimsForge_0.2.0_x64.msi"
+    }
+  }
+}
+```
 
-This endpoint returns `latest.json` which contains:
-- New version available
-- Download URL
-- Signature for verification
+**Flow:**
+1. App starts → Checks `latest.json` from GitHub Pages
+2. If new version exists → Shows update dialog
+3. User clicks "Install" → Downloads MSI from GitHub Releases
+4. Signature verified with public key → Installation proceeds
+5. App restarts with new version
+
+### What the Workflow Does
+
+When you push a tag (e.g., `git tag v0.2.0`):
+
+1. ✅ Builds the app with Tauri
+2. ✅ Runs `scripts/generate-update-manifest.js` to create `latest.json`
+3. ✅ Creates GitHub Release with MSI file
+4. ✅ Deploys `latest.json` to GitHub Pages (auto-updates)
+
+Everything is automatic! Users get updates within minutes of release.
 
 ### Troubleshooting
 
-**"Updater not working"?**
-- Check that `pubkey` in `tauri.conf.json` is set correctly
-- Verify `TAURI_SIGNING_KEY` is in GitHub Secrets
-- Check Actions logs for build errors
-- Ensure version in code matches git tag
+**"Updater not finding updates"?**
+- Check GitHub Pages is enabled in repo Settings → Pages
+- Verify `latest.json` exists at your GitHub Pages URL
+- Check the endpoint in `tauri.conf.json` matches your username
 
 **"Signature verification failed"?**
-- Public key doesn't match private key
-- Build was not signed with the correct private key
-- Regenerate keys and update GitHub Secret
+- Ensure `TAURI_SIGNING_KEY` secret is in GitHub Actions Secrets
+- Public key in `tauri.conf.json` must match the private key
+- Check Actions workflow logs for signing errors
 
-### Alternative: Tauri Cloud
+**Manual test:**
+```bash
+curl https://YOUR_USERNAME.github.io/simsforge/latest.json
+```
 
-Tauri also offers a managed solution: [Tauri Cloud](https://cloud.tauri.app)
+Should return JSON with version and download URL.
 
-This handles:
-- Key management
-- Signature generation
-- Update distribution
+### Cost
 
-But requires a paid account. GitHub Releases is free and works great for public projects.
+- **GitHub Releases**: Free (stores MSI files)
+- **GitHub Pages**: Free (hosts update manifest)
+- **GitHub Actions**: Free for public repos (1000 min/month)
+
+Total: **$0** 🎉

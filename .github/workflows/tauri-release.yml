@@ -12,6 +12,8 @@ jobs:
   build-tauri:
     permissions:
       contents: write
+      pages: write
+      id-token: write
     strategy:
       fail-fast: false
       matrix:
@@ -67,6 +69,9 @@ jobs:
       - name: Build Tauri app
         working-directory: ./app
         run: npx tauri build
+        env:
+          TAURI_SIGNING_KEY: ${{ secrets.TAURI_SIGNING_KEY }}
+          TAURI_SIGNING_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_KEY_PASSWORD }}
 
       - name: Get MSI filename
         id: msi_file
@@ -74,6 +79,12 @@ jobs:
           $msiFile = Get-ChildItem -Path "app/src-tauri/target/release/bundle/msi/" -Filter "*.msi" | Select-Object -First 1
           echo "MSI_PATH=$($msiFile.FullName)" >> $env:GITHUB_OUTPUT
           echo "MSI_NAME=$($msiFile.Name)" >> $env:GITHUB_OUTPUT
+
+      - name: Generate update manifest
+        run: node scripts/generate-update-manifest.js
+        env:
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
 
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
@@ -97,3 +108,12 @@ jobs:
             1. Download the MSI file
             2. Run the installer
             3. The app will auto-check for updates on launch
+
+      - name: Upload artifact to GitHub Pages
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: ./updates
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
