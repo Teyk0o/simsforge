@@ -19,7 +19,7 @@
     "@tauri-apps/plugin-upload": "^2.4.0",
     "axios": "^1.13.2",
     "clsx": "^2.1.1",
-    "next": "^16.1.1",
+    "next": "^16.1.3",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-virtualized-auto-sizer": "^2.0.2",
