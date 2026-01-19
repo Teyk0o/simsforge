@@ -1,0 +1,99 @@
+name: Tauri Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  RUST_BACKTRACE: 1
+
+jobs:
+  build-tauri:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - os: windows-latest
+            arch: x86_64
+            rust_target: x86_64-pc-windows-msvc
+
+    runs-on: ${{ matrix.config.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get version from tag
+        id: tag_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $env:GITHUB_OUTPUT
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.config.rust_target }}
+
+      - name: Cache cargo registry
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cache cargo index
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-git-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cache cargo build
+        uses: actions/cache@v3
+        with:
+          path: app/src-tauri/target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install frontend dependencies
+        working-directory: ./app
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: ./app
+        run: npm run build
+
+      - name: Build Tauri app
+        working-directory: ./app
+        run: npx tauri build
+
+      - name: Get MSI filename
+        id: msi_file
+        run: |
+          $msiFile = Get-ChildItem -Path "app/src-tauri/target/release/bundle/msi/" -Filter "*.msi" | Select-Object -First 1
+          echo "MSI_PATH=$($msiFile.FullName)" >> $env:GITHUB_OUTPUT
+          echo "MSI_NAME=$($msiFile.Name)" >> $env:GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          artifacts: ${{ steps.msi_file.outputs.MSI_PATH }}
+          artifactContentType: application/octet-stream
+          body: |
+            ## SimsForge ${{ steps.tag_version.outputs.VERSION }}
+
+            ### What's New
+            See the commits for details on this release.
+
+            ### Download
+            - **Windows (x64)**: Download the MSI installer above
+
+            ### Installation
+            1. Download the MSI file
+            2. Run the installer
+            3. The app will auto-check for updates on launch

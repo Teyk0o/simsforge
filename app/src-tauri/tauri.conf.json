@@ -38,5 +38,13 @@
       "icons/128x128@2x.png",
       "icons/icon.ico"
     ]
+  },
+  "updater": {
+    "active": true,
+    "endpoints": [
+      "https://updates.tauri.app/releases/{{target}}/{{arch}}/{{current_version}}"
+    ],
+    "dialog": true,
+    "pubkey": ""
   }
 }
