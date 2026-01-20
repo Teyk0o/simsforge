@@ -8,12 +8,14 @@ import { searchCurseForgeMods } from '@/lib/curseforgeApi';
 import { CurseForgeMod } from '@/types/curseforge';
 import { ViewMode } from '@/hooks/useViewMode';
 import { useAuth } from '@/context/AuthContext';
+import { useSearchState } from '@/hooks/useSearchState';
 
 interface ModListProps {
   searchQuery: string;
   sortBy: 'downloads' | 'date' | 'trending' | 'relevance';
   category?: string;
   viewMode: ViewMode;
+  activeFilter?: 'all' | 'updates' | 'early-access' | 'installed';
 }
 
 interface PaginationState {
@@ -23,8 +25,9 @@ interface PaginationState {
   totalCount: number;
 }
 
-export default function ModList({ searchQuery, sortBy, category, viewMode }: ModListProps) {
+export default function ModList({ searchQuery, sortBy, category, viewMode, activeFilter = 'all' }: ModListProps) {
   const { isLoading: authLoading } = useAuth();
+  const searchState = useSearchState();
   const [mods, setMods] = useState<CurseForgeMod[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -92,6 +95,9 @@ export default function ModList({ searchQuery, sortBy, category, viewMode }: Mod
     }
   };
 
+  // TODO: Implement cache restoration properly
+  // Disabled for now due to dependency issues
+
   const fetchModsForPage = useCallback(async (pageIndex: number) => {
     if (pageIndex === 0) {
       setIsLoading(true);
@@ -122,6 +128,13 @@ export default function ModList({ searchQuery, sortBy, category, viewMode }: Mod
       // Check if there are more pages
       const loadedCount = (pageIndex + 1) * 50;
       setHasMore(loadedCount < result.pagination.totalCount);
+
+      // TODO: Save first page to cache for future restoration
+      // Disabled for now to prevent infinite re-render loop
+      // Will implement with better state management later
+      // if (pageIndex === 0) {
+      //   saveSearchToCache(...).then(...).catch(...);
+      // }
     } catch (err: any) {
       const errorMessage = err.response?.data?.error?.message || err.message || 'Failed to load mods';
       setError(errorMessage);
@@ -133,23 +146,22 @@ export default function ModList({ searchQuery, sortBy, category, viewMode }: Mod
         setIsLoadingMore(false);
       }
     }
-  }, [searchQuery, sortBy, category]);
+  }, [searchQuery, sortBy, category, activeFilter]);
 
   // Load first page when query or sort changes
   useEffect(() => {
-    if (!authLoading) {
-      setMods([]);
-      setPagination({
-        index: 0,
-        pageSize: 50,
-        resultCount: 0,
-        totalCount: 0,
-      });
-      setError(null);
-      setHasMore(true);
-      fetchModsForPage(0);
-    }
-  }, [searchQuery, sortBy, category, authLoading, fetchModsForPage]);
+    setMods([]);
+    setPagination({
+      index: 0,
+      pageSize: 50,
+      resultCount: 0,
+      totalCount: 0,
+    });
+    setError(null);
+    setHasMore(true);
+
+    fetchModsForPage(0);
+  }, [searchQuery, sortBy, category || '', activeFilter]);
 
   // Virtualized infinite scroll - load when approaching end
   const handleRowsRendered = useCallback(
@@ -168,6 +180,20 @@ export default function ModList({ searchQuery, sortBy, category, viewMode }: Mod
     },
     [hasMore, isLoadingMore, fetchModsForPage, mods.length, viewMode, gridRows.length]
   );
+
+  /**
+   * Handle scroll position changes to save current state
+   */
+  // TODO: Implement scroll position tracking
+  // Disabled for now due to re-render loop issues
+  // const handleScrollIndexChange = useCallback(
+  //   (index: number) => {
+  //     if (viewMode === 'list') {
+  //       searchState.setScrollIndex(index);
+  //     }
+  //   },
+  //   [viewMode, searchState]
+  // );
 
 
   // Loading state for first load
@@ -219,6 +245,7 @@ export default function ModList({ searchQuery, sortBy, category, viewMode }: Mod
         viewMode === 'list' ? (
           // LIST VIEW - Virtualized with Virtuoso
           <Virtuoso
+            ref={listRef}
             data={mods}
             style={{ height: '100%' }}
             itemContent={(index, mod) => (
@@ -239,6 +266,7 @@ export default function ModList({ searchQuery, sortBy, category, viewMode }: Mod
         ) : (
           // GRID VIEW - Virtualized with Virtuoso
           <Virtuoso
+            ref={listRef}
             data={gridRows}
             style={{ height: '100%' }}
             itemContent={(index, row) => (

@@ -6,6 +6,7 @@ import { createModRoutes } from './mods.routes';
 import { createCategoryRoutes } from './categories.routes';
 import { createTagRoutes } from './tags.routes';
 import { createCurseForgeRoutes } from './curseforge.routes';
+import { createCacheRoutes } from './cache.routes';
 
 /**
  * Main route aggregator.
@@ -34,6 +35,9 @@ export function createApiRoutes(): Router {
 
   // CurseForge proxy routes
   router.use('/curseforge', createCurseForgeRoutes());
+
+  // Cache routes (for search result caching)
+  router.use('/cache', createCacheRoutes());
 
   // Other routes will be added in subsequent phases:
   // router.use('/client', createClientRoutes());
