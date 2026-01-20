@@ -2,16 +2,59 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Spinner, X } from '@phosphor-icons/react';
+import { Spinner, X, Play } from '@phosphor-icons/react';
+import { exists } from '@tauri-apps/plugin-fs';
+import { Command } from '@tauri-apps/plugin-shell';
 import { useAuth } from '@/context/AuthContext';
 import { useSearchState } from '@/context/SearchStateContext';
 import { useViewMode } from '@/hooks/useViewMode';
 import Layout from '@/components/layouts/Layout';
 import ModList from '@/components/mod/ModList';
 import FilterBar from '@/components/mod/FilterBar';
+import { attachConsole } from '@tauri-apps/plugin-log';
 
 type SortOption = 'downloads' | 'date' | 'trending' | 'relevance';
 type FilterChip = 'all' | 'updates' | 'early-access' | 'installed';
+
+// Encryption/decryption helper
+const StorageHelper = {
+  async decryptData(encryptedData: string, password: string = 'simsforge-settings'): Promise<string | null> {
+    try {
+      const encoder = new TextEncoder();
+      const password_encoded = encoder.encode(password);
+
+      const hash_buffer = await crypto.subtle.digest('SHA-256', password_encoded);
+      const key = await crypto.subtle.importKey('raw', hash_buffer, 'AES-GCM', false, ['decrypt']);
+
+      const binaryString = atob(encryptedData);
+      const combined = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        combined[i] = binaryString.charCodeAt(i);
+      }
+
+      const iv = combined.slice(0, 12);
+      const encrypted = combined.slice(12);
+
+      const decrypted = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv: iv },
+        key,
+        encrypted
+      );
+      const decoder = new TextDecoder();
+      return decoder.decode(decrypted);
+    } catch (error) {
+      console.error('Decryption failed:', error);
+      return null;
+    }
+  },
+
+  getLocal(key: string): string | null {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem(key);
+    }
+    return null;
+  }
+};
 
 export default function Home() {
   const { isAuthenticated, isLoading, continueWithoutAuth, isOfflineMode } = useAuth();
@@ -20,10 +63,118 @@ export default function Home() {
   const searchState = useSearchState();
   const [isMounted, setIsMounted] = useState(false);
   const [previousSort, setPreviousSort] = useState<SortOption>('trending');
+  const [gamePath, setGamePath] = useState<string | null>(null);
+  const [gamePathExists, setGamePathExists] = useState(false);
+  const [isLaunching, setIsLaunching] = useState(false);
+  const [isGameRunning, setIsGameRunning] = useState(false);
 
   useEffect(() => {
+    attachConsole();
     setIsMounted(true);
+    loadGamePath();
   }, []);
+
+  // Monitor game process continuously
+  useEffect(() => {
+    if (!gamePath) return;
+
+    const processName = getProcessName(gamePath);
+    let timeoutId: NodeJS.Timeout;
+    let isRunning = false;
+
+    const checkProcess = async () => {
+      const running = await checkProcessRunning(processName);
+      isRunning = running;
+      setIsGameRunning(running);
+      if (running) {
+        setIsLaunching(false);
+      }
+      // Check every 5s when not running, every 30s when running
+      timeoutId = setTimeout(checkProcess, running ? 30000 : 5000);
+    };
+
+    // Initial check
+    checkProcess();
+
+    return () => clearTimeout(timeoutId);
+  }, [gamePath]);
+
+  const loadGamePath = async () => {
+    try {
+      const encryptedPath = StorageHelper.getLocal('simsforge_game_path');
+      if (encryptedPath) {
+        const decrypted = await StorageHelper.decryptData(encryptedPath);
+        if (decrypted) {
+          setGamePath(decrypted);
+          const pathExists = await exists(decrypted);
+          setGamePathExists(pathExists);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading game path:', error);
+    }
+  };
+
+  const getProcessName = (path: string): string => {
+    const parts = path.replace(/\\/g, '/').split('/');
+    return parts[parts.length - 1];
+  };
+
+  const checkProcessRunning = async (processName: string): Promise<boolean> => {
+    try {
+      const name = processName.replace(/\.exe$/i, '');
+      const cmd = new Command('check-process', ['-Command', `Get-Process -Name ${name} -ErrorAction SilentlyContinue`]);
+      const output = await cmd.execute();
+      return output.stdout.trim().length > 0;
+    } catch {
+      return false;
+    }
+  };
+
+  const handleLaunchGame = async () => {
+    if (!gamePath || !gamePathExists) return;
+
+    setIsLaunching(true);
+    try {
+      const cmd = new Command('launch-game', ['/c', 'start', '', gamePath]);
+      cmd.spawn();
+
+      const processName = getProcessName(gamePath);
+      let gameDetected = false;
+
+      // Check process status after launch
+      const checkInterval = setInterval(async () => {
+        const running = await checkProcessRunning(processName);
+        if (running && !gameDetected) {
+          gameDetected = true;
+          setIsLaunching(false);
+          setIsGameRunning(true);
+          clearInterval(checkInterval);
+
+          // Start monitoring for game close
+          const monitorInterval = setInterval(async () => {
+            const stillRunning = await checkProcessRunning(processName);
+            if (!stillRunning) {
+              setIsGameRunning(false);
+              clearInterval(monitorInterval);
+            }
+          }, 5000);
+        }
+      }, 2000);
+
+      // Stop checking after 30s if process not detected
+      setTimeout(() => {
+        if (!gameDetected) {
+          clearInterval(checkInterval);
+          setIsLaunching(false);
+        }
+      }, 30000);
+
+    } catch (error) {
+      console.error('Error launching game:', error);
+      setIsLaunching(false);
+    }
+  };
 
   const handleResetFilters = () => {
     searchState.setSearchQuery('');
@@ -146,7 +297,7 @@ export default function Home() {
               backgroundColor: 'var(--ui-panel)',
             }}
           >
-            <div className="flex-1 max-w-xl relative">
+            <div className="w-96 relative">
               <svg
                   className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
                   style={{ color: 'var(--text-secondary)' }}
@@ -200,6 +351,42 @@ export default function Home() {
               >
                 <X size={14} />
                 Réinitialiser
+              </button>
+            )}
+
+            {/* Spacer to push button to the right */}
+            <div className="flex-1" />
+
+            {/* Launch Game Button */}
+            {gamePathExists && (
+              <button
+                onClick={handleLaunchGame}
+                disabled={isLaunching || isGameRunning}
+                className="px-3 rounded-full border text-xs font-bold whitespace-nowrap transition-colors flex items-center gap-1 h-10"
+                style={{
+                  backgroundColor: isGameRunning ? '#3B82F6' : '#46C89B',
+                  borderColor: isGameRunning ? '#3B82F6' : '#46C89B',
+                  color: 'white',
+                  opacity: isLaunching || isGameRunning ? 0.9 : 1,
+                  cursor: isLaunching || isGameRunning ? 'default' : 'pointer',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isLaunching && !isGameRunning) {
+                    e.currentTarget.style.backgroundColor = '#3aad87';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isLaunching && !isGameRunning) {
+                    e.currentTarget.style.backgroundColor = '#46C89B';
+                  }
+                }}
+              >
+                {isGameRunning ? (
+                  <Spinner size={14} className="animate-spin" />
+                ) : (
+                  <Play size={14} weight="fill" />
+                )}
+                {isLaunching ? 'Lancement...' : isGameRunning ? 'En cours' : 'Jouer'}
               </button>
             )}
           </header>
