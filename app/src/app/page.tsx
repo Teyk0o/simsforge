@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Spinner } from '@phosphor-icons/react';
+import { Spinner, X } from '@phosphor-icons/react';
 import { useAuth } from '@/context/AuthContext';
 import { useSearchState } from '@/context/SearchStateContext';
 import { useViewMode } from '@/hooks/useViewMode';
@@ -24,6 +24,20 @@ export default function Home() {
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  const handleResetFilters = () => {
+    searchState.setSearchQuery('');
+    searchState.setActiveSort('trending');
+    searchState.setActiveFilter('all');
+    searchState.setSelectedCategory('');
+    searchState.resetScrollIndex();
+  };
+
+  const hasActiveFilters =
+    searchState.searchQuery !== '' ||
+    searchState.activeSort !== 'trending' ||
+    searchState.activeFilter !== 'all' ||
+    searchState.selectedCategory !== '';
 
 
   // No debounce needed - sessionStorage handles persistence
@@ -126,7 +140,7 @@ export default function Home() {
         >
           {/* Header avec search */}
           <header
-            className="h-16 flex items-center justify-between px-8 border-b shrink-0 z-10"
+            className="h-16 flex items-center gap-3 px-8 border-b shrink-0 z-10"
             style={{
               borderColor: 'var(--border-color)',
               backgroundColor: 'var(--ui-panel)',
@@ -166,6 +180,28 @@ export default function Home() {
                   }}
               />
             </div>
+
+            {/* Reset Filters Button */}
+            {hasActiveFilters && (
+              <button
+                onClick={handleResetFilters}
+                className="px-3 rounded-full border text-xs font-bold whitespace-nowrap transition-colors flex items-center gap-1 cursor-pointer h-10"
+                style={{
+                  backgroundColor: 'var(--ui-panel)',
+                  borderColor: 'var(--ui-border)',
+                  color: 'var(--text-primary)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--ui-hover)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--ui-panel)';
+                }}
+              >
+                <X size={14} />
+                Réinitialiser
+              </button>
+            )}
           </header>
 
           {/* Filter Bar */}
