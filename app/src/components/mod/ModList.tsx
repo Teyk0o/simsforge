@@ -8,7 +8,7 @@ import { searchCurseForgeMods } from '@/lib/curseforgeApi';
 import { CurseForgeMod } from '@/types/curseforge';
 import { ViewMode } from '@/hooks/useViewMode';
 import { useAuth } from '@/context/AuthContext';
-import { useSearchState } from '@/hooks/useSearchState';
+import { useSearchState } from '@/context/SearchStateContext';
 
 interface ModListProps {
   searchQuery: string;
@@ -16,6 +16,7 @@ interface ModListProps {
   category?: string;
   viewMode: ViewMode;
   activeFilter?: 'all' | 'updates' | 'early-access' | 'installed';
+  scrollIndex?: number;
 }
 
 interface PaginationState {
@@ -25,7 +26,7 @@ interface PaginationState {
   totalCount: number;
 }
 
-export default function ModList({ searchQuery, sortBy, category, viewMode, activeFilter = 'all' }: ModListProps) {
+export default function ModList({ searchQuery, sortBy, category, viewMode, activeFilter = 'all', scrollIndex = 0 }: ModListProps) {
   const { isLoading: authLoading } = useAuth();
   const searchState = useSearchState();
   const [mods, setMods] = useState<CurseForgeMod[]>([]);
@@ -159,9 +160,28 @@ export default function ModList({ searchQuery, sortBy, category, viewMode, activ
     });
     setError(null);
     setHasMore(true);
+    // Reset scroll position when filters change
+    searchState.resetScrollIndex();
 
     fetchModsForPage(0);
   }, [searchQuery, sortBy, category || '', activeFilter]);
+
+  /**
+   * Restore scroll position after mods are loaded
+   * Uses scrollToIndex when mods arrive to handle async loading
+   */
+  useEffect(() => {
+    if (mods.length > 0 && scrollIndex > 0 && !isLoading && listRef.current) {
+      // Use setTimeout to ensure DOM is ready
+      setTimeout(() => {
+        listRef.current?.scrollToIndex({
+          index: viewMode === 'grid' ? Math.floor(scrollIndex / gridColumns) : scrollIndex,
+          align: 'start',
+          behavior: 'auto',
+        });
+      }, 0);
+    }
+  }, [mods.length, scrollIndex, viewMode, gridColumns, isLoading]);
 
   // Virtualized infinite scroll - load when approaching end
   const handleRowsRendered = useCallback(
@@ -182,18 +202,14 @@ export default function ModList({ searchQuery, sortBy, category, viewMode, activ
   );
 
   /**
-   * Handle scroll position changes to save current state
+   * Track scroll position when user scrolls (following Virtuoso documentation)
    */
-  // TODO: Implement scroll position tracking
-  // Disabled for now due to re-render loop issues
-  // const handleScrollIndexChange = useCallback(
-  //   (index: number) => {
-  //     if (viewMode === 'list') {
-  //       searchState.setScrollIndex(index);
-  //     }
-  //   },
-  //   [viewMode, searchState]
-  // );
+  const handleRangeChanged = useCallback(
+    (range: any) => {
+      searchState.setScrollIndex(range.startIndex ?? 0);
+    },
+    [searchState.setScrollIndex]
+  );
 
 
   // Loading state for first load
@@ -247,12 +263,14 @@ export default function ModList({ searchQuery, sortBy, category, viewMode, activ
           <Virtuoso
             ref={listRef}
             data={mods}
-            style={{ height: '100%' }}
+            style={{ height: '100%', scrollbarWidth: 'none' }}
+            initialTopMostItemIndex={scrollIndex > 0 ? scrollIndex + 1 : 0}
             itemContent={(index, mod) => (
               <div className="px-4 lg:px-8 py-2">
                 <ModListItem mod={mod} />
               </div>
             )}
+            rangeChanged={handleRangeChanged}
             endReached={() => {
               if (hasMore && !isLoadingMore) {
                 const nextPageIndex = paginationRef.current.index + 1;
@@ -268,10 +286,12 @@ export default function ModList({ searchQuery, sortBy, category, viewMode, activ
           <Virtuoso
             ref={listRef}
             data={gridRows}
-            style={{ height: '100%' }}
+            style={{ height: '100%', scrollbarWidth: 'none' }}
+            initialTopMostItemIndex={scrollIndex > 0 ? scrollIndex + 1 : 0}
             itemContent={(index, row) => (
               <ModGridRow mods={row} index={index} columns={gridColumns} />
             )}
+            rangeChanged={handleRangeChanged}
             endReached={() => {
               if (hasMore && !isLoadingMore) {
                 const nextPageIndex = paginationRef.current.index + 1;

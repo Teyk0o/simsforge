@@ -1,6 +1,7 @@
 'use client';
 
 import { SessionProvider } from '@/components/providers/SessionProvider';
+import { SearchStateProvider } from '@/context/SearchStateContext';
 import { useDevTools } from '@/hooks/useDevTools';
 import { ReactNode } from 'react';
 
@@ -15,7 +16,9 @@ export function RootLayoutClient({ children }: { children: ReactNode }) {
 
   return (
     <SessionProvider>
-      {children}
+      <SearchStateProvider>
+        {children}
+      </SearchStateProvider>
     </SessionProvider>
   );
 }

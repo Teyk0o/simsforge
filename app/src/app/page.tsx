@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Spinner } from '@phosphor-icons/react';
 import { useAuth } from '@/context/AuthContext';
+import { useSearchState } from '@/context/SearchStateContext';
 import { useViewMode } from '@/hooks/useViewMode';
-import { useSearchState } from '@/hooks/useSearchState';
 import Layout from '@/components/layouts/Layout';
 import ModList from '@/components/mod/ModList';
 import FilterBar from '@/components/mod/FilterBar';
@@ -190,6 +190,7 @@ export default function Home() {
               category={searchState.selectedCategory}
               viewMode={viewMode}
               activeFilter={searchState.activeFilter}
+              scrollIndex={searchState.scrollIndex}
             />
           )}
         </main>
