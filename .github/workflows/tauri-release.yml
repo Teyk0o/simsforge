@@ -40,24 +40,6 @@ jobs:
         with:
           targets: ${{ matrix.config.rust_target }}
 
-      - name: Cache cargo registry
-        uses: actions/cache@v5
-        with:
-          path: ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Cache cargo index
-        uses: actions/cache@v5
-        with:
-          path: ~/.cargo/git
-          key: ${{ runner.os }}-cargo-git-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Cache cargo build
-        uses: actions/cache@v5
-        with:
-          path: app/src-tauri/target
-          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
-
       - name: Install frontend dependencies
         working-directory: ./app
         run: npm ci
@@ -66,10 +48,6 @@ jobs:
         working-directory: ./app
         run: |
           echo "NEXT_PUBLIC_BACKEND_URL=https://api.simsforge.com" > .env.production.local
-
-      - name: Build frontend
-        working-directory: ./app
-        run: npm run build
 
       - name: Build Tauri app
         working-directory: ./app
