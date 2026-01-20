@@ -123,6 +123,7 @@ export default function Home() {
   const checkProcessRunning = async (processName: string): Promise<boolean> => {
     try {
       const name = processName.replace(/\.exe$/i, '');
+      // @ts-ignore
       const cmd = new Command('check-process', ['-Command', `Get-Process -Name ${name} -ErrorAction SilentlyContinue`]);
       const output = await cmd.execute();
       return output.stdout.trim().length > 0;
@@ -136,6 +137,7 @@ export default function Home() {
 
     setIsLaunching(true);
     try {
+      // @ts-ignore
       const cmd = new Command('launch-game', ['/c', 'start', '', gamePath]);
       cmd.spawn();
 
