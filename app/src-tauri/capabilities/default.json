@@ -14,6 +14,28 @@
     "fs:read-all",
     "fs:write-all",
     {
+      "identifier": "shell:allow-spawn",
+      "allow": [
+        {
+          "name": "launch-game",
+          "cmd": "cmd",
+          "args": ["/c", "start", "", { "validator": ".*" }],
+          "sidecar": false
+        }
+      ]
+    },
+    {
+      "identifier": "shell:allow-execute",
+      "allow": [
+        {
+          "name": "check-process",
+          "cmd": "powershell",
+          "args": ["-Command", { "validator": "Get-Process -Name .* -ErrorAction SilentlyContinue" }],
+          "sidecar": false
+        }
+      ]
+    },
+    {
       "identifier": "fs:scope",
       "allow": [
         {

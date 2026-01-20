@@ -1,10 +1,10 @@
+use rayon::prelude::*;
 use sha2::{Digest, Sha256};
 use std::fs::{copy as fs_copy, create_dir_all, metadata, read_dir, File};
 use std::io::{copy, Read};
 use std::path::Path;
 use std::sync::Mutex;
 use zip::ZipArchive;
-use rayon::prelude::*;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -61,7 +61,8 @@ fn extract_zip(zip_path: String, dest_dir: String) -> Result<(), String> {
 
             let outpath = Path::new(&dest_dir).join(file_name);
             if let Err(e) = std::fs::write(&outpath, content) {
-                *error_mutex.lock().unwrap() = Some(format!("Failed to write {}: {}", file_name, e));
+                *error_mutex.lock().unwrap() =
+                    Some(format!("Failed to write {}: {}", file_name, e));
             }
         });
 
@@ -210,8 +211,7 @@ fn copy_directory(source: String, target: String) -> Result<(), String> {
 
 /// Helper function to recursively copy directories using parallel processing
 fn copy_dir_recursive(src: &Path, dst: &Path) -> std::io::Result<()> {
-    let entries: Vec<_> = read_dir(src)?
-        .collect::<Result<Vec<_>, std::io::Error>>()?;
+    let entries: Vec<_> = read_dir(src)?.collect::<Result<Vec<_>, std::io::Error>>()?;
 
     // Create directories first (must be sequential to avoid conflicts)
     for entry in &entries {
@@ -267,6 +267,12 @@ fn copy_dir_recursive(src: &Path, dst: &Path) -> std::io::Result<()> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(
+            tauri_plugin_log::Builder::new()
+                .level(tauri_plugin_log::log::LevelFilter::Info)
+                .build(),
+        )
+        .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_upload::init())
