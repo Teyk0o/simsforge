@@ -44,6 +44,17 @@ export default function ModList({ searchQuery, sortBy, category, viewMode, activ
   const loaderRef = useRef<HTMLDivElement>(null);
   const paginationRef = useRef<PaginationState>(pagination);
   const listRef = useRef<any>(null);
+  const hasRestoredScroll = useRef(false);
+  const isRestoring = useRef(false);
+  const scrollUpdateTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  // Track previous filter values to detect actual changes vs remounts
+  const prevFiltersRef = useRef<{
+    searchQuery: string;
+    sortBy: string;
+    category: string;
+    activeFilter: string;
+  } | null>(null);
 
   /**
    * Calculate number of grid columns based on viewport width
@@ -151,6 +162,21 @@ export default function ModList({ searchQuery, sortBy, category, viewMode, activ
 
   // Load first page when query or sort changes
   useEffect(() => {
+    const currentFilters = {
+      searchQuery,
+      sortBy,
+      category: category || '',
+      activeFilter,
+    };
+
+    const prevFilters = prevFiltersRef.current;
+    const filtersActuallyChanged = prevFilters !== null && (
+      prevFilters.searchQuery !== currentFilters.searchQuery ||
+      prevFilters.sortBy !== currentFilters.sortBy ||
+      prevFilters.category !== currentFilters.category ||
+      prevFilters.activeFilter !== currentFilters.activeFilter
+    );
+
     setMods([]);
     setPagination({
       index: 0,
@@ -160,8 +186,18 @@ export default function ModList({ searchQuery, sortBy, category, viewMode, activ
     });
     setError(null);
     setHasMore(true);
-    // Reset scroll position when filters change
-    searchState.resetScrollIndex();
+
+    // Only reset scroll position when filters ACTUALLY changed (not on mount/remount)
+    // This preserves scroll position when navigating back
+    if (filtersActuallyChanged) {
+      searchState.resetScrollIndex();
+    }
+
+    // Save current filters for next comparison
+    prevFiltersRef.current = currentFilters;
+
+    // Reset scroll restoration flag to allow restoration on next navigation
+    hasRestoredScroll.current = false;
 
     fetchModsForPage(0);
   }, [searchQuery, sortBy, category || '', activeFilter]);
@@ -171,17 +207,32 @@ export default function ModList({ searchQuery, sortBy, category, viewMode, activ
    * Uses scrollToIndex when mods arrive to handle async loading
    */
   useEffect(() => {
-    if (mods.length > 0 && scrollIndex > 0 && !isLoading && listRef.current) {
+    // Reset restoration flag when loading starts (new search, navigation back, etc.)
+    if (isLoading) {
+      hasRestoredScroll.current = false;
+      return;
+    }
+
+    // Restore scroll once when mods finish loading and we have a saved position
+    if (mods.length > 0 && scrollIndex > 0 && listRef.current && !hasRestoredScroll.current) {
+      hasRestoredScroll.current = true;
+      isRestoring.current = true;
+
       // Use setTimeout to ensure DOM is ready
       setTimeout(() => {
+        const targetIndex = viewMode === 'grid' ? Math.floor(scrollIndex / gridColumns) : scrollIndex;
         listRef.current?.scrollToIndex({
-          index: viewMode === 'grid' ? Math.floor(scrollIndex / gridColumns) : scrollIndex,
+          index: targetIndex,
           align: 'start',
           behavior: 'auto',
         });
+        // Allow scroll events again after restoration completes
+        setTimeout(() => {
+          isRestoring.current = false;
+        }, 200);
       }, 0);
     }
-  }, [mods.length, scrollIndex, viewMode, gridColumns, isLoading]);
+  }, [mods.length, scrollIndex, isLoading, viewMode, gridColumns]);
 
   // Virtualized infinite scroll - load when approaching end
   const handleRowsRendered = useCallback(
@@ -203,13 +254,33 @@ export default function ModList({ searchQuery, sortBy, category, viewMode, activ
 
   /**
    * Track scroll position when user scrolls (following Virtuoso documentation)
+   * Debounced to prevent excessive state updates during scroll
    */
   const handleRangeChanged = useCallback(
     (range: any) => {
-      searchState.setScrollIndex(range.startIndex ?? 0);
+      // Skip scroll tracking during programmatic restoration to avoid feedback loop
+      if (isRestoring.current) return;
+
+      // Clear any pending update
+      if (scrollUpdateTimeout.current) {
+        clearTimeout(scrollUpdateTimeout.current);
+      }
+      // Debounce the scroll index update to avoid excessive state changes
+      scrollUpdateTimeout.current = setTimeout(() => {
+        searchState.setScrollIndex(range.startIndex ?? 0);
+      }, 150);
     },
     [searchState.setScrollIndex]
   );
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (scrollUpdateTimeout.current) {
+        clearTimeout(scrollUpdateTimeout.current);
+      }
+    };
+  }, []);
 
 
   // Loading state for first load
