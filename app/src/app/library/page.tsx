@@ -203,7 +203,7 @@ export default function LibraryPage() {
                 {filteredMods.map((mod) => (
                   <Link
                     key={mod.modId}
-                    href={`/mods/${mod.modId}`}
+                    href={`/mods?id=${mod.modId}`}
                     className="block"
                   >
                     <div
