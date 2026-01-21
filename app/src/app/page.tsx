@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Spinner, X, Play } from '@phosphor-icons/react';
 import { exists } from '@tauri-apps/plugin-fs';
 import { Command } from '@tauri-apps/plugin-shell';
+import { getVersion } from '@tauri-apps/api/app';
+import { Window } from '@tauri-apps/api/window';
 import { useAuth } from '@/context/AuthContext';
 import { useSearchState } from '@/context/SearchStateContext';
 import { useViewMode } from '@/hooks/useViewMode';
@@ -72,7 +74,21 @@ export default function Home() {
     attachConsole();
     setIsMounted(true);
     loadGamePath();
+    updateWindowTitle();
   }, []);
+
+  /**
+   * Update window title with app version
+   */
+  async function updateWindowTitle() {
+    try {
+      const version = await getVersion();
+      const currentWindow = await Window.getCurrent();
+      await currentWindow.setTitle(`SimsForge v${version} - Mod Manager`);
+    } catch (error) {
+      console.error('Failed to update window title:', error);
+    }
+  }
 
   // Monitor game process continuously
   useEffect(() => {

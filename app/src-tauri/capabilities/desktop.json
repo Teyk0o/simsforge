@@ -6,9 +6,11 @@
     "linux"
   ],
   "windows": [
-    "main"
+    "main",
+    "splash"
   ],
   "permissions": [
-    "updater:default"
+    "updater:default",
+    "process:default"
   ]
 }

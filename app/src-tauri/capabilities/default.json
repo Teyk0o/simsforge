@@ -3,10 +3,17 @@
   "identifier": "default",
   "description": "Capability for the main window",
   "windows": [
-    "main"
+    "main",
+    "splash"
   ],
   "permissions": [
     "core:default",
+    "core:window:allow-close",
+    "core:window:allow-show",
+    "core:window:allow-set-focus",
+    "core:window:allow-get-all-windows",
+    "core:window:allow-set-title",
+    "core:app:allow-version",
     "opener:default",
     "dialog:default",
     "fs:default",

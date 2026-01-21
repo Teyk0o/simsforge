@@ -79,6 +79,10 @@ body {
   animation: spin 1s linear infinite;
 }
 
+.animate-spin-slow {
+  animation: spin 2s linear infinite;
+}
+
 @keyframes slide-in-right {
   from {
     transform: translateX(100%);

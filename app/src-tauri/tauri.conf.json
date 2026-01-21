@@ -13,6 +13,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
+        "label": "main",
         "title": "SimsForge - Mod Manager",
         "width": 1280,
         "height": 720,
@@ -20,9 +21,24 @@
         "minHeight": 720,
         "resizable": false,
         "fullscreen": false,
-        "focus": true,
+        "focus": false,
+        "visible": false,
         "transparent": false,
         "decorations": true
+      },
+      {
+        "label": "splash",
+        "title": "SimsForge",
+        "url": "/splash",
+        "width": 400,
+        "height": 300,
+        "resizable": false,
+        "fullscreen": false,
+        "focus": true,
+        "center": true,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true
       }
     ],
     "security": {
