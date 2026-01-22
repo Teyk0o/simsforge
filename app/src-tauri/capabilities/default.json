@@ -20,6 +20,7 @@
     "fs:allow-exists",
     "fs:read-all",
     "fs:write-all",
+	"shell:allow-open",
     {
       "identifier": "shell:allow-spawn",
       "allow": [
