@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "SimsForge",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "identifier": "com.simsforge.app",
   "build": {
     "beforeDevCommand": "npm run dev",
