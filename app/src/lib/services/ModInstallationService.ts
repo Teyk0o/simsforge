@@ -64,7 +64,7 @@ export class ModInstallationService {
       });
 
       const downloadInfo = await getModDownloadUrl(modId, fileId);
-      const { modName, fileName, downloadUrl, fileSize } = downloadInfo;
+      const { modName, fileName, downloadUrl, fileSize, fileId: actualFileId } = downloadInfo;
 
       // Get mod details for library display
       let modLogo: string | undefined;
@@ -184,7 +184,7 @@ export class ModInstallationService {
       const profileMod: ProfileMod = {
         modId,
         modName,
-        versionId: fileId || 0,
+        versionId: actualFileId,
         versionNumber,
         fileHash: cachedMod.fileHash,
         fileName,

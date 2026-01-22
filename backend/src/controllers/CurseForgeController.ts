@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { curseForgeProxyService } from '@services/curseforge/CurseForgeProxyService';
+import { modVersionService } from '@services/curseforge/ModVersionService';
 import { z } from 'zod';
 
 /**
@@ -312,6 +313,78 @@ export class CurseForgeController {
         error: {
           message: error.message || 'Failed to get download URL',
         },
+      });
+    }
+  }
+
+  /**
+   * Get latest versions for multiple mods (batch operation)
+   * POST /api/v1/curseforge/batch-versions
+   * @body modIds - Array of CurseForge mod IDs to check
+   * @returns Map of modId to latest version info
+   */
+  async getLatestVersions(req: Request, res: Response): Promise<void> {
+    try {
+      // Extract API key from header
+      const apiKey = req.headers['x-curseforge-api-key'] as string;
+      if (!apiKey) {
+        res.status(403).json({
+          success: false,
+          error: {
+            message: 'CurseForge API key is required',
+            code: 'API_KEY_REQUIRED'
+          }
+        });
+        return;
+      }
+
+      // Validate request body
+      const schema = z.object({
+        modIds: z.array(z.number().int().positive()).min(1).max(100),
+      });
+
+      let validated;
+      try {
+        validated = schema.parse(req.body);
+      } catch (error) {
+        if (error instanceof z.ZodError) {
+          res.status(400).json({
+            success: false,
+            error: { message: error.issues[0].message }
+          });
+        }
+        return;
+      }
+
+      // Call version service
+      const versions = await modVersionService.getLatestVersions(
+        apiKey,
+        validated.modIds
+      );
+
+      res.status(200).json({
+        success: true,
+        data: versions
+      });
+    } catch (error: any) {
+      // Handle API key errors
+      if (error.message.includes('API key')) {
+        res.status(403).json({
+          success: false,
+          error: {
+            message: error.message,
+            code: 'API_KEY_REQUIRED'
+          }
+        });
+        return;
+      }
+
+      // Handle other errors
+      res.status(500).json({
+        success: false,
+        error: {
+          message: error.message || 'Failed to check mod versions'
+        }
       });
     }
   }

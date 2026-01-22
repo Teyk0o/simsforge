@@ -5,8 +5,10 @@ import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useProfiles } from '@/context/ProfileContext';
-import { MagnifyingGlass, DownloadSimple, ArrowsClockwise, Heart, Moon, Sun, Plus, GameController, SignOut, GearSix } from '@phosphor-icons/react';
+import { useUpdates } from '@/context/UpdateContext';
+import { MagnifyingGlass, DownloadSimple, Heart, SignOut, GearSix } from '@phosphor-icons/react';
 import ProfileSelector from '@/components/profile/ProfileSelector';
+import UpdateCountBadge from '@/components/update/UpdateCountBadge';
 
 interface SidebarProps {
   onThemeToggle: () => void;
@@ -17,13 +19,13 @@ export default function Sidebar({ onThemeToggle, theme }: SidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { logout, user } = useAuth();
-  const { activeProfile, profiles, activateProfile, isLoading, isInitialized } = useProfiles();
+  const { activeProfile, profiles, activateProfile, isInitialized } = useProfiles();
+  const { updateCount } = useUpdates();
 
   // Map current pathname to active nav item
   const getActiveNav = () => {
-    if (pathname === '/') return 'browse';
-    if (pathname === '/library' || pathname?.startsWith('/mods/')) return 'library';
-    if (pathname === '/updates') return 'updates';
+    if (pathname === '/' || pathname?.startsWith('/mods')) return 'browse';
+    if (pathname === '/library') return 'library';
     if (pathname === '/favorites') return 'favorites';
     return null;
   };
@@ -97,11 +99,10 @@ export default function Sidebar({ onThemeToggle, theme }: SidebarProps) {
         <nav className="space-y-1">
           {[
             { id: 'browse', label: 'Parcourir', icon: MagnifyingGlass, href: '/' },
-            { id: 'library', label: 'Bibliothèque', icon: DownloadSimple, href: '/library' },
-            { id: 'updates', label: 'Mises à jour', icon: ArrowsClockwise, href: '/updates' },
+            { id: 'library', label: 'Bibliothèque', icon: DownloadSimple, href: '/library', badge: updateCount },
             { id: 'favorites', label: 'Favoris', icon: Heart, href: '/favorites' },
-          ].map(({ id, label, icon: Icon, href }) => {
-            const isActive = getActiveNav() === id;
+          ].map(({ id, label, icon: Icon, href, badge }) => {
+            const isActive = getActiveNav() === id && !href.includes('filter=updates');
             return (
               <button
                 key={id}
@@ -125,7 +126,10 @@ export default function Sidebar({ onThemeToggle, theme }: SidebarProps) {
                 }}
               >
                 <Icon size={20} />
-                <span className="hidden lg:block">{label}</span>
+                <span className="hidden lg:block flex-1 text-left">{label}</span>
+                {badge !== undefined && badge > 0 && (
+                  <UpdateCountBadge count={badge} />
+                )}
               </button>
             );
           })}

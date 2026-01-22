@@ -1,18 +1,25 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useProfiles } from '@/context/ProfileContext';
-import { MagnifyingGlass, Trash, CheckCircle, Circle } from '@phosphor-icons/react';
+import { useUpdates } from '@/context/UpdateContext';
+import { MagnifyingGlass, Trash, CheckCircle, Circle, ArrowCircleUp, ArrowsClockwise } from '@phosphor-icons/react';
 import Layout from '@/components/layouts/Layout';
 import ConfirmationModal from '@/components/ui/ConfirmationModal';
+import UpdateBadge from '@/components/update/UpdateBadge';
 
 export default function LibraryPage() {
+  const searchParams = useSearchParams();
   const { activeProfile, isLoading, toggleModInProfile, removeModFromProfile } =
     useProfiles();
+  const { hasUpdate, updateMod, updateAllMods, updateCount, isUpdating, isChecking, checkForUpdates } = useUpdates();
+
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'enabled' | 'disabled'>('all');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'enabled' | 'disabled' | 'updates'>('all');
+  const [updatingModId, setUpdatingModId] = useState<number | null>(null);
   const [confirmationModal, setConfirmationModal] = useState<{
     isOpen: boolean;
     modId: number | null;
@@ -25,6 +32,14 @@ export default function LibraryPage() {
     isLoading: false,
   });
 
+  // Set filter from URL query parameter
+  useEffect(() => {
+    const filterParam = searchParams.get('filter');
+    if (filterParam === 'updates') {
+      setFilterStatus('updates');
+    }
+  }, [searchParams]);
+
   // Filter and search mods
   const filteredMods = useMemo(() => {
     if (!activeProfile) return [];
@@ -36,6 +51,8 @@ export default function LibraryPage() {
       mods = mods.filter((m) => m.enabled);
     } else if (filterStatus === 'disabled') {
       mods = mods.filter((m) => !m.enabled);
+    } else if (filterStatus === 'updates') {
+      mods = mods.filter((m) => hasUpdate(m.modId));
     }
 
     // Search by name
@@ -49,7 +66,7 @@ export default function LibraryPage() {
     }
 
     return mods;
-  }, [activeProfile, searchTerm, filterStatus]);
+  }, [activeProfile, searchTerm, filterStatus, hasUpdate]);
 
   const handleToggleMod = async (modId: number, enabled: boolean) => {
     try {
@@ -89,6 +106,19 @@ export default function LibraryPage() {
     }
   };
 
+  const handleUpdateMod = async (modId: number) => {
+    setUpdatingModId(modId);
+    try {
+      await updateMod(modId);
+    } finally {
+      setUpdatingModId(null);
+    }
+  };
+
+  const handleUpdateAll = async () => {
+    await updateAllMods();
+  };
+
   return (
     <Layout>
       <main
@@ -110,11 +140,31 @@ export default function LibraryPage() {
             Library
           </h1>
 
-          {activeProfile && (
-            <p style={{ color: 'var(--text-secondary)' }} className="text-sm">
-              {activeProfile.name} • {activeProfile.mods.length} mod{activeProfile.mods.length !== 1 ? 's' : ''}
-            </p>
-          )}
+          <div className="flex items-center gap-4">
+            {/* Update All Button */}
+            {activeProfile && updateCount > 0 && (
+              <button
+                onClick={handleUpdateAll}
+                disabled={isUpdating}
+                className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                style={{
+                  backgroundColor: '#46C89B',
+                  color: '#fff',
+                  opacity: isUpdating ? 0.6 : 1,
+                  cursor: isUpdating ? 'not-allowed' : 'pointer',
+                }}
+              >
+                <ArrowCircleUp size={18} weight={isUpdating ? 'regular' : 'fill'} />
+                {isUpdating ? 'Updating...' : `Update All (${updateCount})`}
+              </button>
+            )}
+
+            {activeProfile && (
+              <p style={{ color: 'var(--text-secondary)' }} className="text-sm">
+                {activeProfile.name} • {activeProfile.mods.length} mod{activeProfile.mods.length !== 1 ? 's' : ''}
+              </p>
+            )}
+          </div>
         </header>
 
         {/* Search & Filter Section */}
@@ -153,7 +203,7 @@ export default function LibraryPage() {
             {/* Filter */}
             <select
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value as 'all' | 'enabled' | 'disabled')}
+              onChange={(e) => setFilterStatus(e.target.value as 'all' | 'enabled' | 'disabled' | 'updates')}
               className="px-3 py-1.5 rounded-md border transition-colors text-sm"
               style={{
                 backgroundColor: 'var(--ui-input-bg)',
@@ -165,7 +215,26 @@ export default function LibraryPage() {
               <option value="all">All Mods</option>
               <option value="enabled">Enabled</option>
               <option value="disabled">Disabled</option>
+              <option value="updates">Updates Available{updateCount > 0 ? ` (${updateCount})` : ''}</option>
             </select>
+
+            {/* Check for Updates Button */}
+            <button
+              onClick={() => checkForUpdates()}
+              disabled={isChecking}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-md border transition-colors text-sm"
+              style={{
+                backgroundColor: 'var(--ui-input-bg)',
+                borderColor: 'var(--border-color)',
+                color: 'var(--text-primary)',
+                opacity: isChecking ? 0.6 : 1,
+                cursor: isChecking ? 'not-allowed' : 'pointer',
+              }}
+              title="Check for updates"
+            >
+              <ArrowsClockwise size={16} className={isChecking ? 'animate-spin' : ''} />
+              <span className="hidden md:inline">{isChecking ? 'Checking...' : 'Check Updates'}</span>
+            </button>
           </section>
         )}
 
@@ -194,7 +263,11 @@ export default function LibraryPage() {
               style={{ color: 'var(--text-secondary)' }}
             >
               <p>
-                {searchTerm ? 'No mods found matching your search' : 'No mods in this profile yet'}
+                {searchTerm
+                  ? 'No mods found matching your search'
+                  : filterStatus === 'updates'
+                    ? 'All mods are up to date!'
+                    : 'No mods in this profile yet'}
               </p>
             </div>
           ) : (
@@ -241,12 +314,15 @@ export default function LibraryPage() {
 
                       {/* Mod Info */}
                       <div className="flex-1 min-w-0">
-                        <h3
-                          className="font-medium truncate"
-                          style={{ color: 'var(--text-primary)' }}
-                        >
-                          {mod.modName}
-                        </h3>
+                        <div className="flex items-center gap-2">
+                          <h3
+                            className="font-medium truncate"
+                            style={{ color: 'var(--text-primary)' }}
+                          >
+                            {mod.modName}
+                          </h3>
+                          {hasUpdate(mod.modId) && <UpdateBadge />}
+                        </div>
                         <div className="flex flex-col gap-1 mt-1">
                           {mod.authors && mod.authors.length > 0 && (
                             <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>
@@ -271,6 +347,29 @@ export default function LibraryPage() {
 
                       {/* Actions */}
                       <div className="flex items-center gap-2">
+                        {/* Update Button (only shown if update available) */}
+                        {hasUpdate(mod.modId) && (
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleUpdateMod(mod.modId);
+                            }}
+                            disabled={isUpdating || updatingModId === mod.modId}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
+                            title="Update mod"
+                            style={{
+                              backgroundColor: '#46C89B',
+                              color: '#fff',
+                              opacity: updatingModId === mod.modId ? 0.6 : 1,
+                              cursor: updatingModId === mod.modId ? 'not-allowed' : 'pointer',
+                            }}
+                          >
+                            <ArrowCircleUp size={16} className={updatingModId === mod.modId ? 'animate-spin' : ''} />
+                            {updatingModId === mod.modId ? 'Updating...' : 'Update'}
+                          </button>
+                        )}
+
                         {/* Enable/Disable Button */}
                         <button
                           onClick={(e) => {

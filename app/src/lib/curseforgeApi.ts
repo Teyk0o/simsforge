@@ -5,6 +5,7 @@
 
 import { apiGet, apiPost } from './apiClient';
 import { CurseForgeSearchResult, CurseForgeMod } from '@/types/curseforge';
+import type { BatchVersionResponse } from '@/types/updates';
 
 /**
  * Simple encryption/decryption helper using Web Crypto API
@@ -256,4 +257,51 @@ export async function refreshAccessToken(refreshToken: string): Promise<string> 
   } catch (error) {
     throw new Error('Failed to parse token refresh response');
   }
+}
+
+/**
+ * Check latest versions for multiple mods (batch operation)
+ * @param modIds Array of CurseForge mod IDs to check
+ * @returns Map of modId to latest version info
+ * @throws Error if API call fails
+ */
+export async function checkModVersions(
+  modIds: number[]
+): Promise<BatchVersionResponse> {
+  if (modIds.length === 0) {
+    return {};
+  }
+
+  const apiKey = await getCurseForgeApiKey();
+
+  const headers: Record<string, string> = {};
+  if (apiKey) {
+    headers['X-CurseForge-API-Key'] = apiKey;
+  }
+
+  // Split into batches of 100 (API limit)
+  const BATCH_SIZE = 100;
+  const results: BatchVersionResponse = {};
+
+  for (let i = 0; i < modIds.length; i += BATCH_SIZE) {
+    const batch = modIds.slice(i, i + BATCH_SIZE);
+
+    try {
+      const response = await apiPost<{
+        success: boolean;
+        data: BatchVersionResponse;
+      }>('/api/v1/curseforge/batch-versions', { modIds: batch }, { headers });
+
+      // Merge results
+      Object.assign(results, response.data);
+    } catch (error) {
+      console.error(
+        `[checkModVersions] Failed to check batch ${i / BATCH_SIZE + 1}:`,
+        error
+      );
+      // Continue with other batches even if one fails
+    }
+  }
+
+  return results;
 }

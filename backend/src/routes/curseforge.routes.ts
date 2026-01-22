@@ -42,6 +42,15 @@ export function createCurseForgeRoutes(): Router {
    */
   router.post('/download-url', asyncHandler((req, res) => curseForgeController.getDownloadUrl(req, res)));
 
+  /**
+   * POST /api/v1/curseforge/batch-versions
+   * Get latest versions for multiple mods (batch operation)
+   * Body:
+   *   - modIds: Array of CurseForge mod IDs (required, max 100)
+   * Returns: Map of modId to latest version info
+   */
+  router.post('/batch-versions', asyncHandler((req, res) => curseForgeController.getLatestVersions(req, res)));
+
   return router;
 }
 
