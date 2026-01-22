@@ -4,7 +4,9 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getCurseForgeMod } from '@/lib/curseforgeApi';
+import { getModWarningStatus } from '@/lib/fakeDetectionApi';
 import { CurseForgeMod } from '@/types/curseforge';
+import type { ModWarningStatus } from '@/types/fakeDetection';
 import Layout from '@/components/layouts/Layout';
 import ModDetailBanner from '@/components/mod/ModDetailBanner';
 import ModDetailHeader from '@/components/mod/ModDetailHeader';
@@ -23,6 +25,7 @@ export default function ModDetailClient() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>('description');
+  const [warningStatus, setWarningStatus] = useState<ModWarningStatus | null>(null);
 
   useEffect(() => {
     const fetchMod = async () => {
@@ -47,6 +50,27 @@ export default function ModDetailClient() {
       fetchMod();
     }
   }, [modId]);
+
+  /**
+   * Fetch warning status for the mod
+   */
+  useEffect(() => {
+    if (!mod) return;
+
+    const fetchWarningStatus = async () => {
+      try {
+        // Get creator ID from first author
+        const creatorId = mod.authors && mod.authors.length > 0 ? mod.authors[0].id : undefined;
+        const status = await getModWarningStatus(mod.id, creatorId);
+        setWarningStatus(status);
+      } catch (err) {
+        console.error('[ModDetail] Error fetching warning status:', err);
+        // Don't fail the page if warning status fails to load
+      }
+    };
+
+    fetchWarningStatus();
+  }, [mod]);
 
   // Loading state
   if (isLoading) {
@@ -118,7 +142,7 @@ export default function ModDetailClient() {
         />
 
         {/* Header */}
-        <ModDetailHeader mod={mod} />
+        <ModDetailHeader mod={mod} warningStatus={warningStatus} />
 
         {/* Main content: Tabs + Sidebar */}
         <div className="px-6 lg:px-10 pb-10 max-w-7xl mx-auto w-full">

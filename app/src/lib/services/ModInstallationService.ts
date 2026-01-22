@@ -18,8 +18,10 @@ import { join, basename } from '@tauri-apps/api/path';
 import { modCacheService } from './ModCacheService';
 import { profileService } from './ProfileService';
 import { symlinkService } from './SymlinkService';
+import { fakeScoreService } from './FakeScoreService';
 import { sanitizeModName } from '@/utils/pathSanitizer';
 import type { ProfileMod } from '@/types/profile';
+import type { FakeScoreResult, ZipAnalysis } from '@/types/fakeDetection';
 
 /**
  * Installation progress callback
@@ -29,6 +31,16 @@ export type ProgressCallback = (progress: {
   percent: number;
   message: string;
 }) => void;
+
+/**
+ * Callback for fake mod detection during installation
+ * Called when a suspicious mod is detected before completing installation
+ * @returns 'install' to continue, 'cancel' to abort, 'report' to abort and report
+ */
+export type FakeDetectionCallback = (
+  scoreResult: FakeScoreResult,
+  zipAnalysis: ZipAnalysis
+) => Promise<'install' | 'cancel' | 'report'>;
 
 /**
  * Installation result
@@ -46,12 +58,18 @@ export interface InstallationResult {
 export class ModInstallationService {
   /**
    * Download and install a mod from CurseForge
+   * @param modId - CurseForge mod ID
+   * @param modsPath - Path to The Sims 4 Mods folder
+   * @param onProgress - Progress callback for UI updates
+   * @param fileId - Specific file version to install (optional)
+   * @param onFakeDetection - Callback when suspicious mod is detected (optional)
    */
   async installMod(
       modId: number,
       modsPath: string,
       onProgress?: ProgressCallback,
-      fileId?: number
+      fileId?: number,
+      onFakeDetection?: FakeDetectionCallback
   ): Promise<InstallationResult> {
     // Declare timer variable outside try/catch so it can be cleared in finally
     let progressInterval: NodeJS.Timeout | null = null;
@@ -142,9 +160,49 @@ export class ModInstallationService {
 
       await writeFile(tempFilePath, fileBytes);
 
+      // Analyze ZIP for fake mod detection if callback provided
+      if (onFakeDetection) {
+        onProgress?.({
+          stage: 'installing',
+          percent: 72,
+          message: 'Analyzing mod contents...',
+        });
+
+        try {
+          const zipAnalysis = await fakeScoreService.analyzeZip(tempFilePath);
+          const scoreResult = fakeScoreService.calculateScore(
+            modName,
+            zipAnalysis,
+            0, // Download count not available here
+            false
+          );
+
+          if (scoreResult.isSuspicious) {
+            const decision = await onFakeDetection(scoreResult, zipAnalysis);
+
+            if (decision === 'cancel' || decision === 'report') {
+              await this.cleanupTempDir(tempDir);
+              return {
+                success: false,
+                modName,
+                filesInstalled: [],
+                error:
+                  decision === 'report'
+                    ? 'Installation cancelled - mod reported'
+                    : 'Installation cancelled by user',
+              };
+            }
+            // 'install' continues normally
+          }
+        } catch (analysisError) {
+          console.warn('[ModInstallationService] Fake detection analysis failed:', analysisError);
+          // Continue installation if analysis fails
+        }
+      }
+
       onProgress?.({
         stage: 'installing',
-        percent: 70,
+        percent: 75,
         message: 'Installing mod files...',
       });
 

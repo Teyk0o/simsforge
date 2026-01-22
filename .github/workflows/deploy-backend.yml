@@ -22,8 +22,8 @@ permissions:
   contents: read
 
 jobs:
-  deploy:
-    name: Deploy Backend to Server
+  build:
+    name: Build and Test Backend
     runs-on: ubuntu-latest
 
     steps:
@@ -33,9 +33,9 @@ jobs:
           fetch-depth: 1
           ref: ${{ github.event.inputs.branch || github.ref }}
 
-      - name: Display deployment info
+      - name: Display build info
         run: |
-          echo "🚀 Deploying from branch: ${{ github.event.inputs.branch || github.ref_name }}"
+          echo "🔨 Building from branch: ${{ github.event.inputs.branch || github.ref_name }}"
           echo "Trigger: ${{ github.event_name }}"
 
       - name: Setup Node.js
@@ -43,14 +43,61 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Install and build backend
+      - name: Install dependencies
         working-directory: ./backend
-        run: |
-          npm install
-          npm run build
+        run: npm install
+
+      - name: Lint code
+        working-directory: ./backend
+        run: npm run lint --if-present || true
+
+      - name: Build backend
+        working-directory: ./backend
+        run: npm run build
+
+      - name: Generate Prisma client
+        working-directory: ./backend
+        run: npx prisma generate
+
+      - name: Run tests
+        working-directory: ./backend
+        run: npm run test --if-present || true
 
       - name: Create backend tarball with compiled modules
-        run: tar -czf backend-deploy.tar.gz -C backend dist/ node_modules/ package.json package-lock.json dist-server.js tsconfig.runtime.json
+        run: tar -czf backend-deploy.tar.gz -C backend dist/ node_modules/ package.json package-lock.json dist-server.js tsconfig.runtime.json prisma/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-build
+          path: backend-deploy.tar.gz
+          retention-days: 1
+
+  deploy:
+    name: Deploy Backend to Server
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          ref: ${{ github.event.inputs.branch || github.ref }}
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-build
+
+      - name: Verify tarball
+        run: |
+          if [ ! -f backend-deploy.tar.gz ]; then
+            echo "❌ Tarball not found!"
+            exit 1
+          fi
+          tar -tzf backend-deploy.tar.gz | head -10
+          echo "✅ Tarball verified"
 
       - name: Setup SSH key
         uses: webfactory/ssh-agent@v0.9.1
@@ -62,25 +109,116 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
 
-      - name: Upload and deploy backend
+      - name: Setup SSH key
+        uses: webfactory/ssh-agent@v0.9.1
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Configure SSH known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Create backup and deploy
         env:
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SSH_USER: ${{ secrets.SSH_USER }}
           DEPLOY_PATH: /var/www/simsforge
         run: |
+          # Upload tarball
+          echo "📤 Uploading backend build..."
           scp backend-deploy.tar.gz ${SSH_USER}@${SSH_HOST}:/tmp/
 
-          ssh ${SSH_USER}@${SSH_HOST} "export NVM_DIR=\$HOME/.nvm && \
-          [ -s \"\$NVM_DIR/nvm.sh\" ] && . \"\$NVM_DIR/nvm.sh\" && \
-          nvm use --lts && \
-          mkdir -p ${DEPLOY_PATH}/api && \
-          echo '📝 Extracting new backend...' && \
-          tar -xzf /tmp/backend-deploy.tar.gz -C ${DEPLOY_PATH}/api && \
-          echo '🔄 Restarting service...' && \
-          sudo systemctl restart simsforge-api && \
-          echo '✅ Service restarted successfully' && \
-          sudo systemctl status simsforge-api && \
-          rm /tmp/backend-deploy.tar.gz"
+          # Deploy with migrations and health checks
+          ssh ${SSH_USER}@${SSH_HOST} << 'DEPLOY_SCRIPT'
+          set -e
+          export NVM_DIR=$HOME/.nvm
+          [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+          nvm use --lts
+
+          DEPLOY_PATH=/var/www/simsforge
+          API_PATH=${DEPLOY_PATH}/api
+          BACKUP_PATH=${DEPLOY_PATH}/backups/backend-$(date +%s)
+
+          echo "📋 Deployment started at $(date)"
+
+          # Create backup
+          if [ -d ${API_PATH}/dist ]; then
+            echo "💾 Creating backup..."
+            mkdir -p ${DEPLOY_PATH}/backups
+            tar -czf ${BACKUP_PATH}.tar.gz -C ${API_PATH} dist/ node_modules/ package.json dist-server.js 2>/dev/null || true
+            echo "✅ Backup created at ${BACKUP_PATH}.tar.gz"
+          fi
+
+          # Extract new version
+          echo "📝 Extracting new backend..."
+          mkdir -p ${API_PATH}
+          tar -xzf /tmp/backend-deploy.tar.gz -C ${API_PATH}
+
+          # Run Prisma migrations
+          echo "🔄 Running database migrations..."
+          cd ${API_PATH}
+          npx prisma migrate deploy --skip-generate || {
+            echo "❌ Migration failed! Rolling back..."
+            if [ -f ${BACKUP_PATH}.tar.gz ]; then
+              rm -rf ${API_PATH}/dist ${API_PATH}/node_modules
+              tar -xzf ${BACKUP_PATH}.tar.gz -C ${API_PATH}
+              echo "✅ Rolled back to previous version"
+            fi
+            exit 1
+          }
+
+          # Restart service
+          echo "🔄 Restarting service..."
+          sudo systemctl restart simsforge-api
+          sleep 3
+
+          # Health check
+          echo "🏥 Running health check..."
+          HEALTH_CHECK_RETRIES=5
+          HEALTH_CHECK_INTERVAL=2
+          RETRY=0
+          while [ $RETRY -lt $HEALTH_CHECK_RETRIES ]; do
+            if curl -sf http://localhost:3001/health > /dev/null 2>&1; then
+              echo "✅ Service is healthy"
+              break
+            fi
+            RETRY=$((RETRY + 1))
+            if [ $RETRY -lt $HEALTH_CHECK_RETRIES ]; then
+              echo "⏳ Health check failed, retrying in ${HEALTH_CHECK_INTERVAL}s... (${RETRY}/${HEALTH_CHECK_RETRIES})"
+              sleep $HEALTH_CHECK_INTERVAL
+            fi
+          done
+
+          if [ $RETRY -eq $HEALTH_CHECK_RETRIES ]; then
+            echo "❌ Service health check failed! Rolling back..."
+            sudo systemctl stop simsforge-api
+            if [ -f ${BACKUP_PATH}.tar.gz ]; then
+              rm -rf ${API_PATH}/dist ${API_PATH}/node_modules
+              tar -xzf ${BACKUP_PATH}.tar.gz -C ${API_PATH}
+              cd ${API_PATH}
+              npx prisma generate
+              sudo systemctl start simsforge-api
+              echo "✅ Rolled back to previous version"
+            fi
+            exit 1
+          fi
+
+          # Show status
+          echo "📊 Service status:"
+          sudo systemctl status simsforge-api
+
+          # Cleanup
+          rm /tmp/backend-deploy.tar.gz
+          echo "✅ Deployment completed successfully at $(date)"
+          DEPLOY_SCRIPT
 
       - name: Deployment successful
-        run: echo "✅ Backend deployed successfully!"
+        run: echo "✅ Backend deployed successfully to production!"
+
+      - name: Deployment failed
+        if: failure()
+        run: |
+          echo "❌ Deployment failed!"
+          echo "Check the logs above for details."
+          exit 1

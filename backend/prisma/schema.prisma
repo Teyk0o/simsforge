@@ -1,0 +1,57 @@
+// SimsForge Database Schema
+// Prisma ORM configuration for PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Reports submitted by users for fake/suspicious mods
+/// Each machine can only report a mod once (prevents spam)
+model ModReport {
+  id        String   @id @default(uuid())
+  modId     Int      // CurseForge mod ID
+  machineId String   // UUID of reporting machine (generated client-side)
+  reason    String   // User-provided reason for report
+  fakeScore Int      // Calculated fake score at time of report (0-100)
+  createdAt DateTime @default(now())
+
+  @@unique([modId, machineId]) // One report per machine per mod
+  @@index([modId])
+  @@index([machineId])
+  @@map("mod_reports")
+}
+
+/// Mods that have been flagged with warnings
+/// Warnings trigger after 3 reports OR automatic detection (no .package files)
+model WarnedMod {
+  id            String   @id @default(uuid())
+  modId         Int      @unique // CurseForge mod ID
+  reportCount   Int      @default(0) // Number of user reports
+  isAutoWarned  Boolean  @default(false) // True if warning was automatic (no mod files)
+  warningReason String?  // Human-readable reason for warning
+  creatorId     Int?     // CurseForge creator ID (for ban tracking)
+  warnedAt      DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([modId])
+  @@index([creatorId])
+  @@map("warned_mods")
+}
+
+/// Creators banned due to multiple fake mods
+/// Ban triggers after 3+ mods with warnings from same creator
+model BannedCreator {
+  id              String   @id @default(uuid())
+  creatorId       Int      @unique // CurseForge creator/author ID
+  creatorName     String   // Creator display name
+  modsBannedCount Int      @default(0) // Number of fake mods detected
+  bannedAt        DateTime @default(now())
+
+  @@index([creatorId])
+  @@map("banned_creators")
+}

@@ -19,6 +19,9 @@ const envSchema = z.object({
   // CORS
   ALLOWED_ORIGINS: z.string().transform((val) => val.split(',')),
 
+  // Database (Prisma)
+  DATABASE_URL: z.string().url(),
+
   // Redis (for caching)
   REDIS_URL: z.string().optional(),
 

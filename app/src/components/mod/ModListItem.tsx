@@ -9,17 +9,30 @@ import { DownloadSimple, Spinner, Check } from "@phosphor-icons/react";
 import { useToast } from '@/context/ToastContext';
 import { useProfiles } from '@/context/ProfileContext';
 import { modInstallationService } from '@/lib/services/ModInstallationService';
+import { fakeScoreService } from '@/lib/services/FakeScoreService';
+import { submitFakeModReport } from '@/lib/fakeDetectionApi';
+import WarningBadge from './WarningBadge';
+import FakeModWarningPopup from './FakeModWarningPopup';
+import type { ModWarningStatus, FakeScoreResult, ZipAnalysis } from '@/types/fakeDetection';
 
 interface ModListItemProps {
   mod: CurseForgeMod;
+  /** Warning status for this mod (optional, fetched from backend) */
+  warningStatus?: ModWarningStatus;
 }
 
-export default function ModListItem({ mod }: ModListItemProps) {
+export default function ModListItem({ mod, warningStatus }: ModListItemProps) {
   const authorNames = mod.authors.map((a) => a.name).join(', ');
   const categoryNames = mod.categories.slice(0, 2);
   const { showToast, updateToast } = useToast();
   const { refreshProfiles, activeProfile } = useProfiles();
   const [isInstalling, setIsInstalling] = useState(false);
+
+  // Fake mod detection popup state
+  const [showFakeWarning, setShowFakeWarning] = useState(false);
+  const [fakeScoreResult, setFakeScoreResult] = useState<FakeScoreResult | null>(null);
+  const [pendingInstallResolve, setPendingInstallResolve] = useState<((decision: 'install' | 'cancel' | 'report') => void) | null>(null);
+  const [isSubmittingReport, setIsSubmittingReport] = useState(false);
 
   // Check if mod is already installed in the active profile
   const isInstalled = activeProfile?.mods.some((m) => m.modId === mod.id) ?? false;
@@ -105,7 +118,19 @@ export default function ModListItem({ mod }: ModListItemProps) {
         duration: 0, // Don't auto-dismiss
       });
 
-      // Start installation
+      // Fake detection callback
+      const onFakeDetection = async (
+        scoreResult: FakeScoreResult,
+        _zipAnalysis: ZipAnalysis
+      ): Promise<'install' | 'cancel' | 'report'> => {
+        return new Promise((resolve) => {
+          setFakeScoreResult(scoreResult);
+          setPendingInstallResolve(() => resolve);
+          setShowFakeWarning(true);
+        });
+      };
+
+      // Start installation with fake detection
       const result = await modInstallationService.installMod(
         mod.id,
         modsPath,
@@ -115,7 +140,9 @@ export default function ModListItem({ mod }: ModListItemProps) {
             message: progress.message,
             progress: progress.percent,
           });
-        }
+        },
+        undefined,
+        onFakeDetection
       );
 
       // Show result
@@ -148,110 +175,180 @@ export default function ModListItem({ mod }: ModListItemProps) {
     }
   };
 
+  const handleInstallAnyway = () => {
+    setShowFakeWarning(false);
+    pendingInstallResolve?.('install');
+    setPendingInstallResolve(null);
+    setFakeScoreResult(null);
+  };
+
+  const handleReportAndCancel = async (reason: string) => {
+    setIsSubmittingReport(true);
+    try {
+      const machineId = await fakeScoreService.getMachineId();
+      await submitFakeModReport(mod.id, {
+        machineId,
+        reason,
+        fakeScore: fakeScoreResult?.score || 0,
+        creatorId: mod.authors[0]?.id,
+        creatorName: mod.authors[0]?.name,
+      });
+      showToast({
+        type: 'success',
+        title: 'Report Submitted',
+        message: `Thank you for reporting "${mod.name}"`,
+        duration: 3000,
+      });
+    } catch (error: any) {
+      if (error.response?.status === 409) {
+        showToast({
+          type: 'info',
+          title: 'Already Reported',
+          message: 'You have already reported this mod',
+          duration: 3000,
+        });
+      }
+    } finally {
+      setIsSubmittingReport(false);
+      setShowFakeWarning(false);
+      pendingInstallResolve?.('report');
+      setPendingInstallResolve(null);
+      setFakeScoreResult(null);
+    }
+  };
+
+  const handleClosePopup = () => {
+    setShowFakeWarning(false);
+    pendingInstallResolve?.('cancel');
+    setPendingInstallResolve(null);
+    setFakeScoreResult(null);
+  };
+
   return (
-    <div
-      className="group rounded-lg px-4 py-3 transition-all duration-200"
-      style={{
-        backgroundColor: 'var(--ui-panel)',
-        border: '1px solid var(--ui-border)',
-      }}
-      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--ui-hover)')}
-      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--ui-panel)')}
-    >
-      <Link href={`/mods?id=${mod.id}`}>
-        <div className="grid grid-cols-12 gap-4 items-center">
-          {/* Mod Info */}
-          <div className="col-span-6 lg:col-span-5">
-            <div className="flex items-center gap-3">
-              {/* Logo Image */}
-              <div className="relative h-14 w-14 rounded-md overflow-hidden flex-shrink-0" style={{ backgroundColor: 'var(--ui-dark)' }}>
-                {mod.logo ? (
-                  <Image
-                    src={mod.logo}
-                    alt={mod.name}
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-xl" style={{ color: 'var(--text-tertiary)' }}>
-                    📦
-                  </div>
+    <>
+      <div
+        className="group rounded-lg px-4 py-3 transition-all duration-200"
+        style={{
+          backgroundColor: 'var(--ui-panel)',
+          border: '1px solid var(--ui-border)',
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--ui-hover)')}
+        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--ui-panel)')}
+      >
+        <Link href={`/mods?id=${mod.id}`}>
+          <div className="grid grid-cols-12 gap-4 items-center">
+            {/* Mod Info */}
+            <div className="col-span-6 lg:col-span-5">
+              <div className="flex items-center gap-3">
+                {/* Logo Image */}
+                <div className="relative h-14 w-14 rounded-md overflow-hidden flex-shrink-0" style={{ backgroundColor: 'var(--ui-dark)' }}>
+                  {mod.logo ? (
+                    <Image
+                      src={mod.logo}
+                      alt={mod.name}
+                      fill
+                      className="object-cover"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-xl" style={{ color: 'var(--text-tertiary)' }}>
+                      📦
+                    </div>
+                  )}
+                  {/* Warning Badge */}
+                  {warningStatus && (warningStatus.hasWarning || warningStatus.creatorBanned) && (
+                    <div className="absolute -top-1 -right-1 z-10">
+                      <WarningBadge status={warningStatus} size="sm" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Title and Author */}
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
+                    {mod.name}
+                  </h3>
+                  <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>
+                    by {authorNames || 'Unknown'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Categories */}
+            <div className="col-span-3 lg:col-span-3 hidden md:block">
+              <div className="flex gap-1 items-center max-w-full overflow-hidden whitespace-nowrap">
+                {categoryNames.map((category, i) => (
+                  <span
+                    key={i}
+                    className="text-xs px-2 py-1 rounded truncate flex-shrink-0"
+                    style={{
+                      backgroundColor: 'var(--ui-hover)',
+                      color: 'var(--text-secondary)',
+                    }}
+                    title={category}
+                  >
+                    {category}
+                  </span>
+                ))}
+                {mod.categories.length > 2 && (
+                  <span className="text-xs flex-shrink-0" style={{ color: 'var(--text-tertiary)' }}>
+                    +{mod.categories.length - 2}
+                  </span>
                 )}
               </div>
+            </div>
 
-              {/* Title and Author */}
-              <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
-                  {mod.name}
-                </h3>
-                <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>
-                  by {authorNames || 'Unknown'}
-                </p>
-              </div>
+            {/* Downloads */}
+            <div className="col-span-2 hidden lg:block lg:col-span-1">
+              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                {formatDownloadCount(mod.downloadCount)}
+              </span>
+            </div>
+
+            {/* Last Update */}
+            <div className="col-span-3 lg:col-span-2 hidden lg:block text-right">
+              <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                {formatRelativeDate(mod.dateModified)}
+              </span>
+            </div>
+            {/* Action */}
+            <div className="col-span-6 md:col-span-3 lg:col-span-1 flex justify-end">
+              <button
+                onClick={handleInstall}
+                disabled={isInstalling || isInstalled || warningStatus?.creatorBanned}
+                className={`px-3 py-1.5 font-medium rounded text-sm transition-colors disabled:cursor-not-allowed cursor-pointer ${
+                  isInstalled
+                    ? 'bg-gray-500 text-white'
+                    : 'bg-brand-green hover:bg-brand-dark text-white disabled:opacity-50'
+                }`}
+                title={isInstalled ? "Already installed" : isInstalling ? "Installing..." : "Install"}
+              >
+                {isInstalled ? (
+                  <Check size={24} weight="bold" />
+                ) : isInstalling ? (
+                  <Spinner size={24} className="animate-spin" />
+                ) : (
+                  <DownloadSimple size={24} />
+                )}
+              </button>
             </div>
           </div>
+        </Link>
+      </div>
 
-          {/* Categories */}
-          <div className="col-span-3 lg:col-span-3 hidden md:block">
-            <div className="flex gap-1 items-center max-w-full overflow-hidden whitespace-nowrap">
-              {categoryNames.map((category, i) => (
-                <span
-                  key={i}
-                  className="text-xs px-2 py-1 rounded truncate flex-shrink-0"
-                  style={{
-                    backgroundColor: 'var(--ui-hover)',
-                    color: 'var(--text-secondary)',
-                  }}
-                  title={category}
-                >
-                  {category}
-                </span>
-              ))}
-              {mod.categories.length > 2 && (
-                <span className="text-xs flex-shrink-0" style={{ color: 'var(--text-tertiary)' }}>
-                  +{mod.categories.length - 2}
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Downloads */}
-          <div className="col-span-2 hidden lg:block lg:col-span-1">
-            <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-              {formatDownloadCount(mod.downloadCount)}
-            </span>
-          </div>
-
-          {/* Last Update */}
-          <div className="col-span-3 lg:col-span-2 hidden lg:block text-right">
-            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-              {formatRelativeDate(mod.dateModified)}
-            </span>
-          </div>
-          {/* Action */}
-          <div className="col-span-6 md:col-span-3 lg:col-span-1 flex justify-end">
-            <button
-              onClick={handleInstall}
-              disabled={isInstalling || isInstalled}
-              className={`px-3 py-1.5 font-medium rounded text-sm transition-colors disabled:cursor-not-allowed cursor-pointer ${
-                isInstalled
-                  ? 'bg-gray-500 text-white'
-                  : 'bg-brand-green hover:bg-brand-dark text-white disabled:opacity-50'
-              }`}
-              title={isInstalled ? "Already installed" : isInstalling ? "Installing..." : "Install"}
-            >
-              {isInstalled ? (
-                <Check size={24} weight="bold" />
-              ) : isInstalling ? (
-                <Spinner size={24} className="animate-spin" />
-              ) : (
-                <DownloadSimple size={24} />
-              )}
-            </button>
-          </div>
-        </div>
-      </Link>
-    </div>
+      {/* Fake Mod Warning Popup - Outside Link */}
+      {fakeScoreResult && (
+        <FakeModWarningPopup
+          isOpen={showFakeWarning}
+          onClose={handleClosePopup}
+          onInstallAnyway={handleInstallAnyway}
+          onReportAndCancel={handleReportAndCancel}
+          modName={mod.name}
+          scoreResult={fakeScoreResult}
+          isSubmitting={isSubmittingReport}
+        />
+      )}
+    </>
   );
 }

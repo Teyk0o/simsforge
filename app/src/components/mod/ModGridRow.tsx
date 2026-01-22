@@ -8,6 +8,7 @@
 
 import ModCard from '@/components/mod/ModCard';
 import { CurseForgeMod } from '@/types/curseforge';
+import type { ModWarningStatus } from '@/types/fakeDetection';
 
 interface ModGridRowProps {
   /** Slice of mods to display in this row */
@@ -16,6 +17,8 @@ interface ModGridRowProps {
   index: number;
   /** Number of columns for this row */
   columns: number;
+  /** Warning statuses for mods (indexed by mod ID) */
+  warningStatuses?: Record<number, ModWarningStatus>;
 }
 
 /**
@@ -28,7 +31,7 @@ interface ModGridRowProps {
  * - Desktop (lg): 3 columns
  * - Large (xl): 4 columns
  */
-export default function ModGridRow({ mods, index, columns }: ModGridRowProps) {
+export default function ModGridRow({ mods, index, columns, warningStatuses = {} }: ModGridRowProps) {
   // Determine grid class based on columns
   const gridColsClass = {
     1: 'grid-cols-1',
@@ -41,7 +44,7 @@ export default function ModGridRow({ mods, index, columns }: ModGridRowProps) {
   return (
     <div className={`grid ${gridColsClass} gap-4 px-4 lg:px-8 py-4 pb-4`}>
       {mods.map((mod) => (
-        <ModCard key={mod.id} mod={mod} />
+        <ModCard key={mod.id} mod={mod} warningStatus={warningStatuses[mod.id]} />
       ))}
     </div>
   );

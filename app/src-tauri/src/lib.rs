@@ -1,9 +1,11 @@
 use rayon::prelude::*;
+use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::fs::{copy as fs_copy, create_dir_all, metadata, read_dir, File};
-use std::io::{copy, Read};
+use std::io::{copy, Read, Write};
 use std::path::Path;
 use std::sync::Mutex;
+use uuid::Uuid;
 use zip::ZipArchive;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -209,6 +211,124 @@ fn copy_directory(source: String, target: String) -> Result<(), String> {
         .map_err(|e| format!("Failed to copy directory: {} -> {}: {}", source, target, e))
 }
 
+/// Result of ZIP content analysis for fake mod detection
+#[derive(Serialize, Deserialize)]
+pub struct ZipAnalysis {
+    /// Whether the ZIP contains any .package files
+    pub has_package_files: bool,
+    /// Whether the ZIP contains any .ts4script files
+    pub has_ts_script: bool,
+    /// List of all files in the ZIP
+    pub file_list: Vec<String>,
+    /// List of suspicious files (README, HTML, URL shortcuts, etc.)
+    pub suspicious_files: Vec<String>,
+    /// Total number of files in the ZIP
+    pub total_files: usize,
+}
+
+/// Analyze ZIP content for fake mod detection
+/// Returns information about the files contained in the ZIP without extracting
+#[tauri::command]
+fn analyze_zip_content(zip_path: String) -> Result<ZipAnalysis, String> {
+    let file = File::open(&zip_path).map_err(|e| format!("Failed to open ZIP: {}", e))?;
+    let mut archive = ZipArchive::new(file).map_err(|e| format!("Invalid ZIP file: {}", e))?;
+
+    let mut has_package_files = false;
+    let mut has_ts_script = false;
+    let mut file_list: Vec<String> = Vec::new();
+    let mut suspicious_files: Vec<String> = Vec::new();
+
+    // Suspicious file patterns
+    let suspicious_extensions = [".url", ".lnk", ".html", ".htm", ".webloc"];
+    let suspicious_names = ["readme", "patreon", "support", "donate", "link", "discord"];
+
+    for i in 0..archive.len() {
+        let file = archive.by_index(i).map_err(|e| format!("Failed to read ZIP entry: {}", e))?;
+        let name = file.name().to_string();
+        let name_lower = name.to_lowercase();
+
+        // Skip directory entries
+        if name.ends_with('/') || name.ends_with('\\') {
+            continue;
+        }
+
+        file_list.push(name.clone());
+
+        // Check for valid mod files
+        if name_lower.ends_with(".package") {
+            has_package_files = true;
+        }
+        if name_lower.ends_with(".ts4script") {
+            has_ts_script = true;
+        }
+
+        // Check for suspicious files
+        let is_suspicious = suspicious_extensions.iter().any(|ext| name_lower.ends_with(ext))
+            || suspicious_names
+                .iter()
+                .any(|pattern| name_lower.contains(pattern));
+
+        if is_suspicious {
+            suspicious_files.push(name);
+        }
+    }
+
+    Ok(ZipAnalysis {
+        has_package_files,
+        has_ts_script,
+        file_list,
+        suspicious_files,
+        total_files: archive.len(),
+    })
+}
+
+/// Get or create a persistent machine ID for fake mod reporting
+/// The ID is stored in the app data directory and persists across sessions
+#[tauri::command]
+fn get_or_create_machine_id(app_handle: tauri::AppHandle) -> Result<String, String> {
+    use tauri::Manager;
+
+    // Get app data directory
+    let app_data_dir = app_handle
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
+
+    let machine_id_file = app_data_dir.join("machine_id");
+
+    // Try to read existing machine ID
+    if machine_id_file.exists() {
+        match std::fs::read_to_string(&machine_id_file) {
+            Ok(existing_id) => {
+                let trimmed = existing_id.trim();
+                // Validate it's a valid UUID
+                if !trimmed.is_empty() && Uuid::parse_str(trimmed).is_ok() {
+                    return Ok(trimmed.to_string());
+                }
+            }
+            Err(_) => {
+                // File exists but couldn't be read, will regenerate
+            }
+        }
+    }
+
+    // Generate new UUID
+    let new_id = Uuid::new_v4().to_string();
+
+    // Ensure directory exists
+    if let Some(parent) = machine_id_file.parent() {
+        create_dir_all(parent).map_err(|e| format!("Failed to create app data directory: {}", e))?;
+    }
+
+    // Write new ID
+    let mut file = File::create(&machine_id_file)
+        .map_err(|e| format!("Failed to create machine ID file: {}", e))?;
+    file.write_all(new_id.as_bytes())
+        .map_err(|e| format!("Failed to write machine ID: {}", e))?;
+
+    Ok(new_id)
+}
+
 /// Helper function to recursively copy directories using parallel processing
 fn copy_dir_recursive(src: &Path, dst: &Path) -> std::io::Result<()> {
     let entries: Vec<_> = read_dir(src)?.collect::<Result<Vec<_>, std::io::Error>>()?;
@@ -288,7 +408,9 @@ pub fn run() {
             list_symlinks,
             calculate_file_hash,
             get_file_size,
-            copy_directory
+            copy_directory,
+            analyze_zip_content,
+            get_or_create_machine_id
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

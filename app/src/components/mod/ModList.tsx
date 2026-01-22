@@ -5,9 +5,11 @@ import { Virtuoso } from 'react-virtuoso';
 import ModListItem from '@/components/mod/ModListItem';
 import ModGridRow from '@/components/mod/ModGridRow';
 import { searchCurseForgeMods } from '@/lib/curseforgeApi';
+import { getBatchWarningStatus } from '@/lib/fakeDetectionApi';
 import { CurseForgeMod } from '@/types/curseforge';
 import { ViewMode } from '@/hooks/useViewMode';
 import { useSearchState } from '@/context/SearchStateContext';
+import type { ModWarningStatus } from '@/types/fakeDetection';
 
 interface ModListProps {
   searchQuery: string;
@@ -31,6 +33,7 @@ export default function ModList({ searchQuery, sortBy, category, viewMode, activ
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [warningStatuses, setWarningStatuses] = useState<Record<number, ModWarningStatus>>({});
   const [pagination, setPagination] = useState<PaginationState>({
     index: 0,
     pageSize: 50,
@@ -176,6 +179,7 @@ export default function ModList({ searchQuery, sortBy, category, viewMode, activ
     );
 
     setMods([]);
+    setWarningStatuses({});
     setPagination({
       index: 0,
       pageSize: 50,
@@ -199,6 +203,35 @@ export default function ModList({ searchQuery, sortBy, category, viewMode, activ
 
     fetchModsForPage(0);
   }, [searchQuery, sortBy, category || '', activeFilter]);
+
+  /**
+   * Fetch warning statuses for all displayed mods
+   * Called whenever mods list changes
+   */
+  useEffect(() => {
+    if (mods.length === 0) return;
+
+    const fetchWarnings = async () => {
+      try {
+        const modIds = mods.map((mod) => mod.id);
+        // Map mod ID to creator ID (using first author)
+        const creatorIds: Record<number, number> = {};
+        mods.forEach((mod) => {
+          if (mod.authors && mod.authors.length > 0) {
+            creatorIds[mod.id] = mod.authors[0].id;
+          }
+        });
+
+        const statuses = await getBatchWarningStatus(modIds, creatorIds);
+        setWarningStatuses(statuses || {});
+      } catch (err) {
+        console.error('Failed to fetch warning statuses:', err);
+        // Don't fail the whole page if warnings fail to load
+      }
+    };
+
+    fetchWarnings();
+  }, [mods]);
 
   /**
    * Restore scroll position after mods are loaded
@@ -336,7 +369,7 @@ export default function ModList({ searchQuery, sortBy, category, viewMode, activ
             initialTopMostItemIndex={scrollIndex > 0 ? scrollIndex + 1 : 0}
             itemContent={(index, mod) => (
               <div className="px-4 lg:px-8 py-2">
-                <ModListItem mod={mod} />
+                <ModListItem mod={mod} warningStatus={warningStatuses[mod.id]} />
               </div>
             )}
             rangeChanged={handleRangeChanged}
@@ -358,7 +391,7 @@ export default function ModList({ searchQuery, sortBy, category, viewMode, activ
             style={{ height: '100%', scrollbarWidth: 'none' }}
             initialTopMostItemIndex={scrollIndex > 0 ? scrollIndex + 1 : 0}
             itemContent={(index, row) => (
-              <ModGridRow mods={row} index={index} columns={gridColumns} />
+              <ModGridRow mods={row} index={index} columns={gridColumns} warningStatuses={warningStatuses} />
             )}
             rangeChanged={handleRangeChanged}
             endReached={() => {

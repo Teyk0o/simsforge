@@ -4096,6 +4096,7 @@ dependencies = [
  "tauri-plugin-shell",
  "tauri-plugin-updater",
  "tauri-plugin-upload",
+ "uuid",
  "zip 0.6.6",
 ]
 

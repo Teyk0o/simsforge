@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { createCurseForgeRoutes } from './curseforge.routes';
+import { createReportRoutes } from './report.routes';
 
 /**
  * Main route aggregator.
@@ -10,6 +11,9 @@ export function createApiRoutes(): Router {
 
   // CurseForge proxy routes
   router.use('/curseforge', createCurseForgeRoutes());
+
+  // Fake mod detection and reporting routes
+  router.use('/', createReportRoutes());
 
   return router;
 }

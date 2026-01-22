@@ -2,17 +2,20 @@
 
 import { useState } from 'react';
 import { CurseForgeMod } from '@/types/curseforge';
+import type { ModWarningStatus } from '@/types/fakeDetection';
 import { formatRelativeDate } from '@/utils/formatters';
-import { ShareNetwork, Heart, DownloadSimple, Spinner, Check } from '@phosphor-icons/react';
+import { ShareNetwork, Heart, DownloadSimple, Spinner, Check, Warning } from '@phosphor-icons/react';
 import { useToast } from '@/context/ToastContext';
 import { useProfiles } from '@/context/ProfileContext';
 import { modInstallationService } from '@/lib/services/ModInstallationService';
+import WarningBadge from './WarningBadge';
 
 interface ModDetailHeaderProps {
   mod: CurseForgeMod;
+  warningStatus?: ModWarningStatus | null;
 }
 
-export default function ModDetailHeader({ mod }: ModDetailHeaderProps) {
+export default function ModDetailHeader({ mod, warningStatus }: ModDetailHeaderProps) {
   const { showToast, updateToast } = useToast();
   const { activeProfile, refreshProfiles } = useProfiles();
   const [isInstalling, setIsInstalling] = useState(false);
@@ -159,6 +162,11 @@ export default function ModDetailHeader({ mod }: ModDetailHeaderProps) {
               {mod.name}
             </h1>
 
+            {/* Warning Badge */}
+            {warningStatus && (warningStatus.hasWarning || warningStatus.creatorBanned) && (
+              <WarningBadge status={warningStatus} size="md" />
+            )}
+
             {/* CurseForge Badge */}
             {mod.websiteUrl && (
               <a
@@ -211,7 +219,7 @@ export default function ModDetailHeader({ mod }: ModDetailHeaderProps) {
         <div className="flex flex-col justify-end gap-3 min-w-[200px] mt-4 md:mt-0">
           <button
             onClick={handleInstall}
-            disabled={isInstalling || isInstalled}
+            disabled={isInstalling || isInstalled || warningStatus?.creatorBanned}
             className={`w-full py-3 px-6 font-bold rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95 disabled:cursor-not-allowed cursor-pointer ${
               isInstalled
                 ? 'bg-gray-500 text-white shadow-gray-500/25'
@@ -238,6 +246,59 @@ export default function ModDetailHeader({ mod }: ModDetailHeaderProps) {
           </button>
         </div>
       </div>
+
+      {/* Warning Banner */}
+      {warningStatus && (warningStatus.hasWarning || warningStatus.creatorBanned) && (
+        <div
+          className="mt-6 p-6 rounded-lg border-2 flex gap-4 items-start"
+          style={{
+            backgroundColor: warningStatus.creatorBanned ? '#7f1d1d' : '#78350f',
+            borderColor: warningStatus.creatorBanned ? '#ef4444' : '#f59e0b',
+          }}
+        >
+          <Warning
+            size={32}
+            weight="fill"
+            style={{
+              color: warningStatus.creatorBanned ? '#ef4444' : '#f59e0b',
+              flexShrink: 0,
+            }}
+          />
+          <div className="flex-1">
+            <h3
+              className="text-lg font-bold mb-2"
+              style={{
+                color: warningStatus.creatorBanned ? '#fca5a5' : '#fbbf24',
+              }}
+            >
+              {warningStatus.creatorBanned ? 'Creator Banned' : 'Suspicious Mod Warning'}
+            </h3>
+            <p
+              className="text-sm mb-3"
+              style={{
+                color: warningStatus.creatorBanned ? '#f8d7da' : '#fed7aa',
+              }}
+            >
+              {warningStatus.creatorBanned
+                ? 'This mod creator has been banned due to multiple fake or misleading mods. We recommend not installing mods from this creator.'
+                : warningStatus.isAutoWarned
+                  ? `This mod has been flagged as suspicious: ${warningStatus.warningReason || 'No valid mod files detected'}`
+                  : `This mod has been reported by ${warningStatus.reportCount} user${warningStatus.reportCount !== 1 ? 's' : ''} as potentially fake or misleading.`}
+            </p>
+            {warningStatus.warningReason && !warningStatus.creatorBanned && (
+              <p
+                className="text-xs italic"
+                style={{
+                  color: warningStatus.creatorBanned ? '#f8d7da' : '#fed7aa',
+                  opacity: 0.8,
+                }}
+              >
+                {warningStatus.warningReason}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

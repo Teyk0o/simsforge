@@ -2,19 +2,47 @@
 
 import { CurseForgeMod } from '@/types/curseforge';
 import { formatDownloadCount, formatFileSize } from '@/utils/formatters';
-import { Flag } from '@phosphor-icons/react';
+import { Warning } from '@phosphor-icons/react';
+import WarningBadge from './WarningBadge';
+import ReportButton from './ReportButton';
+import type { ModWarningStatus } from '@/types/fakeDetection';
 
 interface ModDetailSidebarProps {
   mod: CurseForgeMod;
+  /** Warning status for this mod (optional, fetched from backend) */
+  warningStatus?: ModWarningStatus;
 }
 
-export default function ModDetailSidebar({ mod }: ModDetailSidebarProps) {
+export default function ModDetailSidebar({ mod, warningStatus }: ModDetailSidebarProps) {
   const latestFile = mod.latestFiles?.[0];
   const version = latestFile?.displayName || 'Unknown';
   const fileSize = latestFile?.fileLength ? formatFileSize(latestFile.fileLength) : 'Unknown';
 
   return (
     <div className="w-full lg:w-80 flex flex-col gap-6">
+      {/* Warning Card (if applicable) */}
+      {warningStatus && (warningStatus.hasWarning || warningStatus.creatorBanned) && (
+        <div
+          className="rounded-xl p-5 shadow-sm border"
+          style={{
+            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+            borderColor: '#f59e0b'
+          }}
+        >
+          <div className="flex items-center gap-3 mb-3">
+            <Warning size={24} weight="fill" color="#f59e0b" />
+            <h3 className="font-bold text-amber-400">Warning</h3>
+          </div>
+          <WarningBadge status={warningStatus} size="md" showText className="mb-3" />
+          <p className="text-sm text-gray-400">
+            {warningStatus.warningReason ||
+              (warningStatus.creatorBanned
+                ? 'This creator has been banned due to multiple fake mods.'
+                : `This mod has been reported by ${warningStatus.reportCount} users.`)}
+          </p>
+        </div>
+      )}
+
       {/* Info Card */}
       <div className="bg-ui-panel border border-ui-border rounded-xl p-5 shadow-sm">
         <h3 className="font-bold text-white mb-4">Information</h3>
@@ -69,6 +97,21 @@ export default function ModDetailSidebar({ mod }: ModDetailSidebarProps) {
             'N/A'
           )}
         </p>
+      </div>
+
+      {/* Report Section */}
+      <div className="bg-ui-panel border border-ui-border rounded-xl p-5 shadow-sm">
+        <h3 className="font-bold text-white mb-3">Report</h3>
+        <p className="text-sm text-gray-400 mb-4">
+          Think this mod is fake or misleading? Help the community by reporting it.
+        </p>
+        <ReportButton
+          modId={mod.id}
+          modName={mod.name}
+          creatorId={mod.authors[0]?.id}
+          creatorName={mod.authors[0]?.name}
+          className="w-full justify-center"
+        />
       </div>
     </div>
   );
