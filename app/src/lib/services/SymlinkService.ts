@@ -9,6 +9,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { join } from '@tauri-apps/api/path';
 import { readDir, remove } from '@tauri-apps/plugin-fs';
 import { SymlinkResult, SymlinkError } from '@/types/profile';
+import { sanitizeModName } from '@/utils/pathSanitizer';
 
 interface SymlinkPath {
   source: string;
@@ -39,7 +40,9 @@ export class SymlinkService {
     // Step 2: Copy files from cache for new profile
     for (const { source, modName } of cachePaths) {
       try {
-        const targetPath = await join(modsPath, modName);
+        // Sanitize mod name for Windows filesystem compatibility
+        const sanitizedName = sanitizeModName(modName);
+        const targetPath = await join(modsPath, sanitizedName);
 
         // Copy files from cache to mods directory
         await invoke('copy_directory', {
@@ -50,9 +53,10 @@ export class SymlinkService {
         created++;
       } catch (error: any) {
         failed++;
+        const sanitizedName = sanitizeModName(modName);
         errors.push({
           sourcePath: source,
-          targetPath: await join(modsPath, modName),
+          targetPath: await join(modsPath, sanitizedName),
           error: error.toString(),
         });
       }

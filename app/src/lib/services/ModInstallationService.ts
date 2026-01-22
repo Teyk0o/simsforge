@@ -18,6 +18,7 @@ import { join, basename } from '@tauri-apps/api/path';
 import { modCacheService } from './ModCacheService';
 import { profileService } from './ProfileService';
 import { symlinkService } from './SymlinkService';
+import { sanitizeModName } from '@/utils/pathSanitizer';
 import type { ProfileMod } from '@/types/profile';
 
 /**
@@ -216,7 +217,7 @@ export class ModInstallationService {
         const allModPaths: { source: string; modName: string }[] = [];
         for (const mod of updatedProfile.mods) {
           const cachePath = await modCacheService.getCachePath(mod.fileHash);
-          const sanitizedModName = this.sanitizeModName(mod.modName);
+          const sanitizedModName = sanitizeModName(mod.modName);
           allModPaths.push({ source: cachePath, modName: sanitizedModName });
         }
 
@@ -318,7 +319,7 @@ export class ModInstallationService {
       modName: string,
       onProgress?: ProgressCallback
   ): Promise<string[]> {
-    const sanitizedModName = this.sanitizeModName(modName);
+    const sanitizedModName = sanitizeModName(modName);
     const modFolder = await join(modsPath, sanitizedModName);
 
     if (!(await exists(modFolder))) {
@@ -386,13 +387,6 @@ export class ModInstallationService {
     }
 
     return results;
-  }
-
-  /**
-   * Sanitize mod name for folder name
-   */
-  private sanitizeModName(modName: string): string {
-    return modName.replace(/[^a-z0-9_-]/gi, '_');
   }
 
   /**
