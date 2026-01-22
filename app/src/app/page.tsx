@@ -1,13 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { Spinner, X, Play } from '@phosphor-icons/react';
 import { exists } from '@tauri-apps/plugin-fs';
 import { Command } from '@tauri-apps/plugin-shell';
 import { getVersion } from '@tauri-apps/api/app';
 import { Window } from '@tauri-apps/api/window';
-import { useAuth } from '@/context/AuthContext';
 import { useSearchState } from '@/context/SearchStateContext';
 import { useViewMode } from '@/hooks/useViewMode';
 import Layout from '@/components/layouts/Layout';
@@ -59,8 +57,6 @@ const StorageHelper = {
 };
 
 export default function Home() {
-  const { isAuthenticated, isLoading, continueWithoutAuth, isOfflineMode } = useAuth();
-  const router = useRouter();
   const { viewMode, toggleViewMode } = useViewMode();
   const searchState = useSearchState();
   const [isMounted, setIsMounted] = useState(false);
@@ -208,91 +204,6 @@ export default function Home() {
     searchState.activeFilter !== 'all' ||
     searchState.selectedCategory !== '';
 
-
-  // No debounce needed - sessionStorage handles persistence
-  // Pass searchQuery directly for immediate updates
-
-  // Show loading state while checking authentication
-  if (isMounted && isLoading) {
-    return (
-        <div
-          className="h-screen flex items-center justify-center"
-          style={{
-            background: `linear-gradient(to bottom right, #111827, var(--ui-dark), #111827)`,
-          }}
-        >
-          <div className="flex flex-col items-center gap-4">
-            <Spinner size={48} className="animate-spin text-brand-green" />
-            <p style={{ color: 'var(--text-secondary)' }}>Chargement...</p>
-          </div>
-        </div>
-    );
-  }
-
-  // Show login screen if not authenticated and not in offline mode
-  if (isMounted && !isAuthenticated && !isOfflineMode) {
-    return (
-      <div
-        className="h-screen flex items-center justify-center"
-        style={{
-          background: `linear-gradient(to bottom right, #111827, var(--ui-dark), #111827)`,
-        }}
-      >
-        <div className="flex flex-col items-center gap-6 max-w-md">
-          <h1
-            className="text-3xl font-bold text-center"
-            style={{ color: 'var(--text-primary)' }}
-          >
-            SimsForge
-          </h1>
-          <p
-            className="text-center"
-            style={{ color: 'var(--text-secondary)' }}
-          >
-            Mod manager for The Sims 4
-          </p>
-
-          <div className="flex flex-col gap-3 w-full">
-            <button
-              onClick={() => router.push('/auth/login')}
-              className="w-full px-6 py-3 rounded-md transition-colors font-medium text-white"
-              style={{
-                backgroundColor: '#46C89B',
-                cursor: 'pointer',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.opacity = '0.9';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.opacity = '1';
-              }}
-            >
-              Sign In
-            </button>
-
-            <button
-              onClick={continueWithoutAuth}
-              className="w-full px-6 py-3 rounded-md border transition-colors font-medium"
-              style={{
-                backgroundColor: 'var(--ui-panel)',
-                borderColor: 'var(--border-color)',
-                color: 'var(--text-primary)',
-                cursor: 'pointer',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--ui-hover)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--ui-panel)';
-              }}
-            >
-              Continue Without Login
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   // Render empty while mounting
   if (!isMounted) {

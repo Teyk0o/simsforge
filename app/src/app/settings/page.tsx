@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Trash, Folder, Users, Sliders, Warning, CheckCircle, FolderOpen, DiscordLogo, PatreonLogo } from '@phosphor-icons/react';
+import { Trash, Folder, Sliders, Warning, CheckCircle, FolderOpen } from '@phosphor-icons/react';
 import { open } from '@tauri-apps/plugin-dialog';
 import { exists, readDir, remove } from '@tauri-apps/plugin-fs';
 import { join } from '@tauri-apps/api/path';
@@ -498,49 +498,6 @@ export default function SettingsPage() {
                     {pathsMessage.text}
                   </div>
                 )}
-              </div>
-            </section>
-
-            {/* SECTION: CONNECTED ACCOUNTS */}
-            <section id="accounts" className="hidden">
-              <div className="mb-6">
-                <h2 className="text-lg font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-                  <Users size={20} className="text-brand-purple" /> Connected Accounts
-                </h2>
-              </div>
-
-              <div className="border rounded-xl overflow-hidden shadow-sm" style={{ backgroundColor: 'var(--ui-panel)', borderColor: 'var(--ui-border)' }}>
-                {/* Patreon */}
-                <div className="p-6 flex items-center justify-between border-b" style={{ borderColor: 'var(--ui-border)' }}>
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-[#FF424D] rounded-full flex items-center justify-center text-white text-xl">
-                      <PatreonLogo size={32} />
-                    </div>
-                    <div>
-                      <div className="font-bold" style={{ color: 'var(--text-primary)' }}>Patreon</div>
-                      <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>Not connected</div>
-                    </div>
-                  </div>
-                  <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg transition-colors shadow-lg shadow-blue-500/20">
-                    Connect
-                  </button>
-                </div>
-
-                {/* Discord */}
-                <div className="p-6 flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-[#5865f2] rounded-full flex items-center justify-center text-white text-lg font-bold">
-                      <DiscordLogo size={32} />
-                    </div>
-                    <div>
-                      <div className="font-bold" style={{ color: 'var(--text-primary)' }}>Discord</div>
-                      <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>Not connected</div>
-                    </div>
-                  </div>
-                  <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg transition-colors shadow-lg shadow-blue-500/20">
-                    Connect
-                  </button>
-                </div>
               </div>
             </section>
 

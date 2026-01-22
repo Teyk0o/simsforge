@@ -3,10 +3,9 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
 import { useProfiles } from '@/context/ProfileContext';
 import { useUpdates } from '@/context/UpdateContext';
-import { MagnifyingGlass, DownloadSimple, Heart, SignOut, GearSix } from '@phosphor-icons/react';
+import { MagnifyingGlass, DownloadSimple, Heart, GearSix } from '@phosphor-icons/react';
 import ProfileSelector from '@/components/profile/ProfileSelector';
 import UpdateCountBadge from '@/components/update/UpdateCountBadge';
 
@@ -18,7 +17,6 @@ interface SidebarProps {
 export default function Sidebar({ onThemeToggle, theme }: SidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { logout, user } = useAuth();
   const { activeProfile, profiles, activateProfile, isInitialized } = useProfiles();
   const { updateCount } = useUpdates();
 
@@ -27,11 +25,6 @@ export default function Sidebar({ onThemeToggle, theme }: SidebarProps) {
     if (pathname === '/' || pathname?.startsWith('/mods')) return 'browse';
     if (pathname === '/library') return 'library';
     return null;
-  };
-
-  const handleLogout = () => {
-    logout();
-    router.push('/auth/login');
   };
 
   return (
@@ -134,62 +127,31 @@ export default function Sidebar({ onThemeToggle, theme }: SidebarProps) {
         </nav>
       </div>
 
-      {/* User Footer */}
+      {/* Settings Footer */}
       <div
-        className="p-4 border-t flex items-center gap-3"
+        className="p-4 border-t flex items-center justify-center lg:justify-start gap-3"
         style={{
           borderColor: 'var(--border-color)',
         }}
       >
-        <div className="w-8 h-8 rounded-full bg-brand-green flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-          {user?.username?.[0]?.toUpperCase() || 'U'}
-        </div>
-        <div className="hidden lg:block overflow-hidden flex-1">
-          <div
-            className="text-sm font-bold truncate"
-            style={{
-              color: 'var(--text-primary)',
-            }}
-          >
-            {user?.username ? user.username.charAt(0).toUpperCase() + user.username.slice(1) : 'User'}
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link
-            href="/settings"
-            className="transition-colors cursor-pointer"
-            style={{
-              color: 'var(--text-secondary)',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = '#46C89B';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = 'var(--text-secondary)';
-            }}
-            aria-label="Settings"
-            title="Settings"
-          >
-            <GearSix size={20} />
-          </Link>
-          <button
-            onClick={handleLogout}
-            className="transition-colors cursor-pointer"
-            style={{
-              color: 'var(--text-secondary)',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = '#ef4444';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = 'var(--text-secondary)';
-            }}
-            aria-label="Logout"
-            title="Logout"
-          >
-            <SignOut size={20} />
-          </button>
-        </div>
+        <Link
+          href="/settings"
+          className="flex items-center gap-3 transition-colors cursor-pointer"
+          style={{
+            color: 'var(--text-secondary)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = '#46C89B';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'var(--text-secondary)';
+          }}
+          aria-label="Settings"
+          title="Settings"
+        >
+          <GearSix size={20} />
+          <span className="hidden lg:block text-sm font-medium">Settings</span>
+        </Link>
       </div>
     </aside>
   );

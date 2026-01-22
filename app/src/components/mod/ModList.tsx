@@ -7,7 +7,6 @@ import ModGridRow from '@/components/mod/ModGridRow';
 import { searchCurseForgeMods } from '@/lib/curseforgeApi';
 import { CurseForgeMod } from '@/types/curseforge';
 import { ViewMode } from '@/hooks/useViewMode';
-import { useAuth } from '@/context/AuthContext';
 import { useSearchState } from '@/context/SearchStateContext';
 
 interface ModListProps {
@@ -27,7 +26,6 @@ interface PaginationState {
 }
 
 export default function ModList({ searchQuery, sortBy, category, viewMode, activeFilter = 'all', scrollIndex = 0 }: ModListProps) {
-  const { isLoading: authLoading } = useAuth();
   const searchState = useSearchState();
   const [mods, setMods] = useState<CurseForgeMod[]>([]);
   const [isLoading, setIsLoading] = useState(false);
