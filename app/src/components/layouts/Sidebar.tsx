@@ -26,7 +26,6 @@ export default function Sidebar({ onThemeToggle, theme }: SidebarProps) {
   const getActiveNav = () => {
     if (pathname === '/' || pathname?.startsWith('/mods')) return 'browse';
     if (pathname === '/library') return 'library';
-    if (pathname === '/favorites') return 'favorites';
     return null;
   };
 
@@ -100,7 +99,6 @@ export default function Sidebar({ onThemeToggle, theme }: SidebarProps) {
           {[
             { id: 'browse', label: 'Parcourir', icon: MagnifyingGlass, href: '/' },
             { id: 'library', label: 'Bibliothèque', icon: DownloadSimple, href: '/library', badge: updateCount },
-            { id: 'favorites', label: 'Favoris', icon: Heart, href: '/favorites' },
           ].map(({ id, label, icon: Icon, href, badge }) => {
             const isActive = getActiveNav() === id && !href.includes('filter=updates');
             return (

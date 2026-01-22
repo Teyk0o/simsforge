@@ -98,13 +98,6 @@ const SORT_OPTIONS = [
   { value: 'downloads' as const, label: 'Populaires' },
 ];
 
-const FILTER_CHIPS = [
-  { id: 'all', label: 'Tout voir' },
-  { id: 'updates', label: 'Mises à jour', icon: WarningCircle },
-  { id: 'early-access', label: 'Early Access', icon: LockKey },
-  { id: 'installed', label: 'Installés' },
-];
-
 export default function FilterBar({
   onSortChange,
   activeSort,
@@ -306,41 +299,6 @@ export default function FilterBar({
             </div>
           )}
         </div>
-      </div>
-
-      <div className="w-px h-6 hidden md:block mx-2" style={{ backgroundColor: 'var(--ui-border)' }} />
-
-      {/* Quick Filter Chips */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
-        {FILTER_CHIPS.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            onClick={() => onFilterChange(id as any)}
-            className={`filter-chip px-3 py-1.5 rounded-full border text-xs font-bold whitespace-nowrap transition-colors flex items-center gap-1 cursor-pointer ${
-              activeFilter === id
-                ? 'active border-brand-green bg-brand-green/10 text-brand-green'
-                : ''
-            }`}
-            style={{
-              backgroundColor: activeFilter === id ? undefined : 'var(--ui-panel)',
-              borderColor: activeFilter === id ? undefined : 'var(--ui-border)',
-              color: activeFilter === id ? undefined : 'var(--text-secondary)'
-            }}
-            onMouseEnter={(e) => {
-              if (activeFilter !== id) {
-                e.currentTarget.style.backgroundColor = 'var(--ui-hover)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (activeFilter !== id) {
-                e.currentTarget.style.backgroundColor = 'var(--ui-panel)';
-              }
-            }}
-          >
-            {Icon && <Icon size={16} />}
-            {label}
-          </button>
-        ))}
       </div>
 
       {/* Spacer - Push ViewToggle to the right */}

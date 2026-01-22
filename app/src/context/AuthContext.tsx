@@ -176,7 +176,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const offlineUser: User = {
       id: 'offline',
       email: 'offline@local',
-      username: 'Offline User',
+      username: 'Sign in now',
       role: 'user',
     };
     const offlineToken = 'offline_mode_token';
