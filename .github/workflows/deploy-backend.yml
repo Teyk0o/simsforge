@@ -179,7 +179,7 @@ jobs:
           HEALTH_CHECK_INTERVAL=2
           RETRY=0
           while [ $RETRY -lt $HEALTH_CHECK_RETRIES ]; do
-            if curl -sf http://localhost:3001/health > /dev/null 2>&1; then
+            if curl -sf http://localhost:5000/health > /dev/null 2>&1; then
               echo "✅ Service is healthy"
               break
             fi
