@@ -1,7 +1,6 @@
 import { createApp } from './app';
 import { env } from '@config/environment';
 import { logger } from '@utils/logger';
-import { verifyConnection, closePool } from '@config/database';
 import { closeRedisService } from '@services/cache/RedisService';
 import { searchCacheService } from '@services/cache/SearchCacheService';
 
@@ -11,10 +10,6 @@ import { searchCacheService } from '@services/cache/SearchCacheService';
  */
 async function startServer(): Promise<void> {
   try {
-    // Verify database connection
-    logger.info('Verifying database connection...');
-    await verifyConnection();
-
     // Initialize Redis cache service
     logger.info('Initializing Redis cache service...');
     await searchCacheService.initialize();
@@ -39,7 +34,6 @@ async function startServer(): Promise<void> {
         logger.info('HTTP server closed');
       });
 
-      await closePool();
       await closeRedisService();
       process.exit(0);
     };
