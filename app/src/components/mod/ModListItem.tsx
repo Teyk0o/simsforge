@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { CurseForgeMod } from '@/types/curseforge';
 import { formatDownloadCount, formatRelativeDate } from '@/utils/formatters';
-import { DownloadSimple, Spinner } from "@phosphor-icons/react";
+import { DownloadSimple, Spinner, Check } from "@phosphor-icons/react";
 import { useToast } from '@/context/ToastContext';
 import { useProfiles } from '@/context/ProfileContext';
 import { modInstallationService } from '@/lib/services/ModInstallationService';
@@ -18,8 +18,11 @@ export default function ModListItem({ mod }: ModListItemProps) {
   const authorNames = mod.authors.map((a) => a.name).join(', ');
   const categoryNames = mod.categories.slice(0, 2);
   const { showToast, updateToast } = useToast();
-  const { refreshProfiles } = useProfiles();
+  const { refreshProfiles, activeProfile } = useProfiles();
   const [isInstalling, setIsInstalling] = useState(false);
+
+  // Check if mod is already installed in the active profile
+  const isInstalled = activeProfile?.mods.some((m) => m.modId === mod.id) ?? false;
 
   /**
    * Handle mod installation
@@ -230,11 +233,21 @@ export default function ModListItem({ mod }: ModListItemProps) {
           <div className="col-span-6 md:col-span-3 lg:col-span-1 flex justify-end">
             <button
               onClick={handleInstall}
-              disabled={isInstalling}
-              className="px-3 py-1.5 bg-brand-green hover:bg-brand-dark text-white font-medium rounded text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              title={isInstalling ? "Installing..." : "Install"}
+              disabled={isInstalling || isInstalled}
+              className={`px-3 py-1.5 font-medium rounded text-sm transition-colors disabled:cursor-not-allowed cursor-pointer ${
+                isInstalled
+                  ? 'bg-gray-500 text-white'
+                  : 'bg-brand-green hover:bg-brand-dark text-white disabled:opacity-50'
+              }`}
+              title={isInstalled ? "Already installed" : isInstalling ? "Installing..." : "Install"}
             >
-              {isInstalling ? <Spinner size={24} className="animate-spin" /> : <DownloadSimple size={24} />}
+              {isInstalled ? (
+                <Check size={24} weight="bold" />
+              ) : isInstalling ? (
+                <Spinner size={24} className="animate-spin" />
+              ) : (
+                <DownloadSimple size={24} />
+              )}
             </button>
           </div>
         </div>

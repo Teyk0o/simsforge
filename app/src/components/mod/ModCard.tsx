@@ -15,6 +15,7 @@ import { useToast } from '@/context/ToastContext';
 import { useProfiles } from '@/context/ProfileContext';
 import { modInstallationService } from '@/lib/services/ModInstallationService';
 import { formatDownloadCount, formatRelativeDate } from '@/utils/formatters';
+import { Check } from '@phosphor-icons/react';
 
 interface ModCardProps {
   mod: CurseForgeMod;
@@ -28,8 +29,11 @@ export default function ModCard({ mod }: ModCardProps) {
   const authorNames = mod.authors.map((a) => a.name).join(', ');
   const categoryNames = mod.categories.slice(0, 2);
   const { showToast, updateToast } = useToast();
-  const { refreshProfiles } = useProfiles();
+  const { refreshProfiles, activeProfile } = useProfiles();
   const [isInstalling, setIsInstalling] = useState(false);
+
+  // Check if mod is already installed in the active profile
+  const isInstalled = activeProfile?.mods.some((m) => m.modId === mod.id) ?? false;
 
   /**
    * Handle mod installation from card
@@ -235,11 +239,20 @@ export default function ModCard({ mod }: ModCardProps) {
           {/* Install Button */}
           <button
             onClick={handleInstall}
-            disabled={isInstalling}
-            className="w-full px-3 py-2.5 bg-brand-green hover:bg-brand-dark text-white font-medium rounded text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
-            title={isInstalling ? 'Installing...' : 'Install'}
+            disabled={isInstalling || isInstalled}
+            className={`w-full px-3 py-2.5 font-medium rounded text-sm transition-colors disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2 ${
+              isInstalled
+                ? 'bg-gray-500 text-white'
+                : 'bg-brand-green hover:bg-brand-dark text-white disabled:opacity-50'
+            }`}
+            title={isInstalled ? 'Already installed' : isInstalling ? 'Installing...' : 'Install'}
           >
-            {isInstalling ? (
+            {isInstalled ? (
+              <>
+                <Check size={18} weight="bold" />
+                <span>Installed</span>
+              </>
+            ) : isInstalling ? (
               <Spinner size={18} className="animate-spin" />
             ) : (
               <>

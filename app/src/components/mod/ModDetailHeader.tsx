@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import { CurseForgeMod } from '@/types/curseforge';
 import { formatRelativeDate } from '@/utils/formatters';
-import { ShareNetwork, Heart, DownloadSimple, Spinner } from '@phosphor-icons/react';
+import { ShareNetwork, Heart, DownloadSimple, Spinner, Check } from '@phosphor-icons/react';
 import { useToast } from '@/context/ToastContext';
+import { useProfiles } from '@/context/ProfileContext';
 import { modInstallationService } from '@/lib/services/ModInstallationService';
 
 interface ModDetailHeaderProps {
@@ -13,7 +14,11 @@ interface ModDetailHeaderProps {
 
 export default function ModDetailHeader({ mod }: ModDetailHeaderProps) {
   const { showToast, updateToast } = useToast();
+  const { activeProfile, refreshProfiles } = useProfiles();
   const [isInstalling, setIsInstalling] = useState(false);
+
+  // Check if mod is already installed in the active profile
+  const isInstalled = activeProfile?.mods.some((m) => m.modId === mod.id) ?? false;
 
   const authorNames = mod.authors.map((a) => a.name).join(', ');
   const categoryNames = mod.categories.slice(0, 3);
@@ -121,6 +126,8 @@ export default function ModDetailHeader({ mod }: ModDetailHeaderProps) {
           message: `${result.modName} has been installed successfully`,
           duration: 3000,
         });
+        // Refresh profiles to update the library
+        await refreshProfiles();
       } else {
         updateToast(toastId, {
           type: 'error',
@@ -204,12 +211,30 @@ export default function ModDetailHeader({ mod }: ModDetailHeaderProps) {
         <div className="flex flex-col justify-end gap-3 min-w-[200px] mt-4 md:mt-0">
           <button
             onClick={handleInstall}
-            disabled={isInstalling}
-            className="w-full py-3 px-6 bg-brand-green hover:bg-brand-dark text-white font-bold rounded-xl shadow-lg shadow-brand-green/25 flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-            title={isInstalling ? "Installing..." : "Install"}
+            disabled={isInstalling || isInstalled}
+            className={`w-full py-3 px-6 font-bold rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95 disabled:cursor-not-allowed cursor-pointer ${
+              isInstalled
+                ? 'bg-gray-500 text-white shadow-gray-500/25'
+                : 'bg-brand-green hover:bg-brand-dark text-white shadow-brand-green/25 disabled:opacity-50'
+            }`}
+            title={isInstalled ? "Already installed" : isInstalling ? "Installing..." : "Install"}
           >
-            {isInstalling ? <Spinner size={20} className="animate-spin" /> : <DownloadSimple size={20} />}
-            <span>{isInstalling ? 'Installing...' : 'Install'}</span>
+            {isInstalled ? (
+              <>
+                <Check size={20} weight="bold" />
+                <span>Installed</span>
+              </>
+            ) : isInstalling ? (
+              <>
+                <Spinner size={20} className="animate-spin" />
+                <span>Installing...</span>
+              </>
+            ) : (
+              <>
+                <DownloadSimple size={20} />
+                <span>Install</span>
+              </>
+            )}
           </button>
         </div>
       </div>

@@ -321,7 +321,7 @@ export default function LibraryPage() {
                           >
                             {mod.modName}
                           </h3>
-                          {hasUpdate(mod.modId) && <UpdateBadge />}
+                          {hasUpdate(mod.modId) && <UpdateBadge modId={mod.modId} />}
                         </div>
                         <div className="flex flex-col gap-1 mt-1">
                           {mod.authors && mod.authors.length > 0 && (
