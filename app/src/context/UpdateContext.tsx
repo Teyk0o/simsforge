@@ -6,9 +6,12 @@ import React, {
   useCallback,
   useEffect,
   useContext,
+  useRef,
 } from 'react';
 import { updateCheckService } from '@/lib/services/UpdateCheckService';
 import { modInstallationService } from '@/lib/services/ModInstallationService';
+import { userPreferencesService } from '@/lib/services/UserPreferencesService';
+import { backupService } from '@/lib/services/BackupService';
 import { useProfiles } from '@/context/ProfileContext';
 import { useToast } from '@/context/ToastContext';
 import type {
@@ -50,6 +53,10 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [lastCheckTime, setLastCheckTime] = useState<Date | null>(null);
 
+  // Track auto-update state to prevent repeated executions
+  const autoUpdateDoneRef = useRef<string | null>(null);
+  const autoUpdateInProgressRef = useRef(false);
+
   const { activeProfile, refreshProfiles, getModsPath } = useProfiles();
   const { showToast } = useToast();
 
@@ -59,6 +66,82 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     loadUpdateState();
   }, []);
+
+  /**
+   * Auto-update effect: check for updates and install them automatically
+   * when the preference is enabled
+   */
+  useEffect(() => {
+    // Only run auto-update when:
+    // 1. Profile is loaded and has mods
+    // 2. Not currently checking or updating
+    // 3. modsPath is configured
+    // 4. Auto-update hasn't already been done for this profile
+    if (!activeProfile || activeProfile.mods.length === 0 || isChecking || isUpdating) {
+      return;
+    }
+
+    // Skip if auto-update already done for this profile or in progress
+    if (autoUpdateDoneRef.current === activeProfile.id || autoUpdateInProgressRef.current) {
+      return;
+    }
+
+    const modsPath = getModsPath();
+    if (!modsPath) {
+      return;
+    }
+
+    const performAutoUpdate = async () => {
+      // Double-check to prevent race conditions
+      if (autoUpdateInProgressRef.current || autoUpdateDoneRef.current === activeProfile.id) {
+        return;
+      }
+
+      try {
+        await userPreferencesService.initialize();
+        const autoUpdatesEnabled = userPreferencesService.getAutoUpdates();
+
+        if (!autoUpdatesEnabled) {
+          // Mark as done even if disabled to prevent re-checking
+          autoUpdateDoneRef.current = activeProfile.id;
+          return;
+        }
+
+        autoUpdateInProgressRef.current = true;
+
+        // Check for updates
+        console.log('[UpdateContext] Auto-update: checking for updates...');
+        const checkResult = await checkForUpdates();
+
+        if (checkResult.updatesFound > 0) {
+          console.log(`[UpdateContext] Auto-update: found ${checkResult.updatesFound} updates, installing...`);
+
+          showToast({
+            type: 'info',
+            title: 'Auto-updating mods',
+            message: `Installing ${checkResult.updatesFound} update${checkResult.updatesFound > 1 ? 's' : ''}...`,
+            duration: 3000,
+          });
+
+          // Install all updates
+          await updateAllMods();
+        }
+
+        // Mark auto-update as done for this profile
+        autoUpdateDoneRef.current = activeProfile.id;
+      } catch (error) {
+        console.error('[UpdateContext] Auto-update error:', error);
+      } finally {
+        autoUpdateInProgressRef.current = false;
+      }
+    };
+
+    // Delay auto-update check to allow UI to settle
+    const timeoutId = setTimeout(performAutoUpdate, 5000);
+
+    return () => clearTimeout(timeoutId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeProfile?.id]); // Only re-run when profile changes
 
   const loadUpdateState = async () => {
     try {
@@ -190,6 +273,24 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
       setIsUpdating(true);
 
       try {
+        // Check if backup is enabled and create backup before update
+        await userPreferencesService.initialize();
+        const shouldBackup = userPreferencesService.getBackupBeforeUpdate();
+
+        if (shouldBackup && activeProfile) {
+          const modToBackup = activeProfile.mods.find((m) => m.modId === modId);
+          if (modToBackup) {
+            console.log(`[UpdateContext] Creating backup for ${modToBackup.modName}...`);
+            const backupResult = await backupService.createBackup(modToBackup);
+            if (backupResult.success) {
+              console.log(`[UpdateContext] Backup created: ${backupResult.backupPath}`);
+            } else {
+              console.warn(`[UpdateContext] Backup failed: ${backupResult.error}`);
+              // Continue with update even if backup fails
+            }
+          }
+        }
+
         // Use existing install service with specific file ID
         const result = await modInstallationService.installMod(
           modId,
@@ -236,7 +337,7 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
         setIsUpdating(false);
       }
     },
-    [availableUpdates, getModsPath, clearUpdate, refreshProfiles, showToast]
+    [availableUpdates, activeProfile, getModsPath, clearUpdate, refreshProfiles, showToast]
   );
 
   /**
@@ -262,6 +363,10 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
 
     setIsUpdating(true);
 
+    // Check if backup is enabled
+    await userPreferencesService.initialize();
+    const shouldBackup = userPreferencesService.getBackupBeforeUpdate();
+
     const results: ModUpdateResult[] = [];
     let successful = 0;
     let failed = 0;
@@ -269,6 +374,20 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
     // Process updates sequentially to avoid overwhelming the system
     for (const updateInfo of updates) {
       try {
+        // Create backup before update if enabled
+        if (shouldBackup && activeProfile) {
+          const modToBackup = activeProfile.mods.find((m) => m.modId === updateInfo.modId);
+          if (modToBackup) {
+            console.log(`[UpdateContext] Creating backup for ${modToBackup.modName}...`);
+            const backupResult = await backupService.createBackup(modToBackup);
+            if (backupResult.success) {
+              console.log(`[UpdateContext] Backup created: ${backupResult.backupPath}`);
+            } else {
+              console.warn(`[UpdateContext] Backup failed: ${backupResult.error}`);
+            }
+          }
+        }
+
         const result = await modInstallationService.installMod(
           updateInfo.modId,
           modsPath,
@@ -333,7 +452,7 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
     setIsUpdating(false);
 
     return { successful, failed, results };
-  }, [availableUpdates, getModsPath, clearUpdate, refreshProfiles, showToast]);
+  }, [availableUpdates, activeProfile, getModsPath, clearUpdate, refreshProfiles, showToast]);
 
   /**
    * Check if a mod has an update available

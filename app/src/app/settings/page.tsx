@@ -1,10 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Eye, EyeSlash, Trash, Folder, Users, Sliders, Warning, CheckCircle, FolderOpen, DiscordLogo, PatreonLogo, X } from '@phosphor-icons/react';
+import { Trash, Folder, Users, Sliders, Warning, CheckCircle, FolderOpen, DiscordLogo, PatreonLogo } from '@phosphor-icons/react';
 import { open } from '@tauri-apps/plugin-dialog';
-import { exists } from '@tauri-apps/plugin-fs';
+import { exists, readDir, remove } from '@tauri-apps/plugin-fs';
+import { join } from '@tauri-apps/api/path';
 import Layout from '@/components/layouts/Layout';
+import ConfirmationModal from '@/components/ui/ConfirmationModal';
+import { userPreferencesService } from '@/lib/services/UserPreferencesService';
+import { modCacheService } from '@/lib/services/ModCacheService';
+import { profileService } from '@/lib/services/ProfileService';
+import { backupService } from '@/lib/services/BackupService';
+import { updateCheckService } from '@/lib/services/UpdateCheckService';
 
 interface Message {
   type: 'success' | 'error';
@@ -118,6 +125,10 @@ export default function SettingsPage() {
   const [modsPath, setModsPath] = useState('C:\\Users\\Simmer\\Documents\\Electronic Arts\\The Sims 4\\Mods');
   const [gamePathExists, setGamePathExists] = useState(false);
   const [modsPathExists, setModsPathExists] = useState(false);
+  const [dangerMessage, setDangerMessage] = useState<Message | null>(null);
+  const [clearingCache, setClearingCache] = useState(false);
+  const [resettingDatabase, setResettingDatabase] = useState(false);
+  const [showResetConfirmation, setShowResetConfirmation] = useState(false);
 
   useEffect(() => {
     loadLocalSettings();
@@ -166,6 +177,12 @@ export default function SettingsPage() {
           setModsPathExists(pathExists);
         }
       }
+
+      // Load user preferences (auto-updates, backup)
+      await userPreferencesService.initialize();
+      const preferences = userPreferencesService.getPreferences();
+      setAutoUpdates(preferences.autoUpdates);
+      setBackup(preferences.backupBeforeUpdate);
     } catch (error) {
       console.error('Error loading local settings:', error);
     } finally {
@@ -268,6 +285,117 @@ export default function SettingsPage() {
     }
   }
 
+  /**
+   * Clear the mod cache (downloaded mod files in AppData)
+   */
+  async function handleClearCache() {
+    setClearingCache(true);
+    setDangerMessage(null);
+
+    try {
+      // Initialize and cleanup mod cache
+      await modCacheService.initialize();
+      const cacheStats = await modCacheService.getCacheStats();
+
+      // Cleanup all orphaned cache entries
+      const cleanupResult = await modCacheService.cleanupOrphans();
+
+      // Clear backups
+      const backupResult = await backupService.clearAllBackups();
+
+      // Clear update state
+      await updateCheckService.initialize();
+      await updateCheckService.clearAllUpdates();
+
+      const totalDeleted = cleanupResult.deleted + backupResult.deleted;
+      const freedMB = (cleanupResult.freedBytes / (1024 * 1024)).toFixed(2);
+
+      setDangerMessage({
+        type: 'success',
+        text: `Cache cleared: ${totalDeleted} items removed, ${freedMB} MB freed`,
+      });
+      setTimeout(() => setDangerMessage(null), 5000);
+    } catch (error: any) {
+      console.error('Failed to clear cache:', error);
+      setDangerMessage({
+        type: 'error',
+        text: error.message || 'Failed to clear cache',
+      });
+    } finally {
+      setClearingCache(false);
+    }
+  }
+
+  /**
+   * Reset database: delete all profiles, cache, and mod files from disk
+   */
+  async function handleResetDatabase() {
+    setResettingDatabase(true);
+    setDangerMessage(null);
+
+    try {
+      // 1. Delete all mod files from the Mods folder
+      if (modsPath && modsPathExists) {
+        try {
+          const entries = await readDir(modsPath);
+          for (const entry of entries) {
+            if (entry.isDirectory) {
+              const fullPath = await join(modsPath, entry.name);
+              await remove(fullPath, { recursive: true });
+            }
+          }
+        } catch (error) {
+          console.warn('Failed to clear mods folder:', error);
+        }
+      }
+
+      // 2. Deactivate and delete all profiles
+      await profileService.initialize();
+      // First deactivate the active profile
+      await profileService.setActiveProfile(null);
+      // Then delete all profiles
+      const profiles = await profileService.getAllProfiles();
+      for (const profile of profiles) {
+        await profileService.deleteProfile(profile.id);
+      }
+
+      // 3. Clear all mod cache
+      await modCacheService.initialize();
+      // Force cleanup of all cache entries by removing profile references
+      await modCacheService.cleanupOrphans();
+
+      // 4. Clear all backups
+      await backupService.clearAllBackups();
+
+      // 5. Clear update state
+      await updateCheckService.initialize();
+      await updateCheckService.clearAllUpdates();
+
+      // 6. Clear user preferences
+      userPreferencesService.resetToDefaults();
+
+      setShowResetConfirmation(false);
+      setDangerMessage({
+        type: 'success',
+        text: 'Database reset complete. All mods and profiles have been deleted.',
+      });
+
+      // Reload the page to reset all state
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    } catch (error: any) {
+      console.error('Failed to reset database:', error);
+      setShowResetConfirmation(false);
+      setDangerMessage({
+        type: 'error',
+        text: error.message || 'Failed to reset database',
+      });
+    } finally {
+      setResettingDatabase(false);
+    }
+  }
+
   if (checkingConfig) {
     return (
       <div className="min-h-screen bg-gray-100 dark:bg-ui-dark text-gray-800 dark:text-gray-200 p-8 flex items-center justify-center">
@@ -282,7 +410,7 @@ export default function SettingsPage() {
         {/* Header */}
         <header className="h-16 flex items-center justify-between px-8 border-b border-gray-200 dark:border-ui-border bg-white dark:bg-ui-panel shrink-0 z-10">
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">Settings</h1>
-          <button onClick={handleSave} disabled={loading || !curseforgeKey.trim()} className="px-4 py-2 bg-brand-green text-white text-sm font-bold rounded-lg shadow-lg hover:bg-brand-dark transition-colors disabled:opacity-50">
+          <button onClick={handleSave} disabled={loading || !curseforgeKey.trim()} className="px-4 py-2 bg-brand-green text-white text-sm font-bold rounded-lg shadow-lg hover:bg-brand-dark transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed">
             {loading ? 'Saving...' : 'Save'}
           </button>
         </header>
@@ -312,7 +440,7 @@ export default function SettingsPage() {
                       disabled
                       className="w-full bg-gray-50 dark:bg-ui-input border border-gray-300 dark:border-ui-border text-gray-900 dark:text-gray-900 text-sm rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-green outline-none disabled:opacity-90"
                     />
-                    <button type="button" onClick={handleGamePathSelect} className="px-4 py-2 bg-gray-100 dark:bg-ui-hover border border-gray-300 dark:border-ui-border rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                    <button type="button" onClick={handleGamePathSelect} className="px-4 py-2 bg-gray-100 dark:bg-ui-hover border border-gray-300 dark:border-ui-border rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer">
                       <FolderOpen size={20} />
                     </button>
                   </div>
@@ -340,7 +468,7 @@ export default function SettingsPage() {
                       disabled
                       className="w-full bg-gray-50 dark:bg-ui-input border border-gray-300 dark:border-ui-border text-gray-900 dark:text-gray-900 text-sm rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-green outline-none disabled:opacity-90"
                     />
-                    <button type="button" onClick={handleModsPathSelect} className="px-4 py-2 bg-gray-100 dark:bg-ui-hover border border-gray-300 dark:border-ui-border rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                    <button type="button" onClick={handleModsPathSelect} className="px-4 py-2 bg-gray-100 dark:bg-ui-hover border border-gray-300 dark:border-ui-border rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer">
                       <FolderOpen size={20} />
                     </button>
                   </div>
@@ -374,7 +502,7 @@ export default function SettingsPage() {
             </section>
 
             {/* SECTION: CONNECTED ACCOUNTS */}
-            <section id="accounts">
+            <section id="accounts" className="hidden">
               <div className="mb-6">
                 <h2 className="text-lg font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
                   <Users size={20} className="text-brand-purple" /> Connected Accounts
@@ -468,7 +596,7 @@ export default function SettingsPage() {
                       <button
                         onClick={handleDelete}
                         disabled={loading}
-                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition disabled:opacity-50"
+                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                       >
                         <Trash size={20} weight="fill" />
                       </button>
@@ -508,8 +636,12 @@ export default function SettingsPage() {
                   </div>
 
                   <button
-                    onClick={() => setAutoUpdates(!autoUpdates)}
-                    className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors ${
+                    onClick={() => {
+                      const newValue = !autoUpdates;
+                      setAutoUpdates(newValue);
+                      userPreferencesService.setAutoUpdates(newValue);
+                    }}
+                    className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors cursor-pointer ${
                       autoUpdates ? 'bg-brand-green' : 'bg-gray-300 dark:bg-gray-700'
                     }`}
                   >
@@ -531,8 +663,12 @@ export default function SettingsPage() {
                   </div>
 
                   <button
-                    onClick={() => setBackup(!backup)}
-                    className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors ${
+                    onClick={() => {
+                      const newValue = !backup;
+                      setBackup(newValue);
+                      userPreferencesService.setBackupBeforeUpdate(newValue);
+                    }}
+                    className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors cursor-pointer ${
                       backup ? 'bg-brand-green' : 'bg-gray-300 dark:bg-gray-700'
                     }`}
                   >
@@ -554,32 +690,67 @@ export default function SettingsPage() {
                 </h2>
               </div>
 
-              <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/30 rounded-xl p-6">
-                <div className="flex items-center justify-between mb-6">
+              <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/30 rounded-xl p-6 space-y-6">
+                <div className="flex items-center justify-between">
                   <div>
                     <div className="font-bold text-gray-900 dark:text-white">Clear SimsForge cache</div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">Can resolve missing images or blocked downloads.</div>
                   </div>
-                  <button className="px-4 py-2 bg-white dark:bg-ui-panel border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 font-bold text-sm rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
-                    Clear cache
+                  <button
+                    onClick={handleClearCache}
+                    disabled={clearingCache}
+                    className="px-4 py-2 bg-white dark:bg-ui-panel border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 font-bold text-sm rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+                  >
+                    {clearingCache ? 'Clearing...' : 'Clear cache'}
                   </button>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="font-bold text-gray-900 dark:text-white">Reset database</div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">Forget all installed mods (does not delete files from disk).</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">Delete all profiles, cached mods, and mod files from disk.</div>
                   </div>
-                  <button className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-sm rounded-lg transition-colors">
-                    Reset
+                  <button
+                    onClick={() => setShowResetConfirmation(true)}
+                    disabled={resettingDatabase}
+                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-sm rounded-lg transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+                  >
+                    {resettingDatabase ? 'Resetting...' : 'Reset'}
                   </button>
                 </div>
+
+                {/* Danger Zone Message */}
+                {dangerMessage && (
+                  <div
+                    className={`p-3 rounded text-sm flex items-center gap-2 ${
+                      dangerMessage.type === 'success'
+                        ? 'bg-green-900/50 text-green-300 border border-green-700'
+                        : 'bg-red-900/50 text-red-300 border border-red-700'
+                    }`}
+                  >
+                    {dangerMessage.type === 'success' ? <span>✓</span> : <span>✕</span>}
+                    {dangerMessage.text}
+                  </div>
+                )}
               </div>
             </section>
 
           </div>
         </div>
       </main>
+
+      {/* Reset Database Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showResetConfirmation}
+        onClose={() => setShowResetConfirmation(false)}
+        onConfirm={handleResetDatabase}
+        title="Reset Database"
+        message="This will permanently delete all your profiles, cached mods, and mod files from your Mods folder. This action cannot be undone."
+        confirmText="Reset Everything"
+        cancelText="Cancel"
+        isDangerous={true}
+        isLoading={resettingDatabase}
+      />
     </Layout>
   );
 }
