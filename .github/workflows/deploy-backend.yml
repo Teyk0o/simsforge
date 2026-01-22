@@ -158,7 +158,7 @@ jobs:
           # Run Prisma migrations
           echo "🔄 Running database migrations..."
           cd ${API_PATH}
-          npx prisma migrate deploy --skip-generate || {
+          npx prisma migrate deploy || {
             echo "❌ Migration failed! Rolling back..."
             if [ -f ${BACKUP_PATH}.tar.gz ]; then
               rm -rf ${API_PATH}/dist ${API_PATH}/node_modules
