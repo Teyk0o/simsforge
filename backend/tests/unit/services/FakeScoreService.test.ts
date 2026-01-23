@@ -341,5 +341,82 @@ describe('FakeScoreService', () => {
       );
       expect(result.score).toBeGreaterThan(0);
     });
+
+    it('should treat empty fileList as info-only (line 101)', () => {
+      const emptyFileListAnalysis = {
+        hasPackageFiles: false,
+        hasTsScript: false,
+        fileList: [],
+        suspiciousFiles: [],
+        totalFiles: 0,
+      };
+
+      const result = fakeScoreService.calculateScore(
+        'Normal Mod',
+        emptyFileListAnalysis,
+        5000,
+        false,
+        0
+      );
+
+      // Should trigger both "no package files" (+50) and "only info files" (+20)
+      expect(result.score).toBeGreaterThanOrEqual(70);
+      expect(result.reasons).toEqual(
+        expect.arrayContaining([
+          expect.stringContaining('No .package or .ts4script'),
+          expect.stringContaining('only README, HTML, or link files'),
+        ])
+      );
+    });
+
+    it('should treat directory-only fileList as info-only (line 110)', () => {
+      const dirOnlyAnalysis = {
+        hasPackageFiles: false,
+        hasTsScript: false,
+        fileList: ['folder/', 'subfolder/nested/', 'other\\'],
+        suspiciousFiles: [],
+        totalFiles: 3,
+      };
+
+      const result = fakeScoreService.calculateScore(
+        'Normal Mod',
+        dirOnlyAnalysis,
+        5000,
+        false,
+        0
+      );
+
+      // Should trigger "no package files" (+50) and "only info files" (+20)
+      expect(result.score).toBeGreaterThanOrEqual(70);
+      expect(result.reasons).toEqual(
+        expect.arrayContaining([
+          expect.stringContaining('only README, HTML, or link files'),
+        ])
+      );
+    });
+
+    it('should handle files without extension (line 126)', () => {
+      const noExtAnalysis = {
+        hasPackageFiles: false,
+        hasTsScript: false,
+        fileList: ['Makefile', 'LICENSE', 'CHANGELOG'],
+        suspiciousFiles: [],
+        totalFiles: 3,
+      };
+
+      const result = fakeScoreService.calculateScore(
+        'Normal Mod',
+        noExtAnalysis,
+        5000,
+        false,
+        0
+      );
+
+      // Files without extensions are NOT in INFO_ONLY_EXTENSIONS,
+      // so containsOnlyInfoFiles returns false — only "no package files" triggers
+      expect(result.score).toBe(50);
+      expect(result.reasons).toHaveLength(1);
+      expect(result.reasons[0]).toContain('No .package or .ts4script');
+    });
   });
 });

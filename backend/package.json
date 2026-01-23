@@ -8,6 +8,7 @@
     "build": "tsc --project . && prisma generate",
     "start": "node dist-server.js",
     "test": "jest --coverage",
+    "test:badge": "jest --coverage && node scripts/update-coverage-badge.js",
     "test:watch": "jest --watch",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",

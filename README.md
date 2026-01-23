@@ -1,5 +1,7 @@
 ![banner.png](assets/banner.png)
 
+![Coverage](https://img.shields.io/badge/Coverage_97.09%25-C21325?style=for-the-badge&logo=jest&logoColor=white)
+
 SimsForge is an open-source mod manager for The Sims 4. It provides a desktop application for mod discovery, installation, and management through integration with CurseForge, along with a system for detecting and reporting fake/malicious mods to protect the community.
 
 ## Overview
@@ -206,7 +208,38 @@ The backend provides a REST API with the following main endpoints:
 
 ## Testing
 
-Testing infrastructure is configured but no tests are currently implemented.
+### Backend
+
+The backend has comprehensive unit and integration tests using Jest.
+
+```bash
+cd backend
+
+# Run all tests
+npm test
+
+# Run tests with coverage report
+npm run test:coverage
+
+# Run only unit tests
+npx jest tests/unit
+
+# Run only integration tests
+npx jest tests/integration
+```
+
+**Current Coverage:**
+
+| Metric | Coverage |
+|--------|----------|
+| Statements | 97.22% |
+| Branches | 85.07% |
+| Functions | 100% |
+| Lines | 97.09% |
+
+Test suites cover:
+- **Unit tests**: Controllers, services, routes, middleware, utilities
+- **Integration tests**: Full HTTP endpoint testing with mocked dependencies
 
 ## Code Quality
 

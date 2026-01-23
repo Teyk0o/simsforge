@@ -63,6 +63,53 @@ describe('Report Routes', () => {
       expect(routes.length).toBe(4);
     });
   });
+
+  describe('route handlers delegation', () => {
+    const { reportController } = require('../../../src/controllers/ReportController');
+
+    const mockReq = {} as any;
+    const mockRes = {} as any;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should delegate POST /reports/:modId to controller.submitReport', () => {
+      const router = createReportRoutes();
+      const handler = getHandler(router, '/reports/:modId', 'post');
+
+      handler(mockReq, mockRes);
+
+      expect(reportController.submitReport).toHaveBeenCalledWith(mockReq, mockRes);
+    });
+
+    it('should delegate GET /mods/:modId/warning to controller.getWarningStatus', () => {
+      const router = createReportRoutes();
+      const handler = getHandler(router, '/mods/:modId/warning', 'get');
+
+      handler(mockReq, mockRes);
+
+      expect(reportController.getWarningStatus).toHaveBeenCalledWith(mockReq, mockRes);
+    });
+
+    it('should delegate POST /mods/batch-warnings to controller.getBatchWarnings', () => {
+      const router = createReportRoutes();
+      const handler = getHandler(router, '/mods/batch-warnings', 'post');
+
+      handler(mockReq, mockRes);
+
+      expect(reportController.getBatchWarnings).toHaveBeenCalledWith(mockReq, mockRes);
+    });
+
+    it('should delegate GET /creators/:id/ban-status to controller.getCreatorBanStatus', () => {
+      const router = createReportRoutes();
+      const handler = getHandler(router, '/creators/:id/ban-status', 'get');
+
+      handler(mockReq, mockRes);
+
+      expect(reportController.getCreatorBanStatus).toHaveBeenCalledWith(mockReq, mockRes);
+    });
+  });
 });
 
 /**
@@ -81,4 +128,14 @@ function getRoutes(router: Router): Array<{ path: string; methods: Record<string
   });
 
   return routes;
+}
+
+/**
+ * Helper to extract a route handler function from a router
+ */
+function getHandler(router: Router, path: string, method: string): Function {
+  const layer = (router as any).stack.find(
+    (l: any) => l.route && l.route.path === path && l.route.methods[method]
+  );
+  return layer.route.stack[0].handle;
 }

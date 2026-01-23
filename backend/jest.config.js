@@ -30,6 +30,7 @@ module.exports = {
   testTimeout: 10000,
   bail: false,
   verbose: true,
+  coverageReporters: ['text', 'lcov', 'json-summary'],
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/**/*.d.ts',
