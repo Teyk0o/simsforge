@@ -1,9 +1,10 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  roots: ['<rootDir>/tests'],
-  testMatch: ['**/*.test.ts'],
+  roots: ['<rootDir>/tests', '<rootDir>/src'],
+  testMatch: ['**/tests/**/*.test.ts', '**/__tests__/**/*.test.ts'],
   moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
     '^@config/(.*)$': '<rootDir>/src/config/$1',
     '^@models/(.*)$': '<rootDir>/src/models/$1',
     '^@repositories/(.*)$': '<rootDir>/src/repositories/$1',
@@ -15,20 +16,26 @@ module.exports = {
     '^@utils/(.*)$': '<rootDir>/src/utils/$1',
     '^@types/(.*)$': '<rootDir>/src/types/$1',
     '^@database/(.*)$': '<rootDir>/src/database/$1',
+    '^curseforge-api$': '<rootDir>/tests/__mocks__/curseforge-api.js',
   },
+  coverageThreshold: {
+    global: {
+      branches: 80,
+      functions: 80,
+      lines: 80,
+      statements: 80,
+    },
+  },
+  setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
+  testTimeout: 10000,
+  bail: false,
+  verbose: true,
+  coverageReporters: ['text', 'lcov', 'json-summary'],
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/**/*.d.ts',
     '!src/server.ts',
     '!src/app.ts',
+    '!src/config/**',
   ],
-  coverageThreshold: {
-    global: {
-      branches: 70,
-      functions: 70,
-      lines: 70,
-      statements: 70,
-    },
-  },
-  setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
 };
