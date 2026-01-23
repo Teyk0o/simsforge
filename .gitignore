@@ -13,3 +13,8 @@ app/out/
 tmpclaude-*-cwd
 
 RELEASES.mdRELEASES.md
+
+# Test coverage
+coverage/
+**/coverage/
+*.lcov

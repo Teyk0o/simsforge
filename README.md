@@ -1,7 +1,7 @@
 ![banner.png](assets/banner.png)
 
 ![Backend Coverage](https://img.shields.io/badge/Coverage_97.09%25-C21325?style=for-the-badge&logo=jest&logoColor=white)
-![Frontend Tests](https://img.shields.io/badge/Tests_92_passed-6E9F18?style=for-the-badge&logo=vitest&logoColor=white)
+![Frontend Tests](https://img.shields.io/badge/92_tests_passed-6E9F18?style=for-the-badge&logo=vitest&logoColor=white)
 
 SimsForge is an open-source mod manager for The Sims 4. It provides a desktop application for mod discovery, installation, and management through integration with CurseForge, along with a system for detecting and reporting fake/malicious mods to protect the community.
 
