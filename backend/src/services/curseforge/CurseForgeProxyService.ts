@@ -1,5 +1,4 @@
 import { CurseForgeClient, CurseForgeGameEnum, CurseForgeModsSearchSortField, CurseForgeSortOrder } from 'curseforge-api';
-import { cacheManager } from '@services/cache/CacheManager';
 import { AdvancedSearchService } from '@services/search/AdvancedSearchService';
 
 /**
@@ -62,13 +61,11 @@ export interface CurseForgeSearchResult {
 
 /**
  * Proxy service for CurseForge API
- * Handles authentication, caching, and data transformation
+ * Handles authentication and data transformation
  *
  * @note The user's API key is retrieved from encrypted storage and used per-request
- * @note Results are cached for 10 minutes to optimize API usage
  */
 export class CurseForgeProxyService {
-  private readonly CACHE_TTL = 10 * 60 * 1000; // 10 minutes
   private readonly SIMS4_GAME_ID = CurseForgeGameEnum.TheSims4; // 78062
   private readonly advancedSearch = new AdvancedSearchService();
 
@@ -85,15 +82,6 @@ export class CurseForgeProxyService {
    */
   async searchMods(options: SearchModsOptions): Promise<CurseForgeSearchResult> {
     const { apiKey, query, pageSize = 50, pageIndex = 0, sortBy = 'downloads', categoryName } = options;
-
-    // Generate cache key based on search parameters
-    const cacheKey = `curseforge:search:${query || 'all'}:${pageSize}:${pageIndex}:${sortBy}:${categoryName || 'all'}`;
-
-    // Check cache first
-    const cached = cacheManager.get<CurseForgeSearchResult>(cacheKey);
-    if (cached) {
-      return cached;
-    }
 
     // Create CurseForge client with user's API key
     const client = new CurseForgeClient(apiKey);
@@ -213,9 +201,6 @@ export class CurseForgeProxyService {
       }
     };
 
-    // Cache the results
-    cacheManager.set(cacheKey, transformed, this.CACHE_TTL);
-
     return transformed;
   }
 
@@ -240,14 +225,6 @@ export class CurseForgeProxyService {
    * @throws Error if mod not found
    */
   async getMod(apiKey: string, modId: number): Promise<TransformedMod> {
-
-    // Check cache
-    const cacheKey = `curseforge:mod:${modId}`;
-    const cached = cacheManager.get<TransformedMod>(cacheKey);
-    if (cached) {
-      return cached;
-    }
-
     // Fetch from API
     const client = new CurseForgeClient(apiKey);
     const mod = await client.getMod(modId);
@@ -270,9 +247,6 @@ export class CurseForgeProxyService {
     }
 
     const transformed = this.transformMod(mod);
-
-    // Cache result
-    cacheManager.set(cacheKey, transformed, this.CACHE_TTL);
 
     return transformed;
   }
@@ -304,14 +278,6 @@ export class CurseForgeProxyService {
    * @throws Error if API call fails
    */
   async getCategories(apiKey: string): Promise<Array<{ id: number; name: string }>> {
-
-    // Check cache
-    const cacheKey = 'curseforge:categories:sims4';
-    const cached = cacheManager.get<Array<{ id: number; name: string }>>(cacheKey);
-    if (cached) {
-      return cached;
-    }
-
     // Fetch categories from API
     const client = new CurseForgeClient(apiKey);
     const categoriesResponse = await client.getCategories(this.SIMS4_GAME_ID);
@@ -321,9 +287,6 @@ export class CurseForgeProxyService {
       id: cat.id,
       name: cat.name
     }));
-
-    // Cache the results for 1 hour (categories don't change often)
-    cacheManager.set(cacheKey, categories, 60 * 60 * 1000);
 
     return categories;
   }

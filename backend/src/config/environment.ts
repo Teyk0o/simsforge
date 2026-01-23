@@ -22,19 +22,6 @@ const envSchema = z.object({
   // Database (Prisma)
   DATABASE_URL: z.string().url(),
 
-  // Redis (for caching)
-  REDIS_URL: z.string().optional(),
-
-  // Rate Limiting
-  RATE_LIMIT_WINDOW_MS: z
-    .string()
-    .default('900000')
-    .transform(Number),
-  RATE_LIMIT_MAX_REQUESTS: z
-    .string()
-    .default('100')
-    .transform(Number),
-
   // Logging
   LOG_LEVEL: z
     .enum(['error', 'warn', 'info', 'debug', 'verbose', 'silly'])

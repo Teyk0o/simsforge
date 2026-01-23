@@ -1,16 +1,15 @@
 ![banner.png](assets/banner.png)
 
-SimsForge is an open-source mod manager and distribution platform for The Sims 4. It features a desktop client for one-click installation and automatic updates, alongside a centralized web hub that empowers creators through ethically-aligned early access monetization. Fully compliant with EA's modding policy, the project aims to unify the fractured community ecosystem while ensuring content remains accessible to all players.
+SimsForge is an open-source mod manager for The Sims 4. It provides a desktop application for mod discovery, installation, and management through integration with CurseForge, along with a system for detecting and reporting fake/malicious mods to protect the community.
 
 ## Overview
 
-SimsForge is a full-stack monorepo application that provides:
+SimsForge is a full-stack monorepo application featuring:
 
-- **Web & Desktop Application**: Modern Next.js frontend with Tauri desktop client for Windows
+- **Desktop Application**: Next.js with Tauri for native Windows client
 - **REST API Backend**: Express.js server with PostgreSQL database
-- **Mod Integration**: Custom CurseForge API wrapper for comprehensive mod metadata
-- **Creator Tools**: Dashboard for mod publishers to manage releases and analytics
-- **Payment Integration**: Stripe support for monetization and early access content
+- **CurseForge Integration**: Search, browse, and manage The Sims 4 mods from CurseForge
+- **Fake Mod Detection**: Report and track suspicious/malicious mods with community contributions
 
 ## Architecture
 
@@ -24,41 +23,33 @@ simsforge/
 
 ### Frontend (`/app`)
 - **Framework**: Next.js 16.1 with React 19.2
-- **Styling**: Tailwind CSS 4.1 + PostCSS 8.5
+- **Styling**: Tailwind CSS 4.1 + PostCSS
 - **Desktop**: Tauri 2.9 (Windows MSI bundler)
 - **Language**: TypeScript 5.9
 - **HTTP Client**: Axios 1.13
 - **UI Components**: Phosphor Icons 2.1
-- **Utilities**: Tailwind Merge 3.4, clsx 2.1
+- **Utilities**: Tailwind Merge, clsx
 
 **Key Features**:
 - Responsive web application
 - Native Windows desktop client
-- Mod discovery and management interface
-- Creator dashboard
-- User settings and account management
+- Mod discovery and search interface
 - Virtual list rendering for performance
+- CurseForge integration for mod browsing
 
 ### Backend (`/backend`)
 - **Runtime**: Node.js 18+ with npm 9+
 - **Framework**: Express.js 5.2
 - **Language**: TypeScript 5.9 (strict mode)
-- **Database**: PostgreSQL 8.16 with migrations
-- **Authentication**: JWT + Argon2 password hashing
+- **Database**: PostgreSQL with Prisma ORM
 - **Validation**: Zod 4.3 schema validation
 - **Logging**: Winston 3.19
-- **Testing**: Jest 30.2 with 70% coverage threshold
-- **Security**: Helmet 8.1, CORS, Rate Limiting 8.2
-- **Payment**: Stripe 20.1
+- **Security**: Helmet 8.1, CORS
 
 **Key Services**:
-- User authentication and authorization
-- Mod management and metadata
-- Creator dashboard functionality
-- File upload and storage
-- Search capabilities (Fuse.js)
-- Caching layer
-- Payment processing (Stripe)
+- Mod metadata and integration with CurseForge API
+- Fake mod detection and reporting system
+- RESTful API for mod discovery and management
 
 ## Getting Started
 
@@ -98,27 +89,21 @@ cd ..
 # Server
 NODE_ENV=development
 PORT=5000
-JWT_SECRET=your_jwt_secret_key_here
+API_BASE_URL=http://localhost:5000
 
 # Database
 DATABASE_URL=postgresql://user:password@localhost:5432/simsforge
 
-# Stripe
-STRIPE_SECRET_KEY=your_stripe_secret_key
-STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+# CORS
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
 
-# Authentication
-NEXTAUTH_SECRET=your_nextauth_secret
-
-# File Storage
-UPLOAD_DIR=./uploads
+# Logging
+LOG_LEVEL=info
 ```
 
 #### Frontend (`/app/.env.local`)
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:5000
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your_nextauth_secret
+NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
 ```
 
 ### Development
@@ -136,10 +121,17 @@ The API server will start on `http://localhost:5000`.
 
 ```bash
 cd app
-npm run tauri dev
+npm run dev
 ```
 
 The development server will start on `http://localhost:3000`.
+
+Or to run the desktop client:
+
+```bash
+cd app
+npm run tauri dev
+```
 
 #### Building the Desktop Client
 
@@ -159,10 +151,10 @@ This generates a Windows MSI installer in `src-tauri/target/release/bundle/msi/`
 CREATE DATABASE simsforge;
 ```
 
-2. Run migrations:
+2. Push the Prisma schema:
 ```bash
 cd backend
-npm run migrate
+npm run db:push
 ```
 
 ## Project Structure
@@ -171,18 +163,24 @@ npm run migrate
 
 ```
 src/
-├── app/              # Next.js app directory
-│   ├── api/          # API routes
-│   ├── auth/         # Authentication pages
-│   ├── dashboard/    # Creator dashboard
-│   ├── mods/         # Mod browsing interface
-│   └── settings/     # User settings
-├── components/       # Reusable React components
-├── context/          # React context for state management
-├── hooks/            # Custom React hooks
-├── lib/              # Utilities and services
-├── types/            # TypeScript type definitions
-└── utils/            # Helper functions
+├── app/                    # Next.js app directory
+│   ├── library/           # Mod library/browsing
+│   ├── profiles/          # Mod profiles management
+│   ├── settings/          # App settings
+│   └── splash/            # Splash/welcome screen
+├── components/            # Reusable React components
+│   ├── mod/              # Mod browsing components
+│   ├── profile/          # Profile management components
+│   ├── layouts/          # Layout components
+│   ├── ui/               # Generic UI components
+│   └── providers/        # Context providers
+├── context/              # React context for state management
+├── hooks/                # Custom React hooks (search, cache, view modes)
+├── lib/                  # Services (API client, CurseForge, fake detection)
+├── types/                # TypeScript type definitions
+└── src-tauri/            # Tauri desktop application
+    ├── src/              # Rust backend
+    └── tauri.conf.json   # Tauri configuration
 ```
 
 ### Backend (`/backend`)
@@ -191,51 +189,24 @@ src/
 src/
 ├── config/           # Configuration (database, environment)
 ├── controllers/      # Route handlers
-├── repositories/     # Data access layer
-├── services/         # Business logic
+├── services/         # Business logic (CurseForge, fake detection)
 ├── routes/           # API route definitions
 ├── middleware/       # Express middleware
-├── database/         # Migrations and schemas
-├── validators/       # Input validation (Zod)
 ├── types/            # TypeScript type definitions
-└── utils/            # Helper utilities
+├── utils/            # Helper utilities (logging, errors)
+└── app.ts            # Express app setup
 ```
 
 ## API Documentation
 
 The backend provides a REST API with the following main endpoints:
 
-- **Authentication**: `/api/auth/*`
-- **Mods**: `/api/mods/*`
-- **Creators**: `/api/creators/*`
-- **Users**: `/api/users/*`
-- **Settings**: `/api/settings/*`
-- **Categories**: `/api/categories/*`
-- **Tags**: `/api/tags/*`
-- **CurseForge Integration**: `/api/curseforge/*`
+- **CurseForge Integration**: `/api/v1/curseforge/*` - Mod search, metadata, categories
+- **Fake Mod Detection**: `/api/v1/reports/*` - Report suspicious mods, retrieve detection data
 
 ## Testing
 
-### Run Backend Tests
-
-```bash
-cd backend
-npm run test
-```
-
-### Run Tests with Coverage
-
-```bash
-cd backend
-npm run test:coverage
-```
-
-### Test Frontend Components
-
-```bash
-cd app
-npm run test
-```
+Testing infrastructure is configured but no tests are currently implemented.
 
 ## Code Quality
 
@@ -286,7 +257,6 @@ This creates a Windows MSI installer with the following specifications:
 
 - **Language**: English for all code, comments, commits, and documentation
 - **Type Safety**: Full TypeScript strict mode enabled
-- **Testing**: Target 70% code coverage for backend
 - **Code Quality**: ESLint and Prettier enforced across all packages
 
 ### Git Workflow
@@ -303,10 +273,10 @@ This creates a Windows MSI installer with the following specifications:
    - `perf:` performance improvements
    - `chore:` build/dependencies/etc
 
-3. Ensure all tests pass before pushing:
+3. Ensure code quality standards before pushing:
    ```bash
-   npm run test
    npm run lint
+   npm run format
    ```
 
 4. Submit a pull request with:
@@ -318,20 +288,17 @@ This creates a Windows MSI installer with the following specifications:
 
 **NEVER TRUST USER INPUT. ALWAYS VALIDATE AND SANITIZE.**
 
-- **Authentication**: JWT-based with secure token management
-- **Password Security**: Argon2 hashing
-- **API Security**: Rate limiting, CORS configuration, helmet headers
+- **API Security**: CORS configuration, helmet security headers for HTTP headers
 - **Input Validation**: Zod schema validation on all user inputs
-- **Database**: PostgreSQL with prepared statements
-- **Role-Based Access**: Middleware-enforced authorization levels
+- **Database**: PostgreSQL with Prisma ORM providing parameterized queries
 
 ## Contributing
 
 1. Follow the [Code Standards](#code-standards) section
-2. Create a feature branch with a descriptive name
-3. Implement your changes with tests
-4. Ensure all tests pass and code is formatted
-5. Submit a pull request with detailed description
+2. Create a feature branch following Conventional Branch Names: `type/scope/description`
+3. Implement your changes
+4. Ensure code quality with linting and formatting
+5. Submit a pull request with detailed description and test plan
 
 ## License
 

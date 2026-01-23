@@ -1,8 +1,0 @@
-blank_issues_enabled: false
-contact_links:
-  - name: Documentation
-    url: https://github.com/Teyk0o/simsforge/tree/main/docs
-    about: Check the technical documentation before asking questions
-  - name: Discussions
-    url: https://github.com/Teyk0o/simsforge/discussions
-    about: Start a discussion for general questions and ideas

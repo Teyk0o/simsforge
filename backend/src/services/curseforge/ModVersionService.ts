@@ -1,5 +1,4 @@
 import { CurseForgeClient } from 'curseforge-api';
-import { cacheManager } from '@services/cache/CacheManager';
 
 /**
  * Information about the latest version of a mod
@@ -24,10 +23,9 @@ export interface BatchVersionResponse {
  * Service for checking mod versions in batch
  *
  * Provides efficient batch fetching of latest version information
- * for multiple mods, with caching to reduce API calls.
+ * for multiple mods.
  */
 export class ModVersionService {
-  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
   private readonly MAX_BATCH_SIZE = 50; // CurseForge API limit
 
   /**
@@ -38,7 +36,6 @@ export class ModVersionService {
    * @returns Map of modId to latest version info
    *
    * @note Automatically handles batching for large mod lists
-   * @note Results are cached for 5 minutes per mod
    */
   async getLatestVersions(
     apiKey: string,
@@ -51,29 +48,12 @@ export class ModVersionService {
     // Deduplicate mod IDs
     const uniqueModIds = [...new Set(modIds)];
 
-    // Check cache for each mod and collect cache misses
+    // Result map to collect responses
     const result: BatchVersionResponse = {};
-    const cacheMisses: number[] = [];
 
-    for (const modId of uniqueModIds) {
-      const cacheKey = `curseforge:version:${modId}`;
-      const cached = cacheManager.get<LatestVersionInfo>(cacheKey);
-
-      if (cached) {
-        result[modId] = cached;
-      } else {
-        cacheMisses.push(modId);
-      }
-    }
-
-    // If all results were cached, return early
-    if (cacheMisses.length === 0) {
-      return result;
-    }
-
-    // Fetch missing mods in batches
+    // Fetch mods in batches
     const client = new CurseForgeClient(apiKey);
-    const batches = this.chunkArray(cacheMisses, this.MAX_BATCH_SIZE);
+    const batches = this.chunkArray(uniqueModIds, this.MAX_BATCH_SIZE);
 
     for (const batch of batches) {
       try {
@@ -106,10 +86,6 @@ export class ModVersionService {
               : new Date().toISOString(),
             latestFileSize: latestFile.fileLength || 0,
           };
-
-          // Cache individual result
-          const cacheKey = `curseforge:version:${mod.id}`;
-          cacheManager.set(cacheKey, versionInfo, this.CACHE_TTL);
 
           result[mod.id] = versionInfo;
         }

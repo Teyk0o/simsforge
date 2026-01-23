@@ -28,7 +28,6 @@ assignees: ""
 - **OS**: Windows / Linux / macOS
 - **OS Version**:
 - **Application Version**:
-- **Browser** (if web):
 
 ### Application Details
 
@@ -78,8 +77,3 @@ assignees: ""
 - [ ] I have provided all requested information
 - [ ] The issue title is descriptive and includes [BUG]
 - [ ] I have tested on the latest version
-
----
-
-**Related Issues**:
-**Related PRs**:

@@ -89,8 +89,3 @@ Coverage: [X%]
 ## Additional Context
 
 <!-- Add any other context about the PR here -->
-
----
-
-**Branch**:
-**Type**: `type/scope/description`

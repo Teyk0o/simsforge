@@ -30,7 +30,3 @@ assignees: ""
 ## Additional Information
 
 <!-- Any other relevant information -->
-
----
-
-**Topic**: Development / Deployment / API Usage / Feature Usage / Other

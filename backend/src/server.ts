@@ -1,8 +1,6 @@
 import { createApp } from './app';
 import { env } from '@config/environment';
 import { logger } from '@utils/logger';
-import { closeRedisService } from '@services/cache/RedisService';
-import { searchCacheService } from '@services/cache/SearchCacheService';
 
 /**
  * Server entry point.
@@ -10,10 +8,6 @@ import { searchCacheService } from '@services/cache/SearchCacheService';
  */
 async function startServer(): Promise<void> {
   try {
-    // Initialize Redis cache service
-    logger.info('Initializing Redis cache service...');
-    await searchCacheService.initialize();
-
     // Create Express app
     const app = createApp();
 
@@ -34,7 +28,6 @@ async function startServer(): Promise<void> {
         logger.info('HTTP server closed');
       });
 
-      await closeRedisService();
       process.exit(0);
     };
 

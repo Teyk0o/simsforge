@@ -5,7 +5,6 @@ import compression from 'compression';
 import { env } from '@config/environment';
 import { errorMiddleware } from '@middleware/errorMiddleware';
 import { createApiRoutes } from '@routes/index';
-import { apiLimiter } from '@middleware/rateLimitMiddleware';
 
 /**
  * Create and configure Express application.
@@ -62,9 +61,6 @@ export function createApp(): Express {
       status: 'running',
     });
   });
-
-  // Apply global rate limiter to all routes
-  app.use('/api', apiLimiter);
 
   // Register API routes
   app.use('/api/v1', createApiRoutes());

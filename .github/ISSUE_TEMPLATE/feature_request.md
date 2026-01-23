@@ -76,8 +76,3 @@ assignees: ""
 - [ ] I have searched existing issues for duplicates
 - [ ] The feature title is descriptive and includes [FEATURE]
 - [ ] I have provided a clear use case
-- [ ] This aligns with the project roadmap (see `/docs/technical_doc.md`)
-
----
-
-**Proposed Phase**: MVP Phase 1 / Phase 2 / Phase 3 / Post-MVP
