@@ -11,6 +11,7 @@
 export interface UserPreferences {
   autoUpdates: boolean;
   backupBeforeUpdate: boolean;
+  fakeModDetection: boolean;
 }
 
 /**
@@ -19,6 +20,7 @@ export interface UserPreferences {
 const DEFAULT_PREFERENCES: UserPreferences = {
   autoUpdates: true,
   backupBeforeUpdate: true,
+  fakeModDetection: true,
 };
 
 const STORAGE_KEY = 'simsforge_user_preferences';
@@ -117,6 +119,23 @@ export class UserPreferencesService {
   setBackupBeforeUpdate(enabled: boolean): void {
     this.ensureInitialized();
     this.preferences.backupBeforeUpdate = enabled;
+    this.savePreferences();
+  }
+
+  /**
+   * Get fake mod detection preference
+   */
+  getFakeModDetection(): boolean {
+    this.ensureInitialized();
+    return this.preferences.fakeModDetection;
+  }
+
+  /**
+   * Set fake mod detection preference
+   */
+  setFakeModDetection(enabled: boolean): void {
+    this.ensureInitialized();
+    this.preferences.fakeModDetection = enabled;
     this.savePreferences();
   }
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Trash, Folder, Sliders, Warning, CheckCircle, FolderOpen } from '@phosphor-icons/react';
+import { Trash, Folder, Sliders, Warning, CheckCircle, FolderOpen, ShieldCheck } from '@phosphor-icons/react';
 import { open } from '@tauri-apps/plugin-dialog';
 import { exists, readDir, remove } from '@tauri-apps/plugin-fs';
 import { join } from '@tauri-apps/api/path';
@@ -121,6 +121,7 @@ export default function SettingsPage() {
   const [apiKeyMessage, setApiKeyMessage] = useState<Message | null>(null);
   const [autoUpdates, setAutoUpdates] = useState(true);
   const [backup, setBackup] = useState(true);
+  const [fakeModDetection, setFakeModDetection] = useState(true);
   const [gamePath, setGamePath] = useState('C:\\Program Files\\EA Games\\The Sims 4\\Game\\Bin\\TS4_x64.exe');
   const [modsPath, setModsPath] = useState('C:\\Users\\Simmer\\Documents\\Electronic Arts\\The Sims 4\\Mods');
   const [gamePathExists, setGamePathExists] = useState(false);
@@ -129,6 +130,7 @@ export default function SettingsPage() {
   const [clearingCache, setClearingCache] = useState(false);
   const [resettingDatabase, setResettingDatabase] = useState(false);
   const [showResetConfirmation, setShowResetConfirmation] = useState(false);
+  const [showDisableDetectionConfirmation, setShowDisableDetectionConfirmation] = useState(false);
 
   useEffect(() => {
     loadLocalSettings();
@@ -178,11 +180,12 @@ export default function SettingsPage() {
         }
       }
 
-      // Load user preferences (auto-updates, backup)
+      // Load user preferences (auto-updates, backup, fake mod detection)
       await userPreferencesService.initialize();
       const preferences = userPreferencesService.getPreferences();
       setAutoUpdates(preferences.autoUpdates);
       setBackup(preferences.backupBeforeUpdate);
+      setFakeModDetection(preferences.fakeModDetection);
     } catch (error) {
       console.error('Error loading local settings:', error);
     } finally {
@@ -636,6 +639,40 @@ export default function SettingsPage() {
                     />
                   </button>
                 </div>
+
+                <hr className="border-gray-200 dark:border-ui-border" />
+
+                {/* Fake Mod Detection */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                      <ShieldCheck size={16} className="text-brand-green" /> Fake mod detection
+                    </div>
+                    <div className="text-sm text-gray-500">Show warnings and block banned creators when suspicious mods are detected.</div>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      if (fakeModDetection) {
+                        // Disabling: show confirmation modal
+                        setShowDisableDetectionConfirmation(true);
+                      } else {
+                        // Enabling: apply immediately
+                        setFakeModDetection(true);
+                        userPreferencesService.setFakeModDetection(true);
+                      }
+                    }}
+                    className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors cursor-pointer ${
+                      fakeModDetection ? 'bg-brand-green' : 'bg-gray-300 dark:bg-gray-700'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                        fakeModDetection ? 'translate-x-6' : 'translate-x-0.5'
+                      }`}
+                    />
+                  </button>
+                </div>
               </div>
             </section>
 
@@ -707,6 +744,22 @@ export default function SettingsPage() {
         cancelText="Cancel"
         isDangerous={true}
         isLoading={resettingDatabase}
+      />
+
+      {/* Disable Fake Mod Detection Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showDisableDetectionConfirmation}
+        onClose={() => setShowDisableDetectionConfirmation(false)}
+        onConfirm={() => {
+          setFakeModDetection(false);
+          userPreferencesService.setFakeModDetection(false);
+          setShowDisableDetectionConfirmation(false);
+        }}
+        title="Disable Fake Mod Detection"
+        message="Disabling this feature will remove all warnings, reports, and banned creator blocks. You will no longer be protected against suspicious or fake mods."
+        confirmText="Disable"
+        cancelText="Keep Enabled"
+        isDangerous={true}
       />
     </Layout>
   );

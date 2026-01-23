@@ -6,6 +6,7 @@ import ModListItem from '@/components/mod/ModListItem';
 import ModGridRow from '@/components/mod/ModGridRow';
 import { searchCurseForgeMods } from '@/lib/curseforgeApi';
 import { getBatchWarningStatus } from '@/lib/fakeDetectionApi';
+import { userPreferencesService } from '@/lib/services/UserPreferencesService';
 import { CurseForgeMod } from '@/types/curseforge';
 import { ViewMode } from '@/hooks/useViewMode';
 import { useSearchState } from '@/context/SearchStateContext';
@@ -210,6 +211,7 @@ export default function ModList({ searchQuery, sortBy, category, viewMode, activ
    */
   useEffect(() => {
     if (mods.length === 0) return;
+    if (!userPreferencesService.getFakeModDetection()) return;
 
     const fetchWarnings = async () => {
       try {

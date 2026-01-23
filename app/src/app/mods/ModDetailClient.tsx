@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getCurseForgeMod } from '@/lib/curseforgeApi';
 import { getModWarningStatus } from '@/lib/fakeDetectionApi';
+import { userPreferencesService } from '@/lib/services/UserPreferencesService';
 import { CurseForgeMod } from '@/types/curseforge';
 import type { ModWarningStatus } from '@/types/fakeDetection';
 import Layout from '@/components/layouts/Layout';
@@ -52,10 +53,11 @@ export default function ModDetailClient() {
   }, [modId]);
 
   /**
-   * Fetch warning status for the mod
+   * Fetch warning status for the mod (only if fake mod detection is enabled)
    */
   useEffect(() => {
     if (!mod) return;
+    if (!userPreferencesService.getFakeModDetection()) return;
 
     const fetchWarningStatus = async () => {
       try {

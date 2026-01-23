@@ -5,6 +5,7 @@ import { formatDownloadCount, formatFileSize } from '@/utils/formatters';
 import { Warning } from '@phosphor-icons/react';
 import WarningBadge from './WarningBadge';
 import ReportButton from './ReportButton';
+import { userPreferencesService } from '@/lib/services/UserPreferencesService';
 import type { ModWarningStatus } from '@/types/fakeDetection';
 
 interface ModDetailSidebarProps {
@@ -99,20 +100,22 @@ export default function ModDetailSidebar({ mod, warningStatus }: ModDetailSideba
         </p>
       </div>
 
-      {/* Report Section */}
-      <div className="bg-ui-panel border border-ui-border rounded-xl p-5 shadow-sm">
-        <h3 className="font-bold text-white mb-3">Report</h3>
-        <p className="text-sm text-gray-400 mb-4">
-          Think this mod is fake or misleading? Help the community by reporting it.
-        </p>
-        <ReportButton
-          modId={mod.id}
-          modName={mod.name}
-          creatorId={mod.authors[0]?.id}
-          creatorName={mod.authors[0]?.name}
-          className="w-full justify-center"
-        />
-      </div>
+      {/* Report Section (only shown when fake mod detection is enabled) */}
+      {userPreferencesService.getFakeModDetection() && (
+        <div className="bg-ui-panel border border-ui-border rounded-xl p-5 shadow-sm">
+          <h3 className="font-bold text-white mb-3">Report</h3>
+          <p className="text-sm text-gray-400 mb-4">
+            Think this mod is fake or misleading? Help the community by reporting it.
+          </p>
+          <ReportButton
+            modId={mod.id}
+            modName={mod.name}
+            creatorId={mod.authors[0]?.id}
+            creatorName={mod.authors[0]?.name}
+            className="w-full justify-center"
+          />
+        </div>
+      )}
     </div>
   );
 }

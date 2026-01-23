@@ -14,6 +14,7 @@ import { CurseForgeMod } from '@/types/curseforge';
 import { useToast } from '@/context/ToastContext';
 import { useProfiles } from '@/context/ProfileContext';
 import { modInstallationService } from '@/lib/services/ModInstallationService';
+import { userPreferencesService } from '@/lib/services/UserPreferencesService';
 import { formatDownloadCount, formatRelativeDate } from '@/utils/formatters';
 import { fakeScoreService } from '@/lib/services/FakeScoreService';
 import { submitFakeModReport } from '@/lib/fakeDetectionApi';
@@ -128,18 +129,20 @@ export default function ModCard({ mod, warningStatus }: ModCardProps) {
       });
 
       // Fake detection callback - shows popup and waits for user decision
-      const onFakeDetection = async (
-        scoreResult: FakeScoreResult,
-        _zipAnalysis: ZipAnalysis
-      ): Promise<'install' | 'cancel' | 'report'> => {
-        return new Promise((resolve) => {
-          setFakeScoreResult(scoreResult);
-          setPendingInstallResolve(() => resolve);
-          setShowFakeWarning(true);
-        });
-      };
+      const onFakeDetection = userPreferencesService.getFakeModDetection()
+        ? async (
+            scoreResult: FakeScoreResult,
+            _zipAnalysis: ZipAnalysis
+          ): Promise<'install' | 'cancel' | 'report'> => {
+            return new Promise((resolve) => {
+              setFakeScoreResult(scoreResult);
+              setPendingInstallResolve(() => resolve);
+              setShowFakeWarning(true);
+            });
+          }
+        : undefined;
 
-      // Start installation with fake detection
+      // Start installation with fake detection (if enabled)
       const result = await modInstallationService.installMod(
         mod.id,
         modsPath,

@@ -6,9 +6,12 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useProfiles } from '@/context/ProfileContext';
 import { useUpdates } from '@/context/UpdateContext';
-import { MagnifyingGlass, Trash, CheckCircle, Circle, ArrowCircleUp, ArrowsClockwise } from '@phosphor-icons/react';
+import { MagnifyingGlass, Trash, CheckCircle, Circle, ArrowCircleUp, ArrowsClockwise, Warning } from '@phosphor-icons/react';
 import ConfirmationModal from '@/components/ui/ConfirmationModal';
 import UpdateBadge from '@/components/update/UpdateBadge';
+import { getBatchWarningStatus } from '@/lib/fakeDetectionApi';
+import { userPreferencesService } from '@/lib/services/UserPreferencesService';
+import type { ModWarningStatus } from '@/types/fakeDetection';
 
 /**
  * Library content component that handles displaying and managing mods
@@ -22,6 +25,7 @@ export default function LibraryContent() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'enabled' | 'disabled' | 'updates'>('all');
   const [updatingModId, setUpdatingModId] = useState<number | null>(null);
+  const [warningStatuses, setWarningStatuses] = useState<Record<number, ModWarningStatus>>({});
   const [confirmationModal, setConfirmationModal] = useState<{
     isOpen: boolean;
     modId: number | null;
@@ -41,6 +45,24 @@ export default function LibraryContent() {
       setFilterStatus('updates');
     }
   }, [searchParams]);
+
+  // Fetch warning statuses for installed mods (only if fake mod detection is enabled)
+  useEffect(() => {
+    if (!activeProfile || activeProfile.mods.length === 0) return;
+    if (!userPreferencesService.getFakeModDetection()) return;
+
+    const fetchWarnings = async () => {
+      try {
+        const modIds = activeProfile.mods.map((mod) => mod.modId);
+        const statuses = await getBatchWarningStatus(modIds);
+        setWarningStatuses(statuses || {});
+      } catch (err) {
+        console.error('[Library] Failed to fetch warning statuses:', err);
+      }
+    };
+
+    fetchWarnings();
+  }, [activeProfile]);
 
   // Filter and search mods
   const filteredMods = useMemo(() => {
@@ -309,6 +331,15 @@ export default function LibraryContent() {
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-2xl" style={{ color: 'var(--text-tertiary)' }}>
                           📦
+                        </div>
+                      )}
+                      {warningStatuses[mod.modId] && (warningStatuses[mod.modId].hasWarning || warningStatuses[mod.modId].creatorBanned) && (
+                        <div
+                          className="absolute top-0 right-0 w-5 h-5 flex items-center justify-center rounded-bl-md"
+                          style={{ backgroundColor: warningStatuses[mod.modId].creatorBanned ? '#dc2626' : '#f59e0b' }}
+                          title={warningStatuses[mod.modId].creatorBanned ? 'Banned creator' : 'Suspicious mod'}
+                        >
+                          <Warning size={12} weight="fill" color="#fff" />
                         </div>
                       )}
                     </div>
