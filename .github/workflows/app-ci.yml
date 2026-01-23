@@ -12,6 +12,9 @@ on:
     paths:
       - 'app/**'
 
+permissions:
+  contents: read
+
 jobs:
   test:
     name: Test and Coverage
