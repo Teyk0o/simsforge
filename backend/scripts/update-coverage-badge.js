@@ -44,11 +44,11 @@ function updateReadme(pct) {
 
   let readme = fs.readFileSync(README_PATH, 'utf-8');
 
-  // Replace existing coverage badge (matches shields.io badge with Coverage_ in text)
-  const badgeRegex = /!\[Coverage\]\(https:\/\/img\.shields\.io\/badge\/[^)]+\)/;
+  // Replace existing backend coverage badge
+  const badgeRegex = /!\[Backend Coverage\]\(https:\/\/img\.shields\.io\/badge\/[^)]+\)/;
 
   if (badgeRegex.test(readme)) {
-    readme = readme.replace(badgeRegex, `![Coverage](${badgeUrl})`);
+    readme = readme.replace(badgeRegex, `![Backend Coverage](${badgeUrl})`);
   } else {
     console.error('Coverage badge placeholder not found in README.');
     process.exit(1);
