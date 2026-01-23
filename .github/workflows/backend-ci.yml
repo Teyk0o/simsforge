@@ -28,8 +28,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 'latest'
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
         working-directory: ./backend
