@@ -1,7 +1,7 @@
 ![banner.png](assets/banner.png)
 
-![Backend Coverage](https://img.shields.io/badge/Coverage_97.09%25-C21325?style=for-the-badge&logo=jest&logoColor=white)
-![Frontend Tests](https://img.shields.io/badge/92_tests_passed-6E9F18?style=for-the-badge&logo=vitest&logoColor=white)
+![Backend Coverage](https://img.shields.io/badge/Coverage_96.4%25-C21325?style=for-the-badge&logo=jest&logoColor=white)
+![Frontend Tests](https://img.shields.io/badge/127_tests_passed-6E9F18?style=for-the-badge&logo=vitest&logoColor=white)
 
 SimsForge is an open-source mod manager for The Sims 4. It provides a desktop application for mod discovery, installation, and management through integration with CurseForge, along with a system for detecting and reporting fake/malicious mods to protect the community.
 
@@ -39,6 +39,8 @@ simsforge/
 - Mod discovery and search interface
 - Virtual list rendering for performance
 - CurseForge integration for mod browsing
+- Real-time game console for viewing Sims 4 logs
+- Auto-installation of Sims Log Enabler mod
 
 ### Backend (`/backend`)
 - **Runtime**: Node.js 18+ with npm 9+
@@ -53,6 +55,7 @@ simsforge/
 - Mod metadata and integration with CurseForge API
 - Fake mod detection and reporting system
 - RESTful API for mod discovery and management
+- Tools distribution API for helper mods (Sims Log Enabler)
 
 ## Getting Started
 
@@ -174,6 +177,7 @@ src/
 ├── components/            # Reusable React components
 │   ├── mod/              # Mod browsing components
 │   ├── profile/          # Profile management components
+│   ├── console/          # Game console for real-time logs
 │   ├── layouts/          # Layout components
 │   ├── ui/               # Generic UI components
 │   └── providers/        # Context providers
@@ -206,6 +210,7 @@ The backend provides a REST API with the following main endpoints:
 
 - **CurseForge Integration**: `/api/v1/curseforge/*` - Mod search, metadata, categories
 - **Fake Mod Detection**: `/api/v1/reports/*` - Report suspicious mods, retrieve detection data
+- **Tools Distribution**: `/api/v1/tools/*` - Download helper tools (Sims Log Enabler)
 
 ## Testing
 
@@ -233,10 +238,10 @@ npx jest tests/integration
 
 | Metric | Coverage |
 |--------|----------|
-| Statements | 97.22% |
-| Branches | 85.07% |
-| Functions | 100% |
-| Lines | 97.09% |
+| Statements | 96.54% |
+| Branches | 85.54% |
+| Functions | 96.36% |
+| Lines | 96.40% |
 
 Test suites cover:
 - **Unit tests**: Controllers, services, routes, middleware, utilities
@@ -262,7 +267,7 @@ npm run test:coverage
 Test suites cover:
 - **Utilities**: Formatters, path sanitizer, text normalizer
 - **Hooks**: useDebounce
-- **Services**: FakeScoreService (score calculation, validation, summaries)
+- **Services**: FakeScoreService, LogEnablerService, GameLogService
 - **API Client**: Axios instance creation, interceptors, HTTP helpers
 
 ## Code Quality
