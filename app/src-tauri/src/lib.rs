@@ -1,10 +1,11 @@
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::fs::{copy as fs_copy, create_dir_all, metadata, read_dir, File};
+use std::fs::{copy as fs_copy, create_dir_all, metadata, read_dir, remove_dir_all, File};
 use std::io::{copy, Read, Write};
 use std::path::Path;
 use std::sync::Mutex;
+use std::time::Instant;
 use uuid::Uuid;
 use zip::ZipArchive;
 
@@ -282,6 +283,84 @@ fn analyze_zip_content(zip_path: String) -> Result<ZipAnalysis, String> {
     })
 }
 
+/// Result of disk benchmark
+#[derive(Serialize, Deserialize)]
+pub struct DiskBenchmarkResult {
+    /// Measured disk speed in MB/s
+    pub speed_mbps: u64,
+    /// Total bytes written during benchmark
+    pub bytes_written: u64,
+    /// Time taken in milliseconds
+    pub elapsed_ms: u64,
+}
+
+/// Benchmark disk write speed by writing test files directly in Rust
+/// This avoids IPC overhead and gives accurate disk performance measurement
+#[tauri::command]
+fn benchmark_disk_speed(app_handle: tauri::AppHandle) -> Result<DiskBenchmarkResult, String> {
+    use tauri::Manager;
+
+    // Get app data directory for temp files
+    let app_data_dir = app_handle
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
+
+    let benchmark_dir = app_data_dir.join("benchmark_temp");
+
+    // Create benchmark directory
+    create_dir_all(&benchmark_dir)
+        .map_err(|e| format!("Failed to create benchmark directory: {}", e))?;
+
+    // Configuration: 5 files of 50MB each = 250MB total
+    // Larger files reduce overhead impact and give more accurate measurements
+    const FILE_COUNT: usize = 5;
+    const FILE_SIZE: usize = 50 * 1024 * 1024; // 50MB per file
+    const TOTAL_BYTES: u64 = (FILE_COUNT * FILE_SIZE) as u64;
+
+    // Generate test data (pseudo-random pattern)
+    let test_data: Vec<u8> = (0..FILE_SIZE)
+        .map(|i| ((i * 17 + 31) % 256) as u8)
+        .collect();
+
+    // Measure write time
+    let start = Instant::now();
+
+    for i in 0..FILE_COUNT {
+        let file_path = benchmark_dir.join(format!("bench_{}.bin", i));
+        let mut file = File::create(&file_path)
+            .map_err(|e| format!("Failed to create benchmark file: {}", e))?;
+
+        file.write_all(&test_data)
+            .map_err(|e| format!("Failed to write benchmark file: {}", e))?;
+
+        // Ensure data is flushed to disk
+        file.sync_all()
+            .map_err(|e| format!("Failed to sync benchmark file: {}", e))?;
+    }
+
+    let elapsed = start.elapsed();
+    let elapsed_ms = elapsed.as_millis() as u64;
+
+    // Calculate speed in MB/s
+    let speed_mbps = if elapsed_ms > 0 {
+        (TOTAL_BYTES / (1024 * 1024)) * 1000 / elapsed_ms
+    } else {
+        1000 // If too fast to measure, assume very fast
+    };
+
+    // Cleanup benchmark files
+    if let Err(e) = remove_dir_all(&benchmark_dir) {
+        eprintln!("Warning: Failed to cleanup benchmark directory: {}", e);
+    }
+
+    Ok(DiskBenchmarkResult {
+        speed_mbps,
+        bytes_written: TOTAL_BYTES,
+        elapsed_ms,
+    })
+}
+
 /// Get or create a persistent machine ID for fake mod reporting
 /// The ID is stored in the app data directory and persists across sessions
 #[tauri::command]
@@ -410,7 +489,8 @@ pub fn run() {
             get_file_size,
             copy_directory,
             analyze_zip_content,
-            get_or_create_machine_id
+            get_or_create_machine_id,
+            benchmark_disk_speed
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

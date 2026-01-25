@@ -1,7 +1,7 @@
 ![banner.png](assets/banner.png)
 
 ![Backend Coverage](https://img.shields.io/badge/Coverage_96.4%25-C21325?style=for-the-badge&logo=jest&logoColor=white)
-![Frontend Tests](https://img.shields.io/badge/127_tests_passed-6E9F18?style=for-the-badge&logo=vitest&logoColor=white)
+![Frontend Tests](https://img.shields.io/badge/161_tests_passed-6E9F18?style=for-the-badge&logo=vitest&logoColor=white)
 
 SimsForge is an open-source mod manager for The Sims 4. It provides a desktop application for mod discovery, installation, and management through integration with CurseForge, along with a system for detecting and reporting fake/malicious mods to protect the community.
 
@@ -41,6 +41,7 @@ simsforge/
 - CurseForge integration for mod browsing
 - Real-time game console for viewing Sims 4 logs
 - Auto-installation of Sims Log Enabler mod
+- **Parallel disk operations** with auto-detected concurrency based on disk speed (HDD/SSD/NVMe)
 
 ### Backend (`/backend`)
 - **Runtime**: Node.js 18+ with npm 9+
@@ -265,9 +266,9 @@ npm run test:coverage
 ```
 
 Test suites cover:
-- **Utilities**: Formatters, path sanitizer, text normalizer
+- **Utilities**: Formatters, path sanitizer, text normalizer, concurrency pool
 - **Hooks**: useDebounce
-- **Services**: FakeScoreService, LogEnablerService, GameLogService
+- **Services**: FakeScoreService, LogEnablerService, GameLogService, DiskPerformanceService
 - **API Client**: Axios instance creation, interceptors, HTTP helpers
 
 ## Code Quality

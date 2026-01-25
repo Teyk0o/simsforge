@@ -21,6 +21,8 @@ import {
   CachedModFile,
   ModCacheIndex,
 } from '@/types/profile';
+import { diskPerformanceService } from './DiskPerformanceService';
+import { concurrentMap } from '@/lib/utils/concurrencyPool';
 
 export class ModCacheService {
   private cacheDir: string | null = null;
@@ -167,10 +169,20 @@ export class ModCacheService {
       }
     }
 
-    // Delete orphaned cache entries
-    for (const hash of hashesToDelete) {
-      await this.deleteCacheEntry(hash);
-      delete index.entries[hash];
+    // Delete orphaned cache entries in parallel
+    if (hashesToDelete.length > 0) {
+      const poolSize = await diskPerformanceService.getPoolSize();
+      await concurrentMap(
+        hashesToDelete,
+        async (hash) => {
+          await this.deleteCacheEntry(hash);
+        },
+        poolSize
+      );
+
+      for (const hash of hashesToDelete) {
+        delete index.entries[hash];
+      }
     }
 
     if (modified) {
@@ -198,10 +210,20 @@ export class ModCacheService {
       }
     }
 
-    // Delete orphaned entries
-    for (const hash of hashesToDelete) {
-      await this.deleteCacheEntry(hash);
-      delete index.entries[hash];
+    // Delete orphaned entries in parallel
+    if (hashesToDelete.length > 0) {
+      const poolSize = await diskPerformanceService.getPoolSize();
+      await concurrentMap(
+        hashesToDelete,
+        async (hash) => {
+          await this.deleteCacheEntry(hash);
+        },
+        poolSize
+      );
+
+      for (const hash of hashesToDelete) {
+        delete index.entries[hash];
+      }
     }
 
     if (deleted > 0) {
