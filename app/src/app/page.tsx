@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Spinner, X, Play } from '@phosphor-icons/react';
+import { Spinner, X, Play, Terminal } from '@phosphor-icons/react';
 import { exists } from '@tauri-apps/plugin-fs';
 import { Command } from '@tauri-apps/plugin-shell';
 import { getVersion } from '@tauri-apps/api/app';
@@ -11,7 +11,11 @@ import { useViewMode } from '@/hooks/useViewMode';
 import Layout from '@/components/layouts/Layout';
 import ModList from '@/components/mod/ModList';
 import FilterBar from '@/components/mod/FilterBar';
+import GameConsole from '@/components/console/GameConsole';
 import { attachConsole } from '@tauri-apps/plugin-log';
+import { userPreferencesService } from '@/lib/services/UserPreferencesService';
+import { gameLogService } from '@/lib/services/GameLogService';
+import { logEnablerService } from '@/lib/services/LogEnablerService';
 
 type SortOption = 'downloads' | 'date' | 'trending' | 'relevance';
 type FilterChip = 'all' | 'updates' | 'early-access' | 'installed';
@@ -65,13 +69,26 @@ export default function Home() {
   const [gamePathExists, setGamePathExists] = useState(false);
   const [isLaunching, setIsLaunching] = useState(false);
   const [isGameRunning, setIsGameRunning] = useState(false);
+  const [modsPath, setModsPath] = useState<string | null>(null);
+  const [gameLoggingEnabled, setGameLoggingEnabled] = useState(false);
+  const [showDebugLogs, setShowDebugLogs] = useState(false);
+  const [showConsole, setShowConsole] = useState(false);
 
   useEffect(() => {
     attachConsole();
     setIsMounted(true);
     loadGamePath();
+    loadModsPath();
+    loadGameLoggingPreference();
     updateWindowTitle();
   }, []);
+
+  // Auto-install Log Enabler if game logging is enabled
+  useEffect(() => {
+    if (modsPath && gameLoggingEnabled) {
+      ensureLogEnablerInstalled(modsPath);
+    }
+  }, [modsPath, gameLoggingEnabled]);
 
   /**
    * Update window title with app version
@@ -127,6 +144,52 @@ export default function Home() {
     }
   };
 
+  const loadModsPath = async () => {
+    try {
+      const encryptedPath = StorageHelper.getLocal('simsforge_mods_path');
+      if (encryptedPath) {
+        const decrypted = await StorageHelper.decryptData(encryptedPath);
+        if (decrypted) {
+          setModsPath(decrypted);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading mods path:', error);
+    }
+  };
+
+  const loadGameLoggingPreference = async () => {
+    try {
+      await userPreferencesService.initialize();
+      const enabled = userPreferencesService.getGameLogging();
+      setGameLoggingEnabled(enabled);
+      const debugLogs = userPreferencesService.getShowDebugLogs();
+      setShowDebugLogs(debugLogs);
+    } catch (error) {
+      console.error('Error loading game logging preference:', error);
+    }
+  };
+
+  /**
+   * Check if Log Enabler mod is installed and install it if needed
+   */
+  const ensureLogEnablerInstalled = async (currentModsPath: string) => {
+    try {
+      const isInstalled = await logEnablerService.isInstalled(currentModsPath);
+      if (!isInstalled) {
+        console.log('[Home] Log Enabler not found, installing...');
+        const result = await logEnablerService.install(currentModsPath);
+        if (result.success) {
+          console.log('[Home] Log Enabler installed successfully');
+        } else {
+          console.error('[Home] Failed to install Log Enabler:', result.error);
+        }
+      }
+    } catch (error) {
+      console.error('[Home] Error checking/installing Log Enabler:', error);
+    }
+  };
+
   const getProcessName = (path: string): string => {
     const parts = path.replace(/\\/g, '/').split('/');
     return parts[parts.length - 1];
@@ -149,6 +212,11 @@ export default function Home() {
 
     setIsLaunching(true);
     try {
+      // Clear previous game logs before launching
+      if (modsPath && gameLoggingEnabled) {
+        await gameLogService.clearLogs(modsPath);
+      }
+
       // @ts-ignore
       const cmd = new Command('launch-game', ['/c', 'start', '', gamePath]);
       cmd.spawn();
@@ -286,6 +354,31 @@ export default function Home() {
             {/* Spacer to push button to the right */}
             <div className="flex-1" />
 
+            {/* Console Button (only shown when game logging is enabled) */}
+            {gameLoggingEnabled && modsPath && (
+              <button
+                onClick={() => setShowConsole(true)}
+                className="px-3 rounded-full border text-xs font-bold whitespace-nowrap transition-colors flex items-center gap-1 h-10 cursor-pointer"
+                style={{
+                  backgroundColor: 'var(--ui-panel)',
+                  borderColor: '#8B5CF6',
+                  color: '#8B5CF6',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#8B5CF6';
+                  e.currentTarget.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--ui-panel)';
+                  e.currentTarget.style.color = '#8B5CF6';
+                }}
+                title="Open game console"
+              >
+                <Terminal size={14} weight="bold" />
+                Console
+              </button>
+            )}
+
             {/* Launch Game Button */}
             {gamePathExists && (
               <button
@@ -346,6 +439,16 @@ export default function Home() {
             />
           )}
         </main>
+
+        {/* Game Console Modal */}
+        {modsPath && (
+          <GameConsole
+            isOpen={showConsole}
+            onClose={() => setShowConsole(false)}
+            modsPath={modsPath}
+            showDebugLogs={showDebugLogs}
+          />
+        )}
       </Layout>
   );
 }

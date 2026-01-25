@@ -54,7 +54,10 @@
     "upload:default",
     {
       "identifier": "http:default",
-      "allow": [{ "url": "https://*.forgecdn.net/**" }]
+      "allow": [
+        { "url": "https://*.forgecdn.net/**" },
+        { "url": "http://localhost:5000/**" }
+      ]
     }
   ]
 }
