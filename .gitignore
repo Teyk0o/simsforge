@@ -5,9 +5,14 @@
 /design/
 /.idea/
 /.claude/
+/examples/
 
 # Build output
 app/out/
+
+# Generated files (Next.js / TypeScript)
+app/next-env.d.ts
+app/tsconfig.tsbuildinfo
 
 # Claude Code temporary files
 tmpclaude-*-cwd
