@@ -51,13 +51,13 @@ describe('ToolsService', () => {
       expect(result.files).toHaveLength(2);
     });
 
-    it('should throw NotFoundError for unknown tool', () => {
+    it('should throw BadRequestError for invalid tool ID', () => {
       mockFs.existsSync.mockReturnValue(true);
       mockFs.readFileSync.mockReturnValue(JSON.stringify(mockMetadata));
 
       expect(() => {
         toolsService.getMetadata('unknown-tool' as any);
-      }).toThrow('Tool not found: unknown-tool');
+      }).toThrow('Invalid tool ID: unknown-tool');
     });
 
     it('should throw NotFoundError when metadata file missing', () => {
@@ -98,6 +98,36 @@ describe('ToolsService', () => {
       expect(() => {
         toolsService.getFileMetadata('sims-log-enabler', 'unknown.file');
       }).toThrow('File not found in tool sims-log-enabler: unknown.file');
+    });
+
+    it('should throw BadRequestError for path traversal with ..', () => {
+      expect(() => {
+        toolsService.getFileMetadata('sims-log-enabler', '../etc/passwd');
+      }).toThrow('Invalid filename: path traversal not allowed');
+    });
+
+    it('should throw BadRequestError for path traversal with /', () => {
+      expect(() => {
+        toolsService.getFileMetadata('sims-log-enabler', 'etc/passwd');
+      }).toThrow('Invalid filename: path traversal not allowed');
+    });
+
+    it('should throw BadRequestError for path traversal with backslash', () => {
+      expect(() => {
+        toolsService.getFileMetadata('sims-log-enabler', '..\\etc\\passwd');
+      }).toThrow('Invalid filename: path traversal not allowed');
+    });
+
+    it('should throw BadRequestError for empty filename', () => {
+      expect(() => {
+        toolsService.getFileMetadata('sims-log-enabler', '');
+      }).toThrow('Invalid filename: filename cannot be empty');
+    });
+
+    it('should throw BadRequestError for whitespace-only filename', () => {
+      expect(() => {
+        toolsService.getFileMetadata('sims-log-enabler', '   ');
+      }).toThrow('Invalid filename: filename cannot be empty');
     });
   });
 

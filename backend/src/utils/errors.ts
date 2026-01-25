@@ -47,6 +47,17 @@ export class NotFoundError extends AppError {
 }
 
 /**
+ * Bad request error - thrown when request data is invalid or malicious.
+ * Returns 400 Bad Request HTTP status.
+ */
+export class BadRequestError extends AppError {
+  constructor(message: string) {
+    super(400, message);
+    Object.setPrototypeOf(this, BadRequestError.prototype);
+  }
+}
+
+/**
  * Check if error is an instance of AppError
  */
 export function isAppError(error: unknown): error is AppError {

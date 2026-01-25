@@ -14,12 +14,71 @@ import {
   ToolId,
   ToolFileMetadata,
 } from '../../types/tools.types';
-import { NotFoundError } from '../../utils/errors';
+import { NotFoundError, BadRequestError } from '../../utils/errors';
 
 /**
- * Path to the tools assets directory
+ * Path to the tools assets directory (resolved to absolute path)
  */
-const TOOLS_ASSETS_DIR = path.join(__dirname, '../../../assets/tools');
+const TOOLS_ASSETS_DIR = path.resolve(__dirname, '../../../assets/tools');
+
+/**
+ * Valid tool identifiers (runtime validation)
+ */
+const VALID_TOOL_IDS: readonly ToolId[] = ['sims-log-enabler'] as const;
+
+/**
+ * Validate that a toolId is in the allowed list
+ *
+ * @param toolId - The tool identifier to validate
+ * @throws BadRequestError if toolId is invalid
+ */
+function validateToolId(toolId: string): asserts toolId is ToolId {
+  if (!VALID_TOOL_IDS.includes(toolId as ToolId)) {
+    throw new BadRequestError(`Invalid tool ID: ${toolId}`);
+  }
+}
+
+/**
+ * Validate that a filename is safe (no path traversal)
+ *
+ * @param filename - The filename to validate
+ * @throws BadRequestError if filename contains path traversal attempts
+ */
+function validateFilename(filename: string): void {
+  // Check for path traversal patterns
+  if (
+    filename.includes('..') ||
+    filename.includes('/') ||
+    filename.includes('\\') ||
+    filename.includes('\0')
+  ) {
+    throw new BadRequestError('Invalid filename: path traversal not allowed');
+  }
+
+  // Check for empty or whitespace-only filenames
+  if (!filename || !filename.trim()) {
+    throw new BadRequestError('Invalid filename: filename cannot be empty');
+  }
+}
+
+/**
+ * Validate that a resolved path is within the allowed directory
+ *
+ * @param resolvedPath - The resolved absolute path
+ * @param allowedBaseDir - The allowed base directory
+ * @throws BadRequestError if path escapes the allowed directory
+ */
+function validatePathWithinBounds(
+  resolvedPath: string,
+  allowedBaseDir: string
+): void {
+  const normalizedResolved = path.normalize(resolvedPath);
+  const normalizedBase = path.normalize(allowedBaseDir);
+
+  if (!normalizedResolved.startsWith(normalizedBase + path.sep)) {
+    throw new BadRequestError('Invalid path: access denied');
+  }
+}
 
 /**
  * Path to the tools metadata file
@@ -55,8 +114,12 @@ export class ToolsService {
    * @param toolId - The identifier of the tool
    * @returns The tool metadata
    * @throws NotFoundError if tool doesn't exist
+   * @throws BadRequestError if toolId is invalid
    */
   getMetadata(toolId: ToolId): ToolMetadata {
+    // Validate toolId at runtime to prevent path traversal
+    validateToolId(toolId);
+
     const metadata = this.loadMetadata();
 
     if (!metadata[toolId]) {
@@ -73,8 +136,12 @@ export class ToolsService {
    * @param filename - The filename to look up
    * @returns The file metadata
    * @throws NotFoundError if tool or file doesn't exist
+   * @throws BadRequestError if filename contains path traversal
    */
   getFileMetadata(toolId: ToolId, filename: string): ToolFileMetadata {
+    // Validate filename to prevent path traversal
+    validateFilename(filename);
+
     const metadata = this.getMetadata(toolId);
     const fileMetadata = metadata.files.find((f) => f.filename === filename);
 
@@ -92,13 +159,17 @@ export class ToolsService {
    * @param filename - The filename to get path for
    * @returns Absolute path to the tool file
    * @throws NotFoundError if tool or file doesn't exist
+   * @throws BadRequestError if path traversal is attempted
    */
   getFilePath(toolId: ToolId, filename: string): string {
-    // Verify file exists in metadata
+    // Verify file exists in metadata (also validates toolId and filename)
     this.getFileMetadata(toolId, filename);
 
     // Tool files are stored in a subdirectory named after the tool
-    const filePath = path.join(TOOLS_ASSETS_DIR, toolId, filename);
+    const filePath = path.resolve(TOOLS_ASSETS_DIR, toolId, filename);
+
+    // Final safety check: ensure resolved path is within allowed directory
+    validatePathWithinBounds(filePath, TOOLS_ASSETS_DIR);
 
     if (!fs.existsSync(filePath)) {
       throw new NotFoundError(`Tool file not found on disk: ${filename}`);
@@ -138,9 +209,13 @@ export class ToolsService {
    */
   toolExists(toolId: ToolId): boolean {
     try {
+      // getMetadata validates toolId
       const metadata = this.getMetadata(toolId);
       return metadata.files.every((file) => {
-        const filePath = path.join(TOOLS_ASSETS_DIR, toolId, file.filename);
+        // Validate each filename and check path bounds
+        validateFilename(file.filename);
+        const filePath = path.resolve(TOOLS_ASSETS_DIR, toolId, file.filename);
+        validatePathWithinBounds(filePath, TOOLS_ASSETS_DIR);
         return fs.existsSync(filePath);
       });
     } catch {
