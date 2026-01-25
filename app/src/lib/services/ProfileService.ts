@@ -108,22 +108,22 @@ export class ProfileService {
   }
 
   /**
-   * Get all profiles
+   * Get all profiles (parallel fetching for performance)
    */
   async getAllProfiles(): Promise<ModProfile[]> {
     await this.ensureInitialized();
 
     const metadata = await this.getMetadata();
-    const profiles: ModProfile[] = [];
 
-    for (const profileId of metadata.profiles) {
-      const profile = await this.getProfile(profileId);
-      if (profile) {
-        profiles.push(profile);
-      }
-    }
+    // Fetch all profiles in parallel
+    const profiles = await Promise.all(
+      metadata.profiles.map((id) => this.getProfile(id))
+    );
 
-    return profiles.sort((a, b) => a.name.localeCompare(b.name));
+    // Filter out null profiles and sort by name
+    return profiles
+      .filter((p): p is ModProfile => p !== null)
+      .sort((a, b) => a.name.localeCompare(b.name));
   }
 
   /**
@@ -262,7 +262,7 @@ export class ProfileService {
   }
 
   /**
-   * Set active profile
+   * Set active profile (parallel updates for performance)
    */
   async setActiveProfile(profileId: string | null): Promise<void> {
     await this.ensureInitialized();
@@ -274,18 +274,20 @@ export class ProfileService {
       throw new Error(`Profile ${profileId} not found`);
     }
 
-    // Update all profiles' isActive status
-    for (const id of metadata.profiles) {
-      const profile = await this.getProfile(id);
-      if (profile) {
-        profile.isActive = id === profileId;
-        const profilePath = await join(this.profilesDir!, `${id}.json`);
-        await writeFile(
-          profilePath,
-          new TextEncoder().encode(JSON.stringify(profile, null, 2))
-        );
-      }
-    }
+    // Update all profiles' isActive status in parallel
+    await Promise.all(
+      metadata.profiles.map(async (id) => {
+        const profile = await this.getProfile(id);
+        if (profile) {
+          profile.isActive = id === profileId;
+          const profilePath = await join(this.profilesDir!, `${id}.json`);
+          await writeFile(
+            profilePath,
+            new TextEncoder().encode(JSON.stringify(profile, null, 2))
+          );
+        }
+      })
+    );
 
     metadata.activeProfileId = profileId;
     metadata.lastSync = new Date().toISOString();

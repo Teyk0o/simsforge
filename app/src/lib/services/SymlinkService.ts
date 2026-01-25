@@ -3,6 +3,7 @@
  *
  * Manages file copying for profile activation.
  * Copies mod files from cache to mods directory instead of using symlinks.
+ * Uses parallel operations with auto-detected concurrency for optimal performance.
  */
 
 import { invoke } from '@tauri-apps/api/core';
@@ -10,6 +11,12 @@ import { join } from '@tauri-apps/api/path';
 import { readDir, remove } from '@tauri-apps/plugin-fs';
 import { SymlinkResult, SymlinkError } from '@/types/profile';
 import { sanitizeModName } from '@/utils/pathSanitizer';
+import { diskPerformanceService } from './DiskPerformanceService';
+import {
+  concurrentMap,
+  getSuccessful,
+  getFailed,
+} from '@/lib/utils/concurrencyPool';
 
 interface SymlinkPath {
   source: string;
@@ -37,29 +44,41 @@ export class SymlinkService {
       // Don't fail here - we'll attempt to overwrite
     }
 
-    // Step 2: Copy files from cache for new profile
-    for (const { source, modName } of cachePaths) {
-      try {
-        // Sanitize mod name for Windows filesystem compatibility
+    // Step 2: Copy files from cache for new profile (parallel)
+    const poolSize = await diskPerformanceService.getPoolSize();
+
+    const results = await concurrentMap(
+      cachePaths,
+      async ({ source, modName }) => {
         const sanitizedName = sanitizeModName(modName);
         const targetPath = await join(modsPath, sanitizedName);
 
-        // Copy files from cache to mods directory
         await invoke('copy_directory', {
           source,
           target: targetPath,
         });
 
-        created++;
-      } catch (error: any) {
-        failed++;
-        const sanitizedName = sanitizeModName(modName);
-        errors.push({
-          sourcePath: source,
-          targetPath: await join(modsPath, sanitizedName),
-          error: error.toString(),
-        });
-      }
+        return { source, modName, targetPath };
+      },
+      poolSize
+    );
+
+    // Process results
+    const successful = getSuccessful(results);
+    const failedResults = getFailed(results);
+
+    created = successful.length;
+    failed = failedResults.length;
+
+    // Build error list from failed operations
+    for (const { index, error } of failedResults) {
+      const { source, modName } = cachePaths[index];
+      const sanitizedName = sanitizeModName(modName);
+      errors.push({
+        sourcePath: source,
+        targetPath: await join(modsPath, sanitizedName),
+        error: String(error),
+      });
     }
 
     return {
@@ -83,22 +102,41 @@ export class SymlinkService {
       // List all entries in mods directory
       const entries = await readDir(modsPath);
 
-      // Remove each directory (these are copied mod files)
-      for (const entry of entries) {
-        if (entry.isDirectory) {
-          try {
-            const fullPath = await join(modsPath, entry.name);
-            await remove(fullPath, { recursive: true });
-            created++;
-          } catch (error: any) {
-            failed++;
-            errors.push({
-              sourcePath: '',
-              targetPath: await join(modsPath, entry.name),
-              error: error.toString(),
-            });
-          }
-        }
+      // Filter to directories only
+      const directories = entries.filter((e) => e.isDirectory);
+
+      if (directories.length === 0) {
+        return { success: true, created: 0, failed: 0, errors: [] };
+      }
+
+      // Remove directories in parallel
+      const poolSize = await diskPerformanceService.getPoolSize();
+
+      const results = await concurrentMap(
+        directories,
+        async (entry) => {
+          const fullPath = await join(modsPath, entry.name);
+          await remove(fullPath, { recursive: true });
+          return entry.name;
+        },
+        poolSize
+      );
+
+      // Process results
+      const successful = getSuccessful(results);
+      const failedResults = getFailed(results);
+
+      created = successful.length;
+      failed = failedResults.length;
+
+      // Build error list from failed operations
+      for (const { index, error } of failedResults) {
+        const entry = directories[index];
+        errors.push({
+          sourcePath: '',
+          targetPath: await join(modsPath, entry.name),
+          error: String(error),
+        });
       }
     } catch (error: any) {
       failed++;

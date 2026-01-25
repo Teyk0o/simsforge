@@ -12,6 +12,12 @@ import { updateCheckService } from '@/lib/services/UpdateCheckService';
 import { modInstallationService } from '@/lib/services/ModInstallationService';
 import { userPreferencesService } from '@/lib/services/UserPreferencesService';
 import { backupService } from '@/lib/services/BackupService';
+import { diskPerformanceService } from '@/lib/services/DiskPerformanceService';
+import {
+  concurrentMap,
+  getSuccessful,
+  getFailed,
+} from '@/lib/utils/concurrencyPool';
 import { useProfiles } from '@/context/ProfileContext';
 import { useToast } from '@/context/ToastContext';
 import type {
@@ -341,7 +347,7 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
   );
 
   /**
-   * Update all mods with available updates
+   * Update all mods with available updates (parallel processing)
    */
   const updateAllMods = useCallback(async (): Promise<BatchUpdateResult> => {
     const updates = Array.from(availableUpdates.values());
@@ -367,27 +373,37 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
     await userPreferencesService.initialize();
     const shouldBackup = userPreferencesService.getBackupBeforeUpdate();
 
-    const results: ModUpdateResult[] = [];
-    let successful = 0;
-    let failed = 0;
+    // Get optimal pool size for parallel operations
+    const poolSize = await diskPerformanceService.getPoolSize();
 
-    // Process updates sequentially to avoid overwhelming the system
-    for (const updateInfo of updates) {
-      try {
-        // Create backup before update if enabled
-        if (shouldBackup && activeProfile) {
-          const modToBackup = activeProfile.mods.find((m) => m.modId === updateInfo.modId);
-          if (modToBackup) {
-            console.log(`[UpdateContext] Creating backup for ${modToBackup.modName}...`);
-            const backupResult = await backupService.createBackup(modToBackup);
-            if (backupResult.success) {
-              console.log(`[UpdateContext] Backup created: ${backupResult.backupPath}`);
+    // Step 1: Create backups in parallel if enabled
+    if (shouldBackup && activeProfile) {
+      const modsToBackup = updates
+        .map((updateInfo) => activeProfile.mods.find((m) => m.modId === updateInfo.modId))
+        .filter((mod): mod is NonNullable<typeof mod> => mod !== undefined);
+
+      if (modsToBackup.length > 0) {
+        console.log(`[UpdateContext] Creating ${modsToBackup.length} backups in parallel...`);
+        await concurrentMap(
+          modsToBackup,
+          async (mod) => {
+            const result = await backupService.createBackup(mod);
+            if (result.success) {
+              console.log(`[UpdateContext] Backup created: ${result.backupPath}`);
             } else {
-              console.warn(`[UpdateContext] Backup failed: ${backupResult.error}`);
+              console.warn(`[UpdateContext] Backup failed for ${mod.modName}: ${result.error}`);
             }
-          }
-        }
+            return result;
+          },
+          poolSize
+        );
+      }
+    }
 
+    // Step 2: Update mods in parallel
+    const updateResults = await concurrentMap(
+      updates,
+      async (updateInfo) => {
         const result = await modInstallationService.installMod(
           updateInfo.modId,
           modsPath,
@@ -396,34 +412,69 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
         );
 
         if (result.success) {
-          successful++;
-          await clearUpdate(updateInfo.modId);
-          results.push({
-            modId: updateInfo.modId,
-            modName: updateInfo.modName,
-            success: true,
-          });
-        } else {
-          failed++;
-          results.push({
-            modId: updateInfo.modId,
-            modName: updateInfo.modName,
-            success: false,
-            error: result.error,
+          // Clear the update from state
+          setAvailableUpdates((prev) => {
+            const newMap = new Map(prev);
+            newMap.delete(updateInfo.modId);
+            return newMap;
           });
         }
-      } catch (error: any) {
+
+        return { updateInfo, result };
+      },
+      poolSize
+    );
+
+    // Step 3: Process results
+    const results: ModUpdateResult[] = [];
+    let successful = 0;
+    let failed = 0;
+
+    const successfulResults = getSuccessful(updateResults);
+    const failedResults = getFailed(updateResults);
+
+    // Process successful results
+    for (const { updateInfo, result } of successfulResults) {
+      if (result.success) {
+        successful++;
+        results.push({
+          modId: updateInfo.modId,
+          modName: updateInfo.modName,
+          success: true,
+        });
+      } else {
         failed++;
         results.push({
           modId: updateInfo.modId,
           modName: updateInfo.modName,
           success: false,
-          error: error.message,
+          error: result.error,
         });
       }
     }
 
+    // Process failed results (exceptions thrown during update)
+    for (const { index, error } of failedResults) {
+      const updateInfo = updates[index];
+      failed++;
+      results.push({
+        modId: updateInfo.modId,
+        modName: updateInfo.modName,
+        success: false,
+        error: String(error),
+      });
+    }
+
+    // Step 4: Single refresh at the end
     await refreshProfiles();
+
+    // Persist cleared updates
+    await updateCheckService.initialize();
+    for (const res of results) {
+      if (res.success) {
+        await updateCheckService.clearUpdateForMod(res.modId);
+      }
+    }
 
     // Show summary toast
     if (successful > 0 && failed === 0) {
@@ -452,7 +503,7 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
     setIsUpdating(false);
 
     return { successful, failed, results };
-  }, [availableUpdates, activeProfile, getModsPath, clearUpdate, refreshProfiles, showToast]);
+  }, [availableUpdates, activeProfile, getModsPath, refreshProfiles, showToast]);
 
   /**
    * Check if a mod has an update available

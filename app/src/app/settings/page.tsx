@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Trash, Folder, Sliders, Warning, CheckCircle, FolderOpen, Terminal } from '@phosphor-icons/react';
+import { Trash, Folder, Sliders, Warning, CheckCircle, FolderOpen, Terminal, HardDrive } from '@phosphor-icons/react';
 import { open } from '@tauri-apps/plugin-dialog';
 import { exists, readDir, remove } from '@tauri-apps/plugin-fs';
 import { join } from '@tauri-apps/api/path';
@@ -13,6 +13,12 @@ import { profileService } from '@/lib/services/ProfileService';
 import { backupService } from '@/lib/services/BackupService';
 import { updateCheckService } from '@/lib/services/UpdateCheckService';
 import { logEnablerService } from '@/lib/services/LogEnablerService';
+import {
+  diskPerformanceService,
+  type DiskPerformanceConfig,
+  type DiskType,
+} from '@/lib/services/DiskPerformanceService';
+import { concurrentMap } from '@/lib/utils/concurrencyPool';
 import { useToast } from '@/context/ToastContext';
 
 interface Message {
@@ -137,6 +143,10 @@ export default function SettingsPage() {
   const [showDisableDetectionConfirmation, setShowDisableDetectionConfirmation] = useState(false);
   const [showDisableLoggingConfirmation, setShowDisableLoggingConfirmation] = useState(false);
   const [installingLogEnabler, setInstallingLogEnabler] = useState(false);
+  const [diskConfig, setDiskConfig] = useState<DiskPerformanceConfig | null>(null);
+  const [diskType, setDiskType] = useState<DiskType | null>(null);
+  const [runningBenchmark, setRunningBenchmark] = useState(false);
+  const [benchmarkProgress, setBenchmarkProgress] = useState(0);
   const { showToast, dismissToast } = useToast();
 
   useEffect(() => {
@@ -195,6 +205,13 @@ export default function SettingsPage() {
       setFakeModDetection(preferences.fakeModDetection);
       setGameLogging(preferences.gameLogging);
       setShowDebugLogs(preferences.showDebugLogs);
+
+      // Load disk performance config
+      await diskPerformanceService.initialize();
+      const config = await diskPerformanceService.getConfig();
+      const type = await diskPerformanceService.getDiskType();
+      setDiskConfig(config);
+      setDiskType(type);
     } catch (error) {
       console.error('Error loading local settings:', error);
     } finally {
@@ -346,30 +363,41 @@ export default function SettingsPage() {
     setDangerMessage(null);
 
     try {
-      // 1. Delete all mod files from the Mods folder
+      // Get pool size for parallel operations
+      const poolSize = await diskPerformanceService.getPoolSize();
+
+      // 1. Delete all mod files from the Mods folder (parallel)
       if (modsPath && modsPathExists) {
         try {
           const entries = await readDir(modsPath);
-          for (const entry of entries) {
-            if (entry.isDirectory) {
+          const directories = entries.filter((e) => e.isDirectory);
+
+          await concurrentMap(
+            directories,
+            async (entry) => {
               const fullPath = await join(modsPath, entry.name);
               await remove(fullPath, { recursive: true });
-            }
-          }
+            },
+            poolSize
+          );
         } catch (error) {
           console.warn('Failed to clear mods folder:', error);
         }
       }
 
-      // 2. Deactivate and delete all profiles
+      // 2. Deactivate and delete all profiles (parallel)
       await profileService.initialize();
       // First deactivate the active profile
       await profileService.setActiveProfile(null);
-      // Then delete all profiles
+      // Then delete all profiles in parallel
       const profiles = await profileService.getAllProfiles();
-      for (const profile of profiles) {
-        await profileService.deleteProfile(profile.id);
-      }
+      await concurrentMap(
+        profiles,
+        async (profile) => {
+          await profileService.deleteProfile(profile.id);
+        },
+        poolSize
+      );
 
       // 3. Clear all mod cache
       await modCacheService.initialize();
@@ -405,6 +433,42 @@ export default function SettingsPage() {
       });
     } finally {
       setResettingDatabase(false);
+    }
+  }
+
+  /**
+   * Run disk performance benchmark
+   */
+  async function handleRunBenchmark() {
+    setRunningBenchmark(true);
+    setBenchmarkProgress(0);
+
+    try {
+      const config = await diskPerformanceService.runBenchmark((progress) => {
+        setBenchmarkProgress(progress);
+      });
+
+      const type = await diskPerformanceService.getDiskType();
+      setDiskConfig(config);
+      setDiskType(type);
+
+      showToast({
+        type: 'success',
+        title: 'Benchmark complete',
+        message: `Detected ${type?.toUpperCase() || 'disk'} at ${config.diskSpeedMBps} MB/s`,
+        duration: 3000,
+      });
+    } catch (error: any) {
+      console.error('Benchmark failed:', error);
+      showToast({
+        type: 'error',
+        title: 'Benchmark failed',
+        message: error.message || 'Could not measure disk performance.',
+        duration: 5000,
+      });
+    } finally {
+      setRunningBenchmark(false);
+      setBenchmarkProgress(0);
     }
   }
 
@@ -883,6 +947,72 @@ export default function SettingsPage() {
                         }`}
                       />
                     </button>
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* SECTION: DISK PERFORMANCE */}
+            <section id="disk-performance">
+              <div className="mb-6">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <HardDrive size={20} className="text-brand-blue" /> Disk Performance
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  Auto-detected disk speed determines parallel operation limits.
+                </p>
+              </div>
+
+              <div className="bg-white dark:bg-ui-panel border border-gray-200 dark:border-ui-border rounded-xl p-6 shadow-sm space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-bold text-gray-900 dark:text-white">
+                      {diskConfig ? (
+                        <>
+                          Detected: {diskType?.toUpperCase() || 'Unknown'}
+                          <span className="ml-2 text-sm font-normal text-gray-500">
+                            ({diskConfig.diskSpeedMBps} MB/s)
+                          </span>
+                        </>
+                      ) : (
+                        'Not benchmarked'
+                      )}
+                    </div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                      {diskConfig ? (
+                        <>
+                          Concurrent operations: {diskConfig.poolSize}
+                          <span className="mx-2">·</span>
+                          Last tested: {new Date(diskConfig.lastBenchmark).toLocaleDateString()}
+                        </>
+                      ) : (
+                        'Run a benchmark to optimize file operation speed.'
+                      )}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleRunBenchmark}
+                    disabled={runningBenchmark}
+                    className="px-4 py-2 bg-gray-100 dark:bg-ui-hover border border-gray-300 dark:border-ui-border text-gray-900 dark:text-white font-bold text-sm rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {runningBenchmark ? (
+                      <>
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-gray-500 border-t-transparent" />
+                        {benchmarkProgress}%
+                      </>
+                    ) : (
+                      diskConfig ? 'Re-run Benchmark' : 'Run Benchmark'
+                    )}
+                  </button>
+                </div>
+
+                {runningBenchmark && (
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div
+                      className="bg-brand-green h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${benchmarkProgress}%` }}
+                    />
                   </div>
                 )}
               </div>
