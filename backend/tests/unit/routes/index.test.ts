@@ -21,8 +21,16 @@ jest.mock('@routes/report.routes', () => ({
   }),
 }));
 
+jest.mock('@routes/tools.routes', () => ({
+  createToolsRoutes: jest.fn(() => {
+    const mockRouter = Router();
+    return mockRouter;
+  }),
+}));
+
 import { createCurseForgeRoutes } from '@routes/curseforge.routes';
 import { createReportRoutes } from '@routes/report.routes';
+import { createToolsRoutes } from '@routes/tools.routes';
 
 describe('API Routes', () => {
   beforeEach(() => {
@@ -45,10 +53,15 @@ describe('API Routes', () => {
       expect(createReportRoutes).toHaveBeenCalled();
     });
 
+    it('should call createToolsRoutes', () => {
+      createApiRoutes();
+      expect(createToolsRoutes).toHaveBeenCalled();
+    });
+
     it('should have middleware layers mounted', () => {
       const router = createApiRoutes();
-      // The router should have 2 middleware layers (curseforge and report routes)
-      expect(router.stack.length).toBe(2);
+      // The router should have 3 middleware layers (curseforge, report, and tools routes)
+      expect(router.stack.length).toBe(3);
     });
 
     it('should mount report routes at root', () => {

@@ -1,0 +1,23 @@
+{
+  "sims-log-enabler": {
+    "version": "1.0.0",
+    "description": "Enables The Sims 4 logging for debugging purposes",
+    "files": [
+      {
+        "filename": "Scumbumbo_SimsLogEnabler.ts4script",
+        "hash": "2a1efeb187786fa656bbb17dbdda7ab48c0bdfb1219beab1920e6443668eb3f9",
+        "fileSize": 4519
+      },
+      {
+        "filename": "Sims Log Enabler UI.exe",
+        "hash": "8ec935787a02729e1086d37ef1adb006c59990b8d15e9d792e843412bc9efa56",
+        "fileSize": 71168
+      },
+      {
+        "filename": "sims_log_enabler.cfg",
+        "hash": "46d474318a63edaf3d66382a133919301b64f5b70a249eb40a3cd0de81802c0a",
+        "fileSize": 409
+      }
+    ]
+  }
+}

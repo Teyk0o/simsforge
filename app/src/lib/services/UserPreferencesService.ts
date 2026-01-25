@@ -12,6 +12,8 @@ export interface UserPreferences {
   autoUpdates: boolean;
   backupBeforeUpdate: boolean;
   fakeModDetection: boolean;
+  gameLogging: boolean;
+  showDebugLogs: boolean;
 }
 
 /**
@@ -21,6 +23,8 @@ const DEFAULT_PREFERENCES: UserPreferences = {
   autoUpdates: true,
   backupBeforeUpdate: true,
   fakeModDetection: true,
+  gameLogging: true,
+  showDebugLogs: false,
 };
 
 const STORAGE_KEY = 'simsforge_user_preferences';
@@ -136,6 +140,40 @@ export class UserPreferencesService {
   setFakeModDetection(enabled: boolean): void {
     this.ensureInitialized();
     this.preferences.fakeModDetection = enabled;
+    this.savePreferences();
+  }
+
+  /**
+   * Get game logging preference
+   */
+  getGameLogging(): boolean {
+    this.ensureInitialized();
+    return this.preferences.gameLogging;
+  }
+
+  /**
+   * Set game logging preference
+   */
+  setGameLogging(enabled: boolean): void {
+    this.ensureInitialized();
+    this.preferences.gameLogging = enabled;
+    this.savePreferences();
+  }
+
+  /**
+   * Get show debug logs preference
+   */
+  getShowDebugLogs(): boolean {
+    this.ensureInitialized();
+    return this.preferences.showDebugLogs;
+  }
+
+  /**
+   * Set show debug logs preference
+   */
+  setShowDebugLogs(enabled: boolean): void {
+    this.ensureInitialized();
+    this.preferences.showDebugLogs = enabled;
     this.savePreferences();
   }
 

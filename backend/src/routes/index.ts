@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { createCurseForgeRoutes } from './curseforge.routes';
 import { createReportRoutes } from './report.routes';
+import { createToolsRoutes } from './tools.routes';
 
 /**
  * Main route aggregator.
@@ -14,6 +15,9 @@ export function createApiRoutes(): Router {
 
   // Fake mod detection and reporting routes
   router.use('/', createReportRoutes());
+
+  // Tools routes (Sims Log Enabler, etc.)
+  router.use('/tools', createToolsRoutes());
 
   return router;
 }

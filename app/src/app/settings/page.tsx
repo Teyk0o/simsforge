@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Trash, Folder, Sliders, Warning, CheckCircle, FolderOpen, ShieldCheck } from '@phosphor-icons/react';
+import { Trash, Folder, Sliders, Warning, CheckCircle, FolderOpen, Terminal } from '@phosphor-icons/react';
 import { open } from '@tauri-apps/plugin-dialog';
 import { exists, readDir, remove } from '@tauri-apps/plugin-fs';
 import { join } from '@tauri-apps/api/path';
@@ -12,6 +12,8 @@ import { modCacheService } from '@/lib/services/ModCacheService';
 import { profileService } from '@/lib/services/ProfileService';
 import { backupService } from '@/lib/services/BackupService';
 import { updateCheckService } from '@/lib/services/UpdateCheckService';
+import { logEnablerService } from '@/lib/services/LogEnablerService';
+import { useToast } from '@/context/ToastContext';
 
 interface Message {
   type: 'success' | 'error';
@@ -122,6 +124,8 @@ export default function SettingsPage() {
   const [autoUpdates, setAutoUpdates] = useState(true);
   const [backup, setBackup] = useState(true);
   const [fakeModDetection, setFakeModDetection] = useState(true);
+  const [gameLogging, setGameLogging] = useState(true);
+  const [showDebugLogs, setShowDebugLogs] = useState(false);
   const [gamePath, setGamePath] = useState('C:\\Program Files\\EA Games\\The Sims 4\\Game\\Bin\\TS4_x64.exe');
   const [modsPath, setModsPath] = useState('C:\\Users\\Simmer\\Documents\\Electronic Arts\\The Sims 4\\Mods');
   const [gamePathExists, setGamePathExists] = useState(false);
@@ -131,6 +135,9 @@ export default function SettingsPage() {
   const [resettingDatabase, setResettingDatabase] = useState(false);
   const [showResetConfirmation, setShowResetConfirmation] = useState(false);
   const [showDisableDetectionConfirmation, setShowDisableDetectionConfirmation] = useState(false);
+  const [showDisableLoggingConfirmation, setShowDisableLoggingConfirmation] = useState(false);
+  const [installingLogEnabler, setInstallingLogEnabler] = useState(false);
+  const { showToast, dismissToast } = useToast();
 
   useEffect(() => {
     loadLocalSettings();
@@ -180,12 +187,14 @@ export default function SettingsPage() {
         }
       }
 
-      // Load user preferences (auto-updates, backup, fake mod detection)
+      // Load user preferences (auto-updates, backup, fake mod detection, game logging)
       await userPreferencesService.initialize();
       const preferences = userPreferencesService.getPreferences();
       setAutoUpdates(preferences.autoUpdates);
       setBackup(preferences.backupBeforeUpdate);
       setFakeModDetection(preferences.fakeModDetection);
+      setGameLogging(preferences.gameLogging);
+      setShowDebugLogs(preferences.showDebugLogs);
     } catch (error) {
       console.error('Error loading local settings:', error);
     } finally {
@@ -396,6 +405,115 @@ export default function SettingsPage() {
       });
     } finally {
       setResettingDatabase(false);
+    }
+  }
+
+  /**
+   * Handle enabling game logging - installs the Sims Log Enabler mod
+   */
+  async function handleEnableGameLogging() {
+    // Check if mods path is configured
+    if (!modsPath || !modsPathExists) {
+      showToast({
+        type: 'error',
+        title: 'Mods folder not configured',
+        message: 'Please configure your Mods folder path first.',
+        duration: 5000,
+      });
+      return;
+    }
+
+    setInstallingLogEnabler(true);
+
+    const toastId = showToast({
+      type: 'info',
+      title: 'Installing Sims Log Enabler',
+      message: 'Downloading and installing...',
+      duration: 0, // Don't auto-dismiss
+    });
+
+    try {
+      const result = await logEnablerService.install(modsPath);
+
+      dismissToast(toastId);
+
+      if (result.success) {
+        setGameLogging(true);
+        userPreferencesService.setGameLogging(true);
+        showToast({
+          type: 'success',
+          title: 'Game logging enabled',
+          message: 'Sims Log Enabler installed successfully.',
+          duration: 3000,
+        });
+      } else {
+        showToast({
+          type: 'error',
+          title: 'Installation failed',
+          message: result.error || 'Could not install Sims Log Enabler.',
+          duration: 5000,
+        });
+      }
+    } catch (error: any) {
+      dismissToast(toastId);
+      console.error('Failed to enable game logging:', error);
+      showToast({
+        type: 'error',
+        title: 'Installation failed',
+        message: error.message || 'Could not install Sims Log Enabler.',
+        duration: 5000,
+      });
+    } finally {
+      setInstallingLogEnabler(false);
+    }
+  }
+
+  /**
+   * Handle disabling game logging - removes the Sims Log Enabler mod
+   */
+  async function handleDisableGameLogging() {
+    setInstallingLogEnabler(true);
+    setShowDisableLoggingConfirmation(false);
+
+    try {
+      // Try to uninstall if mods path is available
+      if (modsPath && modsPathExists) {
+        const result = await logEnablerService.uninstall(modsPath);
+
+        if (!result.success) {
+          showToast({
+            type: 'warning',
+            title: 'Uninstall warning',
+            message: result.error || 'Could not remove the mod file, but logging has been disabled.',
+            duration: 5000,
+          });
+        }
+      }
+
+      // Always update the preference
+      setGameLogging(false);
+      userPreferencesService.setGameLogging(false);
+
+      showToast({
+        type: 'success',
+        title: 'Game logging disabled',
+        message: 'Sims Log Enabler has been removed.',
+        duration: 3000,
+      });
+    } catch (error: any) {
+      console.error('Failed to disable game logging:', error);
+      // Still disable the preference even if uninstall fails
+      setGameLogging(false);
+      userPreferencesService.setGameLogging(false);
+
+      showToast({
+        type: 'warning',
+        title: 'Game logging disabled',
+        message: 'Preference updated, but could not remove the mod file.',
+        duration: 5000,
+      });
+    } finally {
+      setInstallingLogEnabler(false);
     }
   }
 
@@ -645,8 +763,8 @@ export default function SettingsPage() {
                 {/* Fake Mod Detection */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                      <ShieldCheck size={16} className="text-brand-green" /> Fake mod detection
+                    <div className="font-bold text-gray-900 dark:text-white">
+                      Fake mod detection
                     </div>
                     <div className="text-sm text-gray-500">Show warnings and block banned creators when suspicious mods are detected.</div>
                   </div>
@@ -673,6 +791,100 @@ export default function SettingsPage() {
                     />
                   </button>
                 </div>
+              </div>
+            </section>
+
+            {/* SECTION: ADVANCED */}
+            <section id="advanced">
+              <div className="mb-6">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <Terminal size={20} className="text-purple-500" /> Advanced
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">Additional options for troubleshooting and diagnostics.</p>
+              </div>
+
+              <div className="bg-white dark:bg-ui-panel border border-gray-200 dark:border-ui-border rounded-xl p-6 shadow-sm space-y-6">
+                {/* Game Logging */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-bold text-gray-900 dark:text-white">
+                      Game logging
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      Enable real-time log viewing from The Sims 4. SimsForge will automatically install the{' '}
+                      <a
+                        href="https://scumbumbomods.com/sims-log-enabler/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-brand-green hover:underline"
+                      >
+                        Sims Log Enabler
+                      </a>{' '}
+                      mod when enabled.
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      if (installingLogEnabler) return; // Prevent clicks during installation
+
+                      if (gameLogging) {
+                        // Disabling: show confirmation modal
+                        setShowDisableLoggingConfirmation(true);
+                      } else {
+                        // Enabling: install the mod first
+                        handleEnableGameLogging();
+                      }
+                    }}
+                    disabled={installingLogEnabler}
+                    className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                      gameLogging ? 'bg-brand-green' : 'bg-gray-300 dark:bg-gray-700'
+                    }`}
+                  >
+                    {installingLogEnabler ? (
+                      <span className="absolute inset-0 flex items-center justify-center">
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      </span>
+                    ) : (
+                      <span
+                        className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                          gameLogging ? 'translate-x-6' : 'translate-x-0.5'
+                        }`}
+                      />
+                    )}
+                  </button>
+                </div>
+
+                {/* Show Debug Logs - only visible when Game Logging is enabled */}
+                {gameLogging && (
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-ui-border">
+                    <div>
+                      <div className="font-bold text-gray-900 dark:text-white">
+                        Show debug logs
+                      </div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                        For mod developers only. Significantly increases console output.
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        const newValue = !showDebugLogs;
+                        setShowDebugLogs(newValue);
+                        userPreferencesService.setShowDebugLogs(newValue);
+                      }}
+                      className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors cursor-pointer ${
+                        showDebugLogs ? 'bg-brand-green' : 'bg-gray-300 dark:bg-gray-700'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                          showDebugLogs ? 'translate-x-6' : 'translate-x-0.5'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                )}
               </div>
             </section>
 
@@ -760,6 +972,19 @@ export default function SettingsPage() {
         confirmText="Disable"
         cancelText="Keep Enabled"
         isDangerous={true}
+      />
+
+      {/* Disable Game Logging Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showDisableLoggingConfirmation}
+        onClose={() => setShowDisableLoggingConfirmation(false)}
+        onConfirm={handleDisableGameLogging}
+        title="Disable Game Logging"
+        message="Disabling game logging will remove the Sims Log Enabler mod from your Mods folder and prevent you from viewing real-time logs from The Sims 4."
+        confirmText="Disable"
+        cancelText="Keep Enabled"
+        isDangerous={false}
+        isLoading={installingLogEnabler}
       />
     </Layout>
   );
