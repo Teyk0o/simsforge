@@ -1,19 +1,22 @@
 'use client';
 
 import { Suspense } from 'react';
+import { useTranslation } from 'react-i18next';
 import ModDetailClient from './ModDetailClient';
 
 /**
  * Loading fallback component while mod details are being fetched.
  */
 function ModsLoading() {
+  const { t } = useTranslation();
+
   return (
     <div className="flex-1 flex items-center justify-center">
       <div className="text-center">
         <div className="inline-block">
           <div className="w-12 h-12 border-4 rounded-full animate-spin" style={{ borderColor: 'var(--ui-border)', borderTopColor: 'var(--brand-green)' }} />
         </div>
-        <p className="mt-4" style={{ color: 'var(--text-secondary)' }}>Loading mod details...</p>
+        <p className="mt-4" style={{ color: 'var(--text-secondary)' }}>{t('mods.detail.loading')}</p>
       </div>
     </div>
   );
