@@ -12,6 +12,7 @@ import { modInstallationService } from '@/lib/services/ModInstallationService';
 import { userPreferencesService } from '@/lib/services/UserPreferencesService';
 import { fakeScoreService } from '@/lib/services/FakeScoreService';
 import { submitFakeModReport } from '@/lib/fakeDetectionApi';
+import { useTranslation } from 'react-i18next';
 import WarningBadge from './WarningBadge';
 import FakeModWarningPopup from './FakeModWarningPopup';
 import type { ModWarningStatus, FakeScoreResult, ZipAnalysis } from '@/types/fakeDetection';
@@ -23,6 +24,7 @@ interface ModListItemProps {
 }
 
 export default function ModListItem({ mod, warningStatus }: ModListItemProps) {
+  const { t } = useTranslation();
   const authorNames = mod.authors.map((a) => a.name).join(', ');
   const categoryNames = mod.categories.slice(0, 2);
   const { showToast, updateToast } = useToast();
@@ -90,8 +92,8 @@ export default function ModListItem({ mod, warningStatus }: ModListItemProps) {
       if (!encryptedModsPath) {
         showToast({
           type: 'error',
-          title: 'Mods path not configured',
-          message: 'Please configure your mods folder in Settings',
+          title: t('mods.toasts.mods_path_not_configured'),
+          message: t('mods.toasts.configure_in_settings'),
           duration: 5000,
         });
         setIsInstalling(false);
@@ -102,8 +104,8 @@ export default function ModListItem({ mod, warningStatus }: ModListItemProps) {
       if (!modsPath) {
         showToast({
           type: 'error',
-          title: 'Failed to read mods path',
-          message: 'Please reconfigure your mods folder in Settings',
+          title: t('mods.toasts.failed_to_read_path'),
+          message: t('mods.toasts.reconfigure_in_settings'),
           duration: 5000,
         });
         setIsInstalling(false);
@@ -113,8 +115,8 @@ export default function ModListItem({ mod, warningStatus }: ModListItemProps) {
       // Show initial toast
       const toastId = showToast({
         type: 'download',
-        title: `Installing ${mod.name}`,
-        message: 'Starting download...',
+        title: t('mods.toasts.installing', { modName: mod.name }),
+        message: t('mods.toasts.starting_download'),
         progress: 0,
         duration: 0, // Don't auto-dismiss
       });
@@ -152,8 +154,8 @@ export default function ModListItem({ mod, warningStatus }: ModListItemProps) {
       if (result.success) {
         updateToast(toastId, {
           type: 'success',
-          title: 'Installation complete!',
-          message: `${result.modName} has been installed successfully`,
+          title: t('mods.toasts.installation_complete'),
+          message: t('mods.toasts.installed_successfully', { modName: result.modName }),
           duration: 3000,
         });
         // Refresh profiles to update the library
@@ -161,16 +163,16 @@ export default function ModListItem({ mod, warningStatus }: ModListItemProps) {
       } else {
         updateToast(toastId, {
           type: 'error',
-          title: 'Installation failed',
-          message: result.error || 'Unknown error',
+          title: t('mods.toasts.installation_failed'),
+          message: result.error || t('mods.toasts.unknown_error'),
           duration: 3000,
         });
       }
     } catch (error: any) {
       showToast({
         type: 'error',
-        title: 'Installation failed',
-        message: error.message || 'An unexpected error occurred',
+        title: t('mods.toasts.installation_failed'),
+        message: error.message || t('mods.toasts.unexpected_error'),
         duration: 5000,
       });
     } finally {
@@ -198,16 +200,16 @@ export default function ModListItem({ mod, warningStatus }: ModListItemProps) {
       });
       showToast({
         type: 'success',
-        title: 'Report Submitted',
-        message: `Thank you for reporting "${mod.name}"`,
+        title: t('mods.report.submitted_title'),
+        message: t('mods.report.submitted_message', { modName: mod.name }),
         duration: 3000,
       });
     } catch (error: any) {
       if (error.response?.status === 409) {
         showToast({
           type: 'info',
-          title: 'Already Reported',
-          message: 'You have already reported this mod',
+          title: t('mods.report.already_reported_title'),
+          message: t('mods.report.already_reported_message'),
           duration: 3000,
         });
       }
@@ -272,7 +274,7 @@ export default function ModListItem({ mod, warningStatus }: ModListItemProps) {
                     {mod.name}
                   </h3>
                   <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>
-                    by {authorNames || 'Unknown'}
+                    {t('mods.card.by')} {authorNames || t('mods.card.unknown_author')}
                   </p>
                 </div>
               </div>
@@ -325,7 +327,7 @@ export default function ModListItem({ mod, warningStatus }: ModListItemProps) {
                     ? 'bg-gray-500 text-white'
                     : 'bg-brand-green hover:bg-brand-dark text-white disabled:opacity-50'
                 }`}
-                title={isInstalled ? "Already installed" : isInstalling ? "Installing..." : "Install"}
+                title={isInstalled ? t('mods.card.already_installed') : isInstalling ? t('mods.card.installing') : t('mods.card.install')}
               >
                 {isInstalled ? (
                   <Check size={24} weight="bold" />

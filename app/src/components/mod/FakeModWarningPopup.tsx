@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Warning, X, Flag, DownloadSimple } from '@phosphor-icons/react';
+import { useTranslation } from 'react-i18next';
 import type { FakeScoreResult } from '@/types/fakeDetection';
 
 interface FakeModWarningPopupProps {
@@ -34,6 +35,7 @@ export default function FakeModWarningPopup({
   scoreResult,
   isSubmitting = false,
 }: FakeModWarningPopupProps) {
+  const { t } = useTranslation();
   const [reportReason, setReportReason] = useState('');
   const [showReportInput, setShowReportInput] = useState(false);
   const [installHover, setInstallHover] = useState(false);
@@ -74,7 +76,7 @@ export default function FakeModWarningPopup({
           <div className="flex items-center gap-3">
             <Warning size={28} weight="fill" color="#f59e0b" />
             <h2 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
-              Suspicious Mod Detected
+              {t('mods.fake_warning_popup.title')}
             </h2>
           </div>
           <button
@@ -90,8 +92,7 @@ export default function FakeModWarningPopup({
         {/* Content */}
         <div className="p-4 space-y-4">
           <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-            <strong style={{ color: 'var(--text-primary)' }}>{modName}</strong> has been
-            flagged as potentially fake or misleading.
+            <strong style={{ color: 'var(--text-primary)' }}>{modName}</strong> {t('mods.fake_warning_popup.message')}
           </p>
 
           {/* Score and Reasons */}
@@ -101,13 +102,13 @@ export default function FakeModWarningPopup({
           >
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                Suspicion Score
+                {t('mods.fake_warning_popup.suspicion_score')}
               </span>
               <span
                 className="text-lg font-bold"
                 style={{ color: scoreResult.score >= 50 ? '#ef4444' : '#f59e0b' }}
               >
-                {scoreResult.score}/100
+                {scoreResult.score}{t('mods.fake_warning_popup.score_suffix')}
               </span>
             </div>
             <ul className="space-y-1">
@@ -131,12 +132,12 @@ export default function FakeModWarningPopup({
                 className="text-sm mb-1 block"
                 style={{ color: 'var(--text-secondary)' }}
               >
-                Additional details (optional):
+                {t('mods.fake_warning_popup.details_label')}
               </label>
               <textarea
                 value={reportReason}
                 onChange={(e) => setReportReason(e.target.value)}
-                placeholder="Add any additional information about why this mod seems fake..."
+                placeholder={t('mods.fake_warning_popup.details_placeholder')}
                 className="w-full rounded-lg p-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-500"
                 style={{
                   backgroundColor: 'var(--ui-dark)',
@@ -170,7 +171,7 @@ export default function FakeModWarningPopup({
             }}
           >
             <DownloadSimple size={18} />
-            Install Anyway
+            {t('mods.fake_warning_popup.install_anyway')}
           </button>
 
           <button
@@ -194,10 +195,10 @@ export default function FakeModWarningPopup({
           >
             <Flag size={18} />
             {isSubmitting
-              ? 'Submitting...'
+              ? t('mods.fake_warning_popup.submitting')
               : showReportInput
-                ? 'Submit Report & Cancel'
-                : 'Report and Cancel'}
+                ? t('mods.fake_warning_popup.submit_report')
+                : t('mods.fake_warning_popup.report_cancel')}
           </button>
         </div>
       </div>
