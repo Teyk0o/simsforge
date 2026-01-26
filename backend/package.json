@@ -43,7 +43,7 @@
     "zod": "^4.3.5"
   },
   "devDependencies": {
-    "prisma": "^6.9.0",
+    "prisma": "^7.3.0",
     "@types/compression": "^1.8.1",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
