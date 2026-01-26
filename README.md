@@ -31,11 +31,13 @@ simsforge/
 - **Language**: TypeScript 5.9
 - **HTTP Client**: Axios 1.13
 - **UI Components**: Phosphor Icons 2.1
+- **i18n**: i18next 24.2 + react-i18next 16.2 + i18next-browser-languagedetector 8.1
 - **Utilities**: Tailwind Merge, clsx
 
 **Key Features**:
 - Responsive web application
 - Native Windows desktop client
+- **Multi-language support** (English, French, Spanish, Portuguese, Hindi, Russian, Chinese)
 - Mod discovery and search interface
 - Virtual list rendering for performance
 - CurseForge integration for mod browsing
@@ -184,6 +186,9 @@ src/
 │   └── providers/        # Context providers
 ├── context/              # React context for state management
 ├── hooks/                # Custom React hooks (search, cache, view modes)
+├── i18n/                 # Internationalization configuration and locales
+│   ├── index.ts          # i18next configuration
+│   └── locales/          # Translation files (en-US, fr-FR, es-ES, etc.)
 ├── lib/                  # Services (API client, CurseForge, fake detection)
 ├── types/                # TypeScript type definitions
 └── src-tauri/            # Tauri desktop application
@@ -204,6 +209,57 @@ src/
 ├── utils/            # Helper utilities (logging, errors)
 └── app.ts            # Express app setup
 ```
+
+## Internationalization (i18n)
+
+SimsForge supports multiple languages with automatic language detection based on browser/OS settings.
+
+### Supported Languages
+
+- 🇺🇸 **English (US)** - `en-US` (default)
+- 🇫🇷 **French** - `fr-FR`
+- 🇪🇸 **Spanish** - `es-ES`
+- 🇧🇷 **Portuguese (Brazil)** - `pt-BR`
+- 🇮🇳 **Hindi** - `hi-IN`
+- 🇷🇺 **Russian** - `ru-RU`
+- 🇨🇳 **Chinese (Simplified)** - `zh-CN`
+
+### Features
+
+- **Automatic Language Detection**: Detects user's preferred language from browser/OS settings
+- **Manual Language Selection**: Users can change language in Settings → Application → Language
+- **Persistent Preference**: Language choice is saved in localStorage
+- **Complete Coverage**: All UI text, buttons, messages, and tooltips are translated
+- **No Reload Required**: Language changes apply instantly without page refresh
+
+### Implementation
+
+The i18n system uses `i18next` with:
+- **react-i18next** for React integration
+- **i18next-browser-languagedetector** for automatic language detection
+- Translation files located in `app/src/i18n/locales/`
+- Fallback to English (US) if selected language is unavailable
+
+### Adding Translations
+
+Translation files are JSON-based and located in `app/src/i18n/locales/[locale].json`:
+
+```json
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "settings": {
+    "title": "Settings"
+  }
+}
+```
+
+To add a new language:
+1. Create a new locale file: `app/src/i18n/locales/[locale-code].json`
+2. Add the locale to `SUPPORTED_LANGUAGES` in `app/src/i18n/index.ts`
+3. Add language name and flag to `LANGUAGE_NAMES` and `LANGUAGE_FLAGS`
 
 ## API Documentation
 
