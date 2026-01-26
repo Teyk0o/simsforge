@@ -67,7 +67,7 @@ jobs:
         run: tar -czf backend-deploy.tar.gz -C backend dist/ node_modules/ package.json package-lock.json dist-server.js tsconfig.runtime.json prisma/
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: backend-build
           path: backend-deploy.tar.gz
