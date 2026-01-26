@@ -13,6 +13,7 @@ import { modCacheService } from '@/lib/services/ModCacheService';
 import { symlinkService } from '@/lib/services/SymlinkService';
 import { sims4PathDetector } from '@/lib/services/Sims4PathDetector';
 import { useToast } from './ToastContext';
+import i18n from '@/i18n';
 
 /**
  * Profile context type definition
@@ -76,11 +77,11 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
       await refreshProfiles();
     } catch (error: any) {
       console.error('Failed to initialize profiles:', error);
-      setError(error.message || 'Unknown initialization error');
+      setError(error.message || i18n.t('contexts.profile.unknown_error'));
       showToast({
         type: 'error',
-        title: 'Profile initialization failed',
-        message: error.message || 'Unknown error',
+        title: i18n.t('contexts.profile.initialization_failed'),
+        message: error.message || i18n.t('contexts.profile.unknown_error'),
         duration: 5000,
       });
     } finally {
@@ -123,8 +124,8 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
 
         showToast({
           type: 'success',
-          title: 'Profile created',
-          message: `"${name}" has been created successfully`,
+          title: i18n.t('contexts.profile.profile_created'),
+          message: i18n.t('contexts.profile.profile_created_message', { name }),
           duration: 3000,
         });
 
@@ -132,8 +133,8 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
       } catch (error: any) {
         showToast({
           type: 'error',
-          title: 'Failed to create profile',
-          message: error.message || 'Unknown error',
+          title: i18n.t('contexts.profile.failed_to_create'),
+          message: error.message || i18n.t('contexts.profile.unknown_error'),
           duration: 5000,
         });
         throw error;
@@ -153,15 +154,15 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
 
         showToast({
           type: 'success',
-          title: 'Profile updated',
-          message: 'Changes saved successfully',
+          title: i18n.t('contexts.profile.profile_updated'),
+          message: i18n.t('contexts.profile.changes_saved'),
           duration: 3000,
         });
       } catch (error: any) {
         showToast({
           type: 'error',
-          title: 'Failed to update profile',
-          message: error.message || 'Unknown error',
+          title: i18n.t('contexts.profile.failed_to_update'),
+          message: error.message || i18n.t('contexts.profile.unknown_error'),
           duration: 5000,
         });
         throw error;
@@ -182,15 +183,15 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
 
         showToast({
           type: 'success',
-          title: 'Profile deleted',
-          message: 'Profile removed successfully',
+          title: i18n.t('contexts.profile.profile_deleted'),
+          message: i18n.t('contexts.profile.profile_removed'),
           duration: 3000,
         });
       } catch (error: any) {
         showToast({
           type: 'error',
-          title: 'Failed to delete profile',
-          message: error.message || 'Unknown error',
+          title: i18n.t('contexts.profile.failed_to_delete'),
+          message: error.message || i18n.t('contexts.profile.unknown_error'),
           duration: 5000,
         });
         throw error;
@@ -207,15 +208,11 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
       try {
         // Ensure initialization is complete before activating profiles
         if (!isInitialized) {
-          throw new Error(
-            'Profile system is still initializing. Please wait a moment and try again.'
-          );
+          throw new Error(i18n.t('contexts.profile.still_initializing'));
         }
 
         if (!modsPath) {
-          throw new Error(
-            'Mods path not configured. Could not find The Sims 4 installation.'
-          );
+          throw new Error(i18n.t('contexts.profile.mods_path_not_configured'));
         }
 
         // Deactivate current profile (remove all symlinks)
@@ -227,7 +224,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
         if (profileId) {
           const profile = await profileService.getProfile(profileId);
           if (!profile) {
-            throw new Error('Profile not found');
+            throw new Error(i18n.t('contexts.profile.profile_not_found'));
           }
 
           // Only include enabled mods
@@ -254,7 +251,10 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
               .join('\n');
 
             throw new Error(
-              `Failed to create ${result.failed} symlinks:\n${errorDetails}\n\nCheck permissions and that The Sims 4 is not running.`
+              i18n.t('contexts.profile.failed_to_create_symlinks', {
+                count: result.failed,
+                errors: errorDetails
+              })
             );
           }
         }
@@ -265,8 +265,8 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
       } catch (error: any) {
         showToast({
           type: 'error',
-          title: 'Failed to activate profile',
-          message: error.message || 'Unknown error',
+          title: i18n.t('contexts.profile.failed_to_activate'),
+          message: error.message || i18n.t('contexts.profile.unknown_error'),
           duration: 5000,
         });
         throw error;
@@ -308,15 +308,15 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
 
         showToast({
           type: 'success',
-          title: 'Mod removed',
-          message: 'Mod removed from profile',
+          title: i18n.t('contexts.profile.mod_removed'),
+          message: i18n.t('contexts.profile.mod_removed_from_profile'),
           duration: 3000,
         });
       } catch (error: any) {
         showToast({
           type: 'error',
-          title: 'Failed to remove mod',
-          message: error.message || 'Unknown error',
+          title: i18n.t('contexts.profile.failed_to_remove_mod'),
+          message: error.message || i18n.t('contexts.profile.unknown_error'),
           duration: 5000,
         });
         throw error;
