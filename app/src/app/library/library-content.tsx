@@ -1,17 +1,31 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useProfiles } from '@/context/ProfileContext';
 import { useUpdates } from '@/context/UpdateContext';
-import { MagnifyingGlass, Trash, CheckCircle, Circle, ArrowCircleUp, ArrowsClockwise, Warning } from '@phosphor-icons/react';
+import { MagnifyingGlass, Trash, CheckCircle, Circle, ArrowCircleUp, ArrowsClockwise, Warning, CaretDown } from '@phosphor-icons/react';
 import ConfirmationModal from '@/components/ui/ConfirmationModal';
 import UpdateBadge from '@/components/update/UpdateBadge';
 import { getBatchWarningStatus } from '@/lib/fakeDetectionApi';
 import { userPreferencesService } from '@/lib/services/UserPreferencesService';
 import type { ModWarningStatus } from '@/types/fakeDetection';
+
+/** Filter options for the library */
+const FILTER_OPTIONS = [
+  { value: 'all' as const, label: 'All Mods' },
+  { value: 'enabled' as const, label: 'Enabled' },
+  { value: 'disabled' as const, label: 'Disabled' },
+  { value: 'updates' as const, label: 'Updates Available' },
+];
+
+/** Sort options for the library */
+const SORT_OPTIONS = [
+  { value: 'name' as const, label: 'Name' },
+  { value: 'lastUpdated' as const, label: 'Last Updated' },
+];
 
 /**
  * Library content component that handles displaying and managing mods
@@ -24,7 +38,10 @@ export default function LibraryContent() {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'enabled' | 'disabled' | 'updates'>('all');
+  const [sortBy, setSortBy] = useState<'name' | 'lastUpdated'>('name');
+  const [openDropdown, setOpenDropdown] = useState<'filter' | 'sort' | null>(null);
   const [updatingModId, setUpdatingModId] = useState<number | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const [warningStatuses, setWarningStatuses] = useState<Record<number, ModWarningStatus>>({});
   const [confirmationModal, setConfirmationModal] = useState<{
     isOpen: boolean;
@@ -64,11 +81,23 @@ export default function LibraryContent() {
     fetchWarnings();
   }, [activeProfile]);
 
-  // Filter and search mods
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setOpenDropdown(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Filter, search, and sort mods
   const filteredMods = useMemo(() => {
     if (!activeProfile) return [];
 
-    let mods = activeProfile.mods;
+    let mods = [...activeProfile.mods];
 
     // Filter by status
     if (filterStatus === 'enabled') {
@@ -89,8 +118,19 @@ export default function LibraryContent() {
       );
     }
 
+    // Sort mods
+    if (sortBy === 'lastUpdated') {
+      mods.sort((a, b) => {
+        const dateA = a.lastUpdateDate ? new Date(a.lastUpdateDate).getTime() : 0;
+        const dateB = b.lastUpdateDate ? new Date(b.lastUpdateDate).getTime() : 0;
+        return dateB - dateA; // Most recent first
+      });
+    } else {
+      mods.sort((a, b) => a.modName.localeCompare(b.modName));
+    }
+
     return mods;
-  }, [activeProfile, searchTerm, filterStatus, hasUpdate]);
+  }, [activeProfile, searchTerm, filterStatus, sortBy, hasUpdate]);
 
   const handleToggleMod = async (modId: number, enabled: boolean) => {
     try {
@@ -201,7 +241,7 @@ export default function LibraryContent() {
         >
           {/* Search */}
           <div
-            className="flex-1 min-w-64 flex items-center gap-2 px-3 py-2 rounded-md border"
+            className="flex-1 min-w-64 h-10 flex items-center gap-2 px-3 rounded-lg border"
             style={{
               backgroundColor: 'var(--ui-input-bg)',
               borderColor: 'var(--border-color)',
@@ -223,29 +263,112 @@ export default function LibraryContent() {
             />
           </div>
 
-          {/* Filter */}
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value as 'all' | 'enabled' | 'disabled' | 'updates')}
-            className="px-3 py-1.5 rounded-md border transition-colors text-sm"
-            style={{
-              backgroundColor: 'var(--ui-input-bg)',
-              borderColor: 'var(--border-color)',
-              color: 'var(--text-primary)',
-              cursor: 'pointer',
-            }}
-          >
-            <option value="all">All Mods</option>
-            <option value="enabled">Enabled</option>
-            <option value="disabled">Disabled</option>
-            <option value="updates">Updates Available{updateCount > 0 ? ` (${updateCount})` : ''}</option>
-          </select>
+          {/* Filter & Sort Dropdowns */}
+          <div className="flex items-center gap-2" ref={dropdownRef}>
+            {/* Filter Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setOpenDropdown(openDropdown === 'filter' ? null : 'filter')}
+                className="flex items-center gap-2 px-3 h-10 border rounded-lg text-sm font-medium hover:border-brand-green transition-colors cursor-pointer"
+                style={{ backgroundColor: 'var(--ui-panel)', borderColor: 'var(--border-color)' }}
+              >
+                <span>Filter:</span>
+                <span className="text-brand-green">
+                  {filterStatus === 'updates' && updateCount > 0
+                    ? `${FILTER_OPTIONS.find((o) => o.value === filterStatus)?.label} (${updateCount})`
+                    : FILTER_OPTIONS.find((o) => o.value === filterStatus)?.label}
+                </span>
+                <CaretDown size={16} className={`transition-transform ${openDropdown === 'filter' ? 'rotate-180' : ''}`} style={{ color: 'var(--text-secondary)' }} />
+              </button>
+              {openDropdown === 'filter' && (
+                <div className="absolute left-0 mt-1 w-48 border rounded-lg shadow-lg z-20" style={{ backgroundColor: 'var(--ui-panel)', borderColor: 'var(--border-color)' }}>
+                  {FILTER_OPTIONS.map(({ value, label }) => (
+                    <button
+                      key={value}
+                      onClick={() => {
+                        setFilterStatus(value);
+                        setOpenDropdown(null);
+                      }}
+                      className={`w-full text-left px-4 py-2 text-sm transition-colors first:rounded-t-lg last:rounded-b-lg ${
+                        filterStatus === value ? 'bg-brand-green/10 text-brand-green' : ''
+                      }`}
+                      style={{
+                        backgroundColor: filterStatus === value ? undefined : 'transparent',
+                        color: filterStatus === value ? undefined : 'var(--text-primary)',
+                        cursor: 'pointer',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (filterStatus !== value) {
+                          e.currentTarget.style.backgroundColor = 'var(--ui-hover)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (filterStatus !== value) {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                        }
+                      }}
+                    >
+                      {value === 'updates' && updateCount > 0 ? `${label} (${updateCount})` : label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Sort Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setOpenDropdown(openDropdown === 'sort' ? null : 'sort')}
+                className="flex items-center gap-2 px-3 h-10 border rounded-lg text-sm font-medium hover:border-brand-green transition-colors cursor-pointer"
+                style={{ backgroundColor: 'var(--ui-panel)', borderColor: 'var(--border-color)' }}
+              >
+                <span>Sort:</span>
+                <span className="text-brand-green">
+                  {SORT_OPTIONS.find((o) => o.value === sortBy)?.label}
+                </span>
+                <CaretDown size={16} className={`transition-transform ${openDropdown === 'sort' ? 'rotate-180' : ''}`} style={{ color: 'var(--text-secondary)' }} />
+              </button>
+              {openDropdown === 'sort' && (
+                <div className="absolute left-0 mt-1 w-40 border rounded-lg shadow-lg z-20" style={{ backgroundColor: 'var(--ui-panel)', borderColor: 'var(--border-color)' }}>
+                  {SORT_OPTIONS.map(({ value, label }) => (
+                    <button
+                      key={value}
+                      onClick={() => {
+                        setSortBy(value);
+                        setOpenDropdown(null);
+                      }}
+                      className={`w-full text-left px-4 py-2 text-sm transition-colors first:rounded-t-lg last:rounded-b-lg ${
+                        sortBy === value ? 'bg-brand-green/10 text-brand-green' : ''
+                      }`}
+                      style={{
+                        backgroundColor: sortBy === value ? undefined : 'transparent',
+                        color: sortBy === value ? undefined : 'var(--text-primary)',
+                        cursor: 'pointer',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (sortBy !== value) {
+                          e.currentTarget.style.backgroundColor = 'var(--ui-hover)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (sortBy !== value) {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                        }
+                      }}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* Check for Updates Button */}
           <button
             onClick={() => checkForUpdates()}
             disabled={isChecking}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-md border transition-colors text-sm"
+            className="flex items-center gap-2 px-3 h-10 rounded-lg border transition-colors text-sm hover:border-brand-green"
             style={{
               backgroundColor: 'var(--ui-input-bg)',
               borderColor: 'var(--border-color)',
