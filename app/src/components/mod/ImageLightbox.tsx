@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { X, CaretLeft, CaretRight } from '@phosphor-icons/react';
+import { useTranslation } from 'react-i18next';
 
 interface ImageLightboxProps {
   images: string[];
@@ -15,6 +16,7 @@ export default function ImageLightbox({
   initialIndex,
   onClose,
 }: ImageLightboxProps) {
+  const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
 
   const handlePrevious = () => {
@@ -40,7 +42,7 @@ export default function ImageLightbox({
       <button
         onClick={onClose}
         className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors z-50"
-        title="Close"
+        title={t('common.close')}
       >
         <X size={32} weight="bold" />
       </button>
@@ -49,7 +51,7 @@ export default function ImageLightbox({
       <div className="relative w-full h-full max-w-4xl max-h-[90vh] flex items-center justify-center">
         <Image
           src={images[currentIndex]}
-          alt={`Image ${currentIndex + 1}`}
+          alt={t('ui.image_lightbox.image_of', { current: currentIndex + 1, total: images.length })}
           fill
           className="object-contain"
           unoptimized
@@ -62,7 +64,7 @@ export default function ImageLightbox({
             <button
               onClick={handlePrevious}
               className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full transition-colors"
-              title="Previous image"
+              title={t('ui.image_lightbox.previous')}
             >
               <CaretLeft size={32} weight="bold" />
             </button>
@@ -70,7 +72,7 @@ export default function ImageLightbox({
             <button
               onClick={handleNext}
               className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full transition-colors"
-              title="Next image"
+              title={t('ui.image_lightbox.next')}
             >
               <CaretRight size={32} weight="bold" />
             </button>
@@ -79,7 +81,7 @@ export default function ImageLightbox({
 
         {/* Image counter */}
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white px-4 py-2 rounded-full text-sm font-medium">
-          {currentIndex + 1} / {images.length}
+          {t('ui.image_lightbox.image_of', { current: currentIndex + 1, total: images.length })}
         </div>
       </div>
     </div>

@@ -9,6 +9,7 @@
 import React from 'react';
 import { useToast, Toast } from '@/context/ToastContext';
 import { CheckCircle, Warning, Info, X, DownloadSimple, XCircle } from '@phosphor-icons/react';
+import { useTranslation } from 'react-i18next';
 
 export default function ToastContainer() {
   const { toasts, dismissToast } = useToast();
@@ -30,6 +31,7 @@ interface ToastItemProps {
 }
 
 function ToastItem({ toast, onDismiss }: ToastItemProps) {
+  const { t } = useTranslation();
   const { type, title, message, progress } = toast;
 
   // Determine icon and colors based on type
@@ -104,7 +106,7 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
         <button
           onClick={onDismiss}
           className="flex-shrink-0 hover:opacity-70 transition-opacity"
-          aria-label="Dismiss"
+          aria-label={t('common.dismiss')}
         >
           <X size={16} weight="bold" />
         </button>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useUpdates } from '@/context/UpdateContext';
+import { useTranslation } from 'react-i18next';
 
 interface UpdateBadgeProps {
   modId: number;
@@ -13,6 +14,7 @@ interface UpdateBadgeProps {
  * when a newer version is available on CurseForge.
  */
 export default function UpdateBadge({ modId }: UpdateBadgeProps) {
+  const { t } = useTranslation();
   const { hasUpdate } = useUpdates();
 
   if (!hasUpdate(modId)) {
@@ -28,7 +30,7 @@ export default function UpdateBadge({ modId }: UpdateBadgeProps) {
         border: '1px solid rgba(70, 200, 155, 0.3)',
       }}
     >
-      Update
+      {t('common.update')}
     </span>
   );
 }
