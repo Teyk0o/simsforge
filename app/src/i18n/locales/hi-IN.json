@@ -1,0 +1,518 @@
+{
+  "common": {
+    "save": "सहेजें",
+    "saving": "सहेजा जा रहा है...",
+    "cancel": "रद्द करें",
+    "delete": "हटाएँ",
+    "confirm": "पुष्टि करें",
+    "loading": "लोड हो रहा है...",
+    "error": "त्रुटि",
+    "success": "सफल",
+    "warning": "चेतावनी",
+    "edit": "संपादित करें",
+    "create": "बनाएँ",
+    "remove": "हटाएँ",
+    "install": "स्थापित करें",
+    "installed": "स्थापित",
+    "installing": "स्थापित हो रहा है...",
+    "update": "अपडेट करें",
+    "updating": "अपडेट हो रहा है...",
+    "enable": "सक्षम करें",
+    "disable": "अक्षम करें",
+    "disabled": "अक्षम",
+    "activate": "सक्रिय करें",
+    "tryAgain": "पुनः प्रयास करें",
+    "na": "उपलब्ध नहीं",
+    "mod": "मॉड",
+    "mods": "मॉड्स",
+    "processing": "प्रक्रिया जारी है...",
+    "dismiss": "खारिज करें",
+    "close": "बंद करें",
+    "back": "वापस"
+  },
+  "ui": {
+    "view_toggle": {
+      "switch_to_grid": "ग्रिड दृश्य पर जाएँ",
+      "switch_to_list": "सूची दृश्य पर जाएँ"
+    },
+    "image_lightbox": {
+      "previous": "पिछली छवि",
+      "next": "अगली छवि",
+      "image_of": "छवि {{current}} / {{total}}"
+    }
+  },
+  "layout": {
+    "sidebar": {
+      "logo_alt": "SimsForge",
+      "active_profile": "सक्रिय प्रोफ़ाइल",
+      "browse": "देखें",
+      "library": "लाइब्रेरी",
+      "settings": "सेटिंग्स"
+    }
+  },
+  "home": {
+    "search_placeholder": "मॉड्स खोजें...",
+    "reset": "रीसेट करें",
+    "console": "कंसोल",
+    "console_tooltip": "गेम कंसोल खोलें",
+    "play": "खेलें",
+    "launching": "शुरू हो रहा है...",
+    "running": "चल रहा है"
+  },
+  "library": {
+    "title": "लाइब्रेरी",
+    "loading": "लाइब्रेरी लोड हो रही है...",
+    "search_placeholder": "मॉड्स खोजें...",
+    "filter_label": "फ़िल्टर:",
+    "sort_label": "क्रमबद्ध करें:",
+    "check_updates": "अपडेट जांचें",
+    "checking": "जांचा जा रहा है...",
+    "update_all": "सभी अपडेट करें ({{count}})",
+    "updating": "अपडेट हो रहा है...",
+    "filters": {
+      "all": "सभी मॉड्स",
+      "enabled": "सक्षम",
+      "disabled": "अक्षम",
+      "updates": "अपडेट उपलब्ध"
+    },
+    "sort": {
+      "name": "नाम",
+      "last_updated": "अंतिम अपडेट"
+    },
+    "empty": {
+      "no_profile_title": "कोई सक्रिय प्रोफ़ाइल नहीं",
+      "no_profile_message": "साइडबार में प्रोफ़ाइल बनाएँ या सक्रिय करें अपने मॉड्स देखने के लिए",
+      "no_mods_title": "इस प्रोफ़ाइल में अभी कोई मॉड नहीं",
+      "no_search_results": "आपकी खोज से मेल खाने वाले मॉड नहीं मिले",
+      "all_updated": "सभी मॉड अपडेट हैं!"
+    },
+    "mod_item": {
+      "updated": "{{date}} को अपडेट किया गया",
+      "disable_tooltip": "मॉड अक्षम करें",
+      "enable_tooltip": "मॉड सक्षम करें",
+      "remove_tooltip": "प्रोफ़ाइल से मॉड हटाएँ",
+      "by": "द्वारा"
+    },
+    "remove_modal": {
+      "title": "मॉड हटाएँ",
+      "message": "क्या आप वाकई \"{{modName}}\" को अपनी प्रोफ़ाइल से हटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।",
+      "confirm": "हटाएँ"
+    }
+  },
+  "profiles": {
+    "title": "प्रोफ़ाइल",
+    "subtitle": "अपने मॉड प्रोफ़ाइल और कॉन्फ़िगरेशन प्रबंधित करें",
+    "create_profile": "प्रोफ़ाइल बनाएँ",
+    "loading": "प्रोफ़ाइल लोड हो रही हैं...",
+    "empty": {
+      "title": "अभी कोई प्रोफ़ाइल नहीं",
+      "button": "अपनी पहली प्रोफ़ाइल बनाएँ"
+    },
+    "card": {
+      "mods_count": "{{count}} मॉड",
+      "mods_count_plural": "{{count}} मॉड्स",
+      "activate": "सक्रिय करें",
+      "edit": "संपादित करें",
+      "name_required": "प्रोफ़ाइल का नाम खाली नहीं हो सकता",
+      "delete_confirmation": "क्या आप वाकई इस प्रोफ़ाइल को हटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।",
+      "validation_error": "मान्यता त्रुटि",
+      "update_failed": "प्रोफ़ाइल अपडेट करने में विफल",
+      "description_placeholder": "प्रोफ़ाइल विवरण..."
+    },
+    "create_modal": {
+      "title": "प्रोफ़ाइल बनाएँ",
+      "name_label": "प्रोफ़ाइल का नाम *",
+      "name_placeholder": "उदाहरण: यथार्थवादी गेमप्ले",
+      "description_label": "विवरण",
+      "description_placeholder": "इस प्रोफ़ाइल का वैकल्पिक विवरण...",
+      "tags_label": "टैग्स",
+      "tags_placeholder": "टैग जोड़ें और एंटर दबाएँ",
+      "add": "जोड़ें",
+      "name_required_error": "प्रोफ़ाइल का नाम आवश्यक है",
+      "create_failed": "प्रोफ़ाइल बनाने में विफल",
+      "creating": "बनाया जा रहा है..."
+    },
+    "selector": {
+      "no_profile": "कोई प्रोफ़ाइल नहीं",
+      "empty": "अभी कोई प्रोफ़ाइल नहीं"
+    },
+    "active_tooltip": "सक्रिय प्रोफ़ाइल"
+  },
+  "settings": {
+    "title": "सेटिंग्स",
+    "application": {
+      "title": "एप्लिकेशन",
+      "description": "सामान्य एप्लिकेशन सेटिंग्स।",
+      "language": {
+        "title": "भाषा",
+        "description": "SimsForge की प्रदर्शन भाषा चुनें।"
+      }
+    },
+    "game_location": {
+      "title": "गेम स्थान",
+      "description": "SimsForge को अपनी इंस्टॉलेशन और मॉड्स कहाँ ढूँढना चाहिए यह परिभाषित करें।",
+      "game_executable": "The Sims 4 एक्जीक्यूटेबल",
+      "mods_folder": "मॉड्स फ़ोल्डर",
+      "game_detected": "गेम सफलतापूर्वक पता चला",
+      "game_not_found": "गेम पथ नहीं मिला",
+      "mods_detected": "मॉड्स फ़ोल्डर पता चला",
+      "mods_not_found": "मॉड्स फ़ोल्डर नहीं मिला",
+      "game_path_updated": "गेम पथ अपडेट हो गया",
+      "mods_path_updated": "मॉड्स पथ अपडेट हो गया",
+      "failed_to_save": "पथ सहेजने में विफल"
+    },
+    "api_keys": {
+      "title": "API कुंजियाँ",
+      "description": "CurseForge जैसे बाहरी सेवाओं के लिए API कुंजियाँ कॉन्फ़िगर करें।",
+      "curseforge_key": "CurseForge API कुंजी",
+      "configured": "✓ कॉन्फ़िगर किया गया",
+      "get_key_text": "अपनी API कुंजी यहाँ से प्राप्त करें",
+      "curseforge_console": "CurseForge कंसोल",
+      "placeholder": "अपनी CurseForge API कुंजी डालें",
+      "saved": "API कुंजी सुरक्षित रूप से सहेजी गई!",
+      "invalid": "कृपया वैध API कुंजी डालें",
+      "deleted": "API कुंजी सफलतापूर्वक हटा दी गई",
+      "failed_to_delete": "API कुंजी हटाने में विफल"
+    },
+    "mod_preferences": {
+      "title": "मॉड प्राथमिकताएँ",
+      "auto_updates": {
+        "title": "स्वचालित अपडेट",
+        "description": "जैसे ही उपलब्ध हों मॉड अपडेट डाउनलोड और इंस्टॉल करें।"
+      },
+      "backup": {
+        "title": "अपडेट से पहले बैकअप",
+        "description": "/Backups फ़ोल्डर में ओवरराइट किए गए फ़ाइलों की प्रतिलिपि बनाएँ।"
+      },
+      "fake_detection": {
+        "title": "नकली मॉड पहचान",
+        "description": "संदिग्ध मॉड्स का पता चलने पर चेतावनियाँ दिखाएँ और प्रतिबंधित निर्माताओं को ब्लॉक करें।"
+      }
+    },
+    "advanced": {
+      "title": "उन्नत",
+      "description": "समस्या निवारण और निदान के लिए अतिरिक्त विकल्प।",
+      "game_logging": {
+        "title": "गेम लॉगिंग",
+        "description_1": "The Sims 4 से वास्तविक समय लॉग देखने को सक्षम करें। SimsForge स्वचालित रूप से",
+        "link_text": "Sims Log Enabler",
+        "description_2": "मॉड इंस्टॉल करेगा जब सक्षम किया जाएगा।"
+      },
+      "debug_logs": {
+        "title": "डिबग लॉग्स दिखाएँ",
+        "description": "केवल मॉड डेवलपर्स के लिए। कंसोल आउटपुट को काफी बढ़ा देता है।"
+      }
+    },
+    "disk_performance": {
+      "title": "डिस्क परफॉर्मेंस",
+      "description": "स्वत: पता चली डिस्क गति समानांतर संचालन सीमाएँ निर्धारित करती है।",
+      "detected": "पता चला: {{type}}",
+      "speed": "({{speed}} MB/s)",
+      "not_benchmarked": "बेंचमार्क नहीं किया गया",
+      "concurrent_ops": "समवर्ती संचालन: {{poolSize}}",
+      "last_tested": "अंतिम परीक्षण: {{date}}",
+      "run_benchmark_desc": "फ़ाइल संचालन गति को अनुकूलित करने के लिए बेंचमार्क चलाएँ।",
+      "run_benchmark": "बेंचमार्क चलाएँ",
+      "rerun_benchmark": "पुन: बेंचमार्क चलाएँ"
+    },
+    "danger_zone": {
+      "title": "खतरे का क्षेत्र",
+      "clear_cache": {
+        "title": "SimsForge कैश साफ़ करें",
+        "description": "गायब इमेज या ब्लॉक डाउनलोड को हल कर सकता है।",
+        "button": "कैश साफ़ करें",
+        "clearing": "साफ़ कर रहे हैं...",
+        "success": "कैश साफ़: {{count}} आइटम हटाए गए, {{size}} MB मुक्त"
+      },
+      "reset_database": {
+        "title": "डेटाबेस रीसेट करें",
+        "description": "डिस्क से सभी प्रोफ़ाइल, कैश्ड मॉड्स, और मॉड फ़ाइलें हटा दें।",
+        "button": "रीसेट करें",
+        "resetting": "रीसेट हो रहा है...",
+        "success": "डेटाबेस रीसेट पूर्ण। सभी मॉड्स और प्रोफ़ाइल हटा दिए गए हैं।"
+      }
+    },
+    "modals": {
+      "reset_database": {
+        "title": "डेटाबेस रीसेट करें",
+        "message": "यह स्थायी रूप से आपके सभी प्रोफ़ाइल, कैश्ड मॉड्स, और मॉड्स फ़ोल्डर से मॉड फ़ाइलें हटा देगा। यह क्रिया पूर्ववत नहीं की जा सकती।",
+        "confirm": "सब कुछ रीसेट करें"
+      },
+      "disable_fake_detection": {
+        "title": "नकली मॉड पहचान अक्षम करें",
+        "message": "इस सुविधा को अक्षम करने से सभी चेतावनियाँ, रिपोर्ट, और प्रतिबंधित निर्माता ब्लॉक हटा दिए जाएँगे। आप संदिग्ध या नकली मॉड्स के खिलाफ संरक्षित नहीं रहेंगे।",
+        "confirm": "अक्षम करें",
+        "cancel": "सक्षम रखें"
+      },
+      "disable_logging": {
+        "title": "गेम लॉगिंग अक्षम करें",
+        "message": "गेम लॉगिंग अक्षम करने से आपके मॉड्स फ़ोल्डर से Sims Log Enabler मॉड हटा दिया जाएगा और The Sims 4 से वास्तविक समय लॉग देखने से रोका जाएगा।",
+        "confirm": "अक्षम करें",
+        "cancel": "सक्षम रखें"
+      }
+    },
+    "toasts": {
+      "mods_path_not_configured": "मॉड्स फ़ोल्डर कॉन्फ़िगर नहीं किया गया",
+      "configure_mods_path": "कृपया पहले अपनी मॉड्स फ़ोल्डर पथ कॉन्फ़िगर करें।",
+      "installing_log_enabler": "Sims Log Enabler इंस्टॉल हो रहा है",
+      "downloading": "डाउनलोड और इंस्टॉल हो रहा है...",
+      "logging_enabled": "गेम लॉगिंग सक्षम",
+      "log_enabler_installed": "Sims Log Enabler सफलतापूर्वक इंस्टॉल हो गया।",
+      "installation_failed": "इंस्टॉलेशन विफल",
+      "could_not_install": "Sims Log Enabler इंस्टॉल नहीं हो सका।",
+      "logging_disabled": "गेम लॉगिंग अक्षम",
+      "log_enabler_removed": "Sims Log Enabler हटा दिया गया।",
+      "preference_updated": "प्राथमिकता अपडेट हो गई, लेकिन मॉड फ़ाइल हटाने में विफल।",
+      "uninstall_warning": "अनइंस्टॉल चेतावनी",
+      "benchmark_complete": "बेंचमार्क पूर्ण",
+      "benchmark_result": "{{type}} {{speed}} MB/s पर पता चला",
+      "benchmark_failed": "बेंचमार्क विफल",
+      "benchmark_error": "डिस्क परफॉर्मेंस मापने में विफल।"
+    }
+  },
+  "splash": {
+    "checking_updates": "अपडेट जांचा जा रहा है...",
+    "downloading_update": "अपडेट डाउनलोड हो रहा है... {{progress}}%",
+    "installing_update": "अपडेट इंस्टॉल हो रहा है...",
+    "starting": "शुरू हो रहा है...",
+    "error_checking_updates": "अपडेट जांचने में त्रुटि",
+    "offline_mode": "(ऑफलाइन मोड)"
+  },
+  "mods": {
+    "filter": {
+      "category_label": "श्रेणी:",
+      "none": "कोई नहीं",
+      "no_category": "कोई श्रेणी नहीं",
+      "sort_label": "द순ानुसार:",
+      "relevance": "संबंधितता",
+      "trending": "ट्रेंडिंग",
+      "recent": "हाल ही में",
+      "popular": "लोकप्रिय",
+      "category_groups": {
+        "sims_ages_body": {
+          "name": "सिम्स, आयु, शरीर",
+          "description": "सिम के बारे में सब कुछ"
+        },
+        "clothing_style": {
+          "name": "कपड़े और शैली",
+          "description": "सिम द्वारा पहना जाने वाला सब कुछ"
+        },
+        "interior_construction": {
+          "name": "आंतरिक निर्माण",
+          "description": "घर के अंदर सब कुछ"
+        },
+        "exterior_worlds": {
+          "name": "बाहरी निर्माण और दुनिया",
+          "description": "भूखंड, बगीचे और दुनिया"
+        },
+        "animals_creatures": {
+          "name": "जानवर और प्राणी",
+          "description": "जानवरों के बारे में सब कुछ"
+        },
+        "languages_culture": {
+          "name": "भाषाएँ और संस्कृति",
+          "description": "स्थानीयकरण और सांस्कृतिक थीम"
+        },
+        "files_scenarios_misc": {
+          "name": "फ़ाइलें, परिदृश्य और विविध",
+          "description": "सब कुछ और"
+        }
+      }
+    },
+    "card": {
+      "already_installed": "पहले से इंस्टॉल",
+      "installing": "इंस्टॉल हो रहा है...",
+      "install": "स्थापित करें",
+      "installed": "स्थापित",
+      "by": "द्वारा",
+      "unknown_author": "अज्ञात"
+    },
+    "list": {
+      "column_mod": "मॉड",
+      "column_categories": "श्रेणियाँ",
+      "column_downloads": "डाउनलोड",
+      "column_last_update": "अंतिम अपडेट",
+      "no_results": "आपकी खोज से मेल खाने वाले मॉड नहीं मिले।",
+      "error": "त्रुटि",
+      "try_again": "पुनः प्रयास करें"
+    },
+    "detail": {
+      "loading": "मॉड विवरण लोड हो रहा है...",
+      "not_found": "मॉड नहीं मिला",
+      "error_title": "त्रुटि",
+      "error_loading": "मॉड विवरण लोड करने में विफल",
+      "error_generic": "मॉड लोड करने में विफल",
+      "back_to_dashboard": "डैशबोर्ड पर वापस",
+      "back": "वापस",
+      "tabs": {
+        "description": "विवरण",
+        "files": "फ़ाइलें",
+        "images": "छवियाँ",
+        "changelog": "परिवर्तन सूची",
+        "no_description_message": "यह मॉड CurseForge API से प्राप्त किया गया है। विस्तृत जानकारी के लिए, CurseForge पर मॉड पृष्ठ पर जाएँ:",
+        "view_on_curseforge": "CurseForge पर देखें",
+        "table_name": "नाम",
+        "table_date": "तारीख",
+        "table_size": "आकार",
+        "table_action": "क्रिया",
+        "latest_badge": "नवीनतम",
+        "install_file": "फ़ाइल स्थापित करें",
+        "installing_file": "स्थापित हो रहा है...",
+        "no_files": "कोई फ़ाइल उपलब्ध नहीं है।",
+        "screenshot_alt": "स्क्रीनशॉट {{index}}",
+        "no_images": "कोई चित्र उपलब्ध नहीं है।",
+        "coming_soon": "जल्द आ रहा है",
+        "changelog_message": "परिवर्तन सूची दृश्य अगले अपडेट में उपलब्ध होगा।"
+      },
+      "header": {
+        "share_copied": "लिंक क्लिपबोर्ड में कॉपी हो गया!",
+        "more_categories": "+{{count}} और",
+        "curseforge_badge": "CurseForge",
+        "by": "द्वारा",
+        "unknown_author": "अज्ञात",
+        "updated": "{{date}} को अपडेट किया गया",
+        "already_installed": "पहले से इंस्टॉल",
+        "installing": "इंस्टॉल हो रहा है...",
+        "install": "स्थापित करें",
+        "installed": "स्थापित"
+      },
+      "sidebar": {
+        "warning_title": "चेतावनी",
+        "warning_banned_message": "इस निर्माता को कई नकली मॉड्स के कारण प्रतिबंधित किया गया है।",
+        "warning_reported_message": "इस मॉड को {{count}} उपयोगकर्ताओं ने रिपोर्ट किया है।",
+        "information": "जानकारी",
+        "size": "आकार",
+        "downloads": "डाउनलोड",
+        "license": "लाइसेंस",
+        "view_on_curseforge": "CurseForge पर देखें",
+        "dependencies": "निर्भरताएँ",
+        "no_dependencies": "कोई निर्भरता आवश्यक नहीं।",
+        "recommended": "अनुशंसित मॉड्स",
+        "view_recommendations": "CurseForge पर अनुशंसाएँ देखें",
+        "na": "उपलब्ध नहीं",
+        "report_title": "रिपोर्ट करें",
+        "report_description": "क्या आपको लगता है कि यह मॉड नकली या भ्रामक है? समुदाय की मदद करें इसे रिपोर्ट करके।"
+      }
+    },
+    "warnings": {
+      "creator_banned": "निर्माता प्रतिबंधित",
+      "suspicious_mod": "संदिग्ध मॉड चेतावनी",
+      "banned_message": "इस मॉड निर्माता को कई नकली या भ्रामक मॉड्स के कारण प्रतिबंधित किया गया है। हम इस निर्माता के मॉड्स इंस्टॉल करने की सलाह नहीं देते।",
+      "auto_warning_message": "यह मॉड संदिग्ध के रूप में चिह्नित किया गया है: {{reason}}",
+      "user_reports_message": "{{count}} उपयोगकर्ता(कों) ने इसे संभावित रूप से नकली या भ्रामक के रूप में रिपोर्ट किया है।",
+      "banned_badge": "प्रतिबंधित निर्माता",
+      "suspicious_badge": "संदिग्ध",
+      "reports_badge": "{{count}} रिपोर्ट्स",
+      "banned_tooltip": "इस निर्माता को कई नकली मॉड्स के कारण प्रतिबंधित किया गया",
+      "reports_tooltip": "{{count}} उपयोगकर्ताओं ने इस मॉड को रिपोर्ट किया है",
+      "suspicious": "संदिग्ध"
+    },
+    "fake_warning_popup": {
+      "title": "संदिग्ध मॉड का पता चला",
+      "message": "को संभावित रूप से नकली या भ्रामक के रूप में चिह्नित किया गया है।",
+      "suspicion_score": "संदेह स्कोर",
+      "score_suffix": "/100",
+      "details_label": "अतिरिक्त विवरण (वैकल्पिक):",
+      "details_placeholder": "इस मॉड के नकली प्रतीत होने के बारे में कोई अतिरिक्त जानकारी जोड़ें...",
+      "install_anyway": "फिर भी इंस्टॉल करें",
+      "report_cancel": "रिपोर्ट करें और रद्द करें",
+      "submit_report": "रिपोर्ट सबमिट करें और रद्द करें",
+      "submitting": "जमा हो रहा है..."
+    },
+    "report": {
+      "button_title": "नकली मॉड के रूप में रिपोर्ट करें",
+      "button_text": "रिपोर्ट करें",
+      "modal_title": "नकली मॉड रिपोर्ट करें",
+      "modal_message_prefix": "रिपोर्ट",
+      "modal_message_suffix": "एक संभावित नकली या भ्रामक मॉड के रूप में।",
+      "reason_label": "कारण (वैकल्पिक):",
+      "reason_placeholder": "आपको क्यों लगता है कि यह मॉड नकली है?",
+      "submit": "रिपोर्ट सबमिट करें",
+      "submitted_title": "रिपोर्ट जमा हो गई",
+      "submitted_message": "\"{{modName}}\" रिपोर्ट करने के लिए धन्यवाद",
+      "already_reported_title": "पहले से रिपोर्ट किया गया",
+      "already_reported_message": "आपने पहले ही इस मॉड को रिपोर्ट कर दिया है",
+      "failed_title": "रिपोर्ट विफल",
+      "failed_message": "रिपोर्ट सबमिट करने में विफल",
+      "cancel": "रद्द करें",
+      "submitting": "जमा हो रहा है..."
+    },
+    "toasts": {
+      "mods_path_not_configured": "मॉड्स पथ कॉन्फ़िगर नहीं किया गया",
+      "configure_in_settings": "कृपया सेटिंग्स में अपनी मॉड्स फ़ोल्डर कॉन्फ़िगर करें",
+      "failed_to_read_path": "मॉड्स पथ पढ़ने में विफल",
+      "reconfigure_in_settings": "कृपया सेटिंग्स में अपनी मॉड्स फ़ोल्डर पुन: कॉन्फ़िगर करें",
+      "installing": "{{modName}} इंस्टॉल हो रहा है",
+      "starting_download": "डाउनलोड शुरू हो रहा है...",
+      "installation_complete": "इंस्टॉलेशन पूर्ण!",
+      "installed_successfully": "{{modName}} सफलतापूर्वक इंस्टॉल हो गया",
+      "installation_failed": "इंस्टॉलेशन विफल",
+      "unknown_error": "अज्ञात त्रुटि",
+      "unexpected_error": "एक अप्रत्याशित त्रुटि हुई"
+    }
+  },
+  "console": {
+    "title": "गेम कंसोल",
+    "logs_count": "{{count}} लॉग",
+    "paused_count": "(+{{count}} रोका गया)",
+    "filter_placeholder": "फ़िल्टर करें...",
+    "filter_by_source": "स्रोत द्वारा फ़िल्टर करें",
+    "pause": "रोकें",
+    "resume": "फिर से शुरू करें",
+    "scroll_to_bottom": "नीचे स्क्रॉल करें",
+    "export_logs": "लॉग फ़ाइल में निर्यात करें",
+    "clear_logs": "लॉग साफ़ करें",
+    "close": "बंद करें",
+    "clear_filter": "फ़िल्टर साफ़ करें",
+    "waiting_for_logs": "लॉग का इंतज़ार है...",
+    "no_match": "फ़िल्टर से कोई लॉग मेल नहीं खाता",
+    "sources_count": "{{count}} स्रोत",
+    "total_logs": "{{count}} कुल लॉग",
+    "auto_scroll_disabled": "स्वत: स्क्रॉल अक्षम (सक्षम करने के लिए नीचे स्क्रॉल करें)"
+  },
+  "errors": {
+    "generic": "एक त्रुटि हुई",
+    "try_again": "पुनः प्रयास करें"
+  },
+  "contexts": {
+    "profile": {
+      "initialization_failed": "प्रोफ़ाइल आरंभीकरण विफल",
+      "unknown_error": "अज्ञात त्रुटि",
+      "profile_created": "प्रोफ़ाइल बनाई गई",
+      "profile_created_message": "\"{{name}}\" सफलतापूर्वक बनाई गई",
+      "failed_to_create": "प्रोफ़ाइल बनाने में विफल",
+      "profile_updated": "प्रोफ़ाइल अपडेट की गई",
+      "changes_saved": "परिवर्तन सफलतापूर्वक सहेजे गए",
+      "failed_to_update": "प्रोफ़ाइल अपडेट करने में विफल",
+      "profile_deleted": "प्रोफ़ाइल हटाई गई",
+      "profile_removed": "प्रोफ़ाइल सफलतापूर्वक हटा दी गई",
+      "failed_to_delete": "प्रोफ़ाइल हटाने में विफल",
+      "failed_to_activate": "प्रोफ़ाइल सक्रिय करने में विफल",
+      "still_initializing": "प्रोफ़ाइल सिस्टम अभी भी आरंभ हो रहा है। कृपया कुछ क्षण प्रतीक्षा करें और पुनः प्रयास करें।",
+      "mods_path_not_configured": "मॉड्स पथ कॉन्फ़िगर नहीं किया गया। The Sims 4 इंस्टॉलेशन नहीं मिल सका।",
+      "profile_not_found": "प्रोफ़ाइल नहीं मिली",
+      "failed_to_create_symlinks": "{{count}} सिम्लिंक्स बनाने में विफल:\n{{errors}}\n\nअनुमतियों की जाँच करें और सुनिश्चित करें कि The Sims 4 नहीं चल रहा है।",
+      "mod_removed": "मॉड हटाया गया",
+      "mod_removed_from_profile": "प्रोफ़ाइल से मॉड हटाया गया",
+      "failed_to_remove_mod": "मॉड हटाने में विफल"
+    },
+    "update": {
+      "auto_updating_mods": "मॉड्स का स्वचालित अपडेट",
+      "installing_updates": "{{count}} अपडेट इंस्टॉल हो रहे हैं...",
+      "updates_available": "अपडेट उपलब्ध",
+      "updates_available_message": "{{count}} मॉड अपडेट उपलब्ध",
+      "update_check_failed": "अपडेट जाँच विफल",
+      "failed_to_check": "अपडेट जाँचने में विफल",
+      "update_failed": "अपडेट विफल",
+      "no_update_info": "इस मॉड के लिए कोई अपडेट जानकारी नहीं मिली",
+      "mods_path_not_configured": "मॉड्स पथ कॉन्फ़िगर नहीं किया गया",
+      "mod_updated": "मॉड अपडेट किया गया",
+      "mod_updated_message": "{{name}} सफलतापूर्वक अपडेट किया गया",
+      "all_mods_updated": "सभी मॉड्स अपडेट किए गए",
+      "all_mods_updated_message": "{{count}} मॉड(्स) सफलतापूर्वक अपडेट किए गए",
+      "partial_update": "आंशिक अपडेट",
+      "partial_update_message": "{{successful}}/{{total}} मॉड अपडेट किए गए। {{failed}} विफल।",
+      "update_failed_message": "{{count}} मॉड(्स) अपडेट करने में विफल"
+    }
+  }
+}

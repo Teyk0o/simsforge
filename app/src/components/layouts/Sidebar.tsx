@@ -8,6 +8,7 @@ import { useUpdates } from '@/context/UpdateContext';
 import { MagnifyingGlass, DownloadSimple, Heart, GearSix } from '@phosphor-icons/react';
 import ProfileSelector from '@/components/profile/ProfileSelector';
 import UpdateCountBadge from '@/components/update/UpdateCountBadge';
+import { useTranslation } from 'react-i18next';
 
 interface SidebarProps {
   onThemeToggle: () => void;
@@ -19,6 +20,7 @@ export default function Sidebar({ onThemeToggle, theme }: SidebarProps) {
   const pathname = usePathname();
   const { activeProfile, profiles, activateProfile, isInitialized } = useProfiles();
   const { updateCount } = useUpdates();
+  const { t } = useTranslation();
 
   // Map current pathname to active nav item
   const getActiveNav = () => {
@@ -45,7 +47,7 @@ export default function Sidebar({ onThemeToggle, theme }: SidebarProps) {
         <Link href="/" className="flex items-center h-full">
           <Image
             src="/logo.png"
-            alt="SimsForge"
+            alt={t('layout.sidebar.logo_alt')}
             width={170}
             height={36}
             className="hidden lg:block"
@@ -70,7 +72,7 @@ export default function Sidebar({ onThemeToggle, theme }: SidebarProps) {
             letterSpacing: '0.05em',
           }}
         >
-          Profil Actif
+          {t('layout.sidebar.active_profile')}
         </div>
 
         <ProfileSelector
@@ -90,8 +92,8 @@ export default function Sidebar({ onThemeToggle, theme }: SidebarProps) {
         {/* Navigation */}
         <nav className="space-y-1">
           {[
-            { id: 'browse', label: 'Parcourir', icon: MagnifyingGlass, href: '/' },
-            { id: 'library', label: 'Bibliothèque', icon: DownloadSimple, href: '/library', badge: updateCount },
+            { id: 'browse', label: t('layout.sidebar.browse'), icon: MagnifyingGlass, href: '/' },
+            { id: 'library', label: t('layout.sidebar.library'), icon: DownloadSimple, href: '/library', badge: updateCount },
           ].map(({ id, label, icon: Icon, href, badge }) => {
             const isActive = getActiveNav() === id && !href.includes('filter=updates');
             return (
@@ -146,11 +148,11 @@ export default function Sidebar({ onThemeToggle, theme }: SidebarProps) {
           onMouseLeave={(e) => {
             e.currentTarget.style.color = 'var(--text-secondary)';
           }}
-          aria-label="Settings"
-          title="Settings"
+          aria-label={t('layout.sidebar.settings')}
+          title={t('layout.sidebar.settings')}
         >
           <GearSix size={20} />
-          <span className="hidden lg:block text-sm font-medium">Settings</span>
+          <span className="hidden lg:block text-sm font-medium">{t('layout.sidebar.settings')}</span>
         </Link>
       </div>
     </aside>

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { CaretDown, WarningCircle, LockKey, CaretRight } from '@phosphor-icons/react';
 import ViewToggle from '@/components/mod/ViewToggle';
 import { ViewMode } from '@/hooks/useViewMode';
+import { useTranslation } from 'react-i18next';
 
 interface FilterBarProps {
   onSortChange: (sort: 'downloads' | 'date' | 'trending' | 'relevance') => void;
@@ -91,13 +92,6 @@ const CATEGORY_GROUPS: CategoryGroup[] = [
   }
 ];
 
-const SORT_OPTIONS = [
-  { value: 'relevance' as const, label: 'Pertinence' },
-  { value: 'trending' as const, label: 'Tendances' },
-  { value: 'date' as const, label: 'Récents' },
-  { value: 'downloads' as const, label: 'Populaires' },
-];
-
 export default function FilterBar({
   onSortChange,
   activeSort,
@@ -108,9 +102,17 @@ export default function FilterBar({
   viewMode,
   onViewModeChange,
 }: FilterBarProps) {
+  const { t } = useTranslation();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [activeGroup, setActiveGroup] = useState<string | null>(CATEGORY_GROUPS[0]?.name || null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const SORT_OPTIONS = [
+    { value: 'relevance' as const, label: t('mods.filter.relevance') },
+    { value: 'trending' as const, label: t('mods.filter.trending') },
+    { value: 'date' as const, label: t('mods.filter.recent') },
+    { value: 'downloads' as const, label: t('mods.filter.popular') },
+  ];
 
   const handleCategorySelect = (cat: string) => {
     if (typeof onCategoryChange !== 'function') {
@@ -148,8 +150,8 @@ export default function FilterBar({
             className="flex items-center gap-2 px-3 py-1.5 border rounded-lg text-sm font-medium hover:border-brand-green transition-colors cursor-pointer"
             style={{ backgroundColor: 'var(--ui-panel)', borderColor: 'var(--ui-border)' }}
           >
-            <span>Catégorie:</span>
-            <span className="text-brand-green">{selectedCategory || 'Aucune'}</span>
+            <span>{t('mods.filter.category_label')}</span>
+            <span className="text-brand-green">{selectedCategory || t('mods.filter.none')}</span>
             <CaretDown size={16} className={`transition-transform ${openDropdown === 'category' ? 'rotate-180' : ''}`} style={{ color: 'var(--text-secondary)' }} />
           </button>
           {openDropdown === 'category' && (
@@ -181,7 +183,7 @@ export default function FilterBar({
                     }
                   }}
                 >
-                  <div className="text-sm font-medium">Aucune catégorie</div>
+                  <div className="text-sm font-medium">{t('mods.filter.no_category')}</div>
                 </button>
 
                 {CATEGORY_GROUPS.map((group) => (
@@ -262,7 +264,7 @@ export default function FilterBar({
             className="flex items-center gap-2 px-3 py-1.5 border rounded-lg text-sm font-medium hover:border-brand-green transition-colors cursor-pointer"
             style={{ backgroundColor: 'var(--ui-panel)', borderColor: 'var(--ui-border)' }}
           >
-            <span>Trier par:</span>
+            <span>{t('mods.filter.sort_label')}</span>
             <span className="text-brand-green">
               {SORT_OPTIONS.find((o) => o.value === activeSort)?.label}
             </span>

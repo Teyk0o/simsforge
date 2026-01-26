@@ -5,8 +5,10 @@ import { useProfiles } from '@/context/ProfileContext';
 import { useToast } from '@/context/ToastContext';
 import CreateProfileModal from '@/components/profile/CreateProfileModal';
 import { Trash, PencilSimple, CheckCircle, Plus } from '@phosphor-icons/react';
+import { useTranslation } from 'react-i18next';
 
 export default function ProfilesPage() {
+  const { t } = useTranslation();
   const { profiles, activeProfile, activateProfile, deleteProfile, updateProfile, isLoading, isInitialized } =
     useProfiles();
   const { showToast } = useToast();
@@ -16,7 +18,7 @@ export default function ProfilesPage() {
   const [editDescription, setEditDescription] = useState('');
 
   const handleDeleteProfile = async (profileId: string) => {
-    if (!confirm('Are you sure you want to delete this profile? This action cannot be undone.')) {
+    if (!confirm(t('profiles.card.delete_confirmation'))) {
       return;
     }
 
@@ -37,8 +39,8 @@ export default function ProfilesPage() {
     if (!editName.trim()) {
       showToast({
         type: 'error',
-        title: 'Validation Error',
-        message: 'Profile name cannot be empty',
+        title: t('profiles.card.validation_error'),
+        message: t('profiles.card.name_required'),
         duration: 3000,
       });
       return;
@@ -53,7 +55,7 @@ export default function ProfilesPage() {
     } catch (error: any) {
       showToast({
         type: 'error',
-        title: 'Failed to update profile',
+        title: t('profiles.card.update_failed'),
         message: error.message,
         duration: 3000,
       });
@@ -73,10 +75,10 @@ export default function ProfilesPage() {
               className="text-2xl font-bold mb-1"
               style={{ color: 'var(--text-primary)' }}
             >
-              Profiles
+              {t('profiles.title')}
             </h1>
             <p style={{ color: 'var(--text-secondary)' }}>
-              Manage your mod profiles and configurations
+              {t('profiles.subtitle')}
             </p>
           </div>
           <button
@@ -89,7 +91,7 @@ export default function ProfilesPage() {
             }}
           >
             <Plus size={20} weight="bold" />
-            <span>Create Profile</span>
+            <span>{t('profiles.create_profile')}</span>
           </button>
         </div>
       </div>
@@ -101,20 +103,20 @@ export default function ProfilesPage() {
             className="flex items-center justify-center h-64"
             style={{ color: 'var(--text-secondary)' }}
           >
-            Loading profiles...
+            {t('profiles.loading')}
           </div>
         ) : profiles.length === 0 ? (
           <div
             className="flex flex-col items-center justify-center h-64 text-center"
             style={{ color: 'var(--text-secondary)' }}
           >
-            <p className="text-lg mb-4">No profiles yet</p>
+            <p className="text-lg mb-4">{t('profiles.empty.title')}</p>
             <button
               onClick={() => setShowCreateModal(true)}
               className="px-4 py-2 rounded-md transition-colors font-medium text-white"
               style={{ backgroundColor: '#46C89B' }}
             >
-              Create your first profile
+              {t('profiles.empty.button')}
             </button>
           </div>
         ) : (
@@ -145,7 +147,7 @@ export default function ProfilesPage() {
                     <textarea
                       value={editDescription}
                       onChange={(e) => setEditDescription(e.target.value)}
-                      placeholder="Profile description..."
+                      placeholder={t('profiles.card.description_placeholder')}
                       rows={2}
                       className="w-full px-3 py-2 rounded border text-sm resize-none"
                       style={{
@@ -163,14 +165,14 @@ export default function ProfilesPage() {
                           color: 'var(--text-secondary)',
                         }}
                       >
-                        Cancel
+                        {t('common.cancel')}
                       </button>
                       <button
                         onClick={() => handleSaveEdit(profile.id)}
                         className="flex-1 px-3 py-2 rounded text-sm transition-colors font-medium text-white"
                         style={{ backgroundColor: '#46C89B' }}
                       >
-                        Save
+                        {t('common.save')}
                       </button>
                     </div>
                   </div>
@@ -192,7 +194,7 @@ export default function ProfilesPage() {
                         </h3>
                       </div>
                       {activeProfile?.id === profile.id && (
-                        <div title="Active Profile">
+                        <div title={t('profiles.active_tooltip')}>
                           <CheckCircle
                             size={20}
                             weight="fill"
@@ -218,7 +220,9 @@ export default function ProfilesPage() {
                       style={{ backgroundColor: 'var(--ui-hover)' }}
                     >
                       <span style={{ color: 'var(--text-secondary)' }}>
-                        {profile.mods.length} mod{profile.mods.length !== 1 ? 's' : ''}
+                        {profile.mods.length === 1
+                          ? t('profiles.card.mods_count', { count: profile.mods.length })
+                          : t('profiles.card.mods_count_plural', { count: profile.mods.length })}
                       </span>
                     </div>
 
@@ -252,7 +256,7 @@ export default function ProfilesPage() {
                             opacity: isLoading || !isInitialized ? 0.5 : 1,
                           }}
                         >
-                          Activate
+                          {t('profiles.card.activate')}
                         </button>
                       )}
                       <button
@@ -266,7 +270,7 @@ export default function ProfilesPage() {
                         }}
                       >
                         <PencilSimple size={16} />
-                        <span>Edit</span>
+                        <span>{t('profiles.card.edit')}</span>
                       </button>
                       <button
                         onClick={() => handleDeleteProfile(profile.id)}

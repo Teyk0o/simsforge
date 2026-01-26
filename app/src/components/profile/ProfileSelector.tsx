@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { ModProfile } from '@/types/profile';
 import { CaretDown, Plus } from '@phosphor-icons/react';
 import CreateProfileModal from './CreateProfileModal';
+import { useTranslation } from 'react-i18next';
 
 interface ProfileSelectorProps {
   activeProfile: ModProfile | null;
@@ -18,6 +19,7 @@ export default function ProfileSelector({
   onActivate,
   isInitialized = true,
 }: ProfileSelectorProps) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -63,7 +65,7 @@ export default function ProfileSelector({
             style={{ backgroundColor: activeProfile?.iconColor || '#46C89B' }}
           />
           <span className="hidden lg:block text-sm font-medium truncate flex-1 text-left">
-            {activeProfile?.name || 'No Profile'}
+            {activeProfile?.name || t('profiles.selector.no_profile')}
           </span>
           <CaretDown
             size={16}
@@ -128,7 +130,9 @@ export default function ProfileSelector({
                           className="text-xs truncate"
                           style={{ color: 'var(--text-secondary)' }}
                         >
-                          {profile.mods.length} mod{profile.mods.length !== 1 ? 's' : ''}
+                          {profile.mods.length === 1
+                            ? t('profiles.card.mods_count', { count: profile.mods.length })
+                            : t('profiles.card.mods_count_plural', { count: profile.mods.length })}
                         </div>
                       )}
                     </div>
@@ -140,7 +144,7 @@ export default function ProfileSelector({
                 className="px-3 py-4 text-center text-sm"
                 style={{ color: 'var(--text-secondary)' }}
               >
-                No profiles yet
+                {t('profiles.selector.empty')}
               </div>
             )}
 
@@ -173,7 +177,7 @@ export default function ProfileSelector({
               }}
             >
               <Plus size={16} weight="bold" />
-              <span className="hidden lg:block text-sm">Create Profile</span>
+              <span className="hidden lg:block text-sm">{t('profiles.create_profile')}</span>
             </button>
           </div>
         )}

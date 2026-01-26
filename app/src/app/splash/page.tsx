@@ -6,6 +6,7 @@ import { check } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { Window } from '@tauri-apps/api/window';
 import { getVersion } from '@tauri-apps/api/app';
+import { useTranslation } from 'react-i18next';
 
 type UpdateStatus = 'checking' | 'downloading' | 'installing' | 'starting' | 'error';
 
@@ -14,6 +15,7 @@ type UpdateStatus = 'checking' | 'downloading' | 'installing' | 'starting' | 'er
  * Displays a logo animation, version info, and update progress.
  */
 export default function SplashPage() {
+  const { t } = useTranslation();
   const [status, setStatus] = useState<UpdateStatus>('checking');
   const [progress, setProgress] = useState(0);
   const [version, setVersion] = useState('');
@@ -124,15 +126,15 @@ export default function SplashPage() {
   function getStatusText(): string {
     switch (status) {
       case 'checking':
-        return 'Checking for updates...';
+        return t('splash.checking_updates');
       case 'downloading':
-        return `Downloading update... ${progress}%`;
+        return t('splash.downloading_update', { progress });
       case 'installing':
-        return 'Installing update...';
+        return t('splash.installing_update');
       case 'starting':
-        return 'Starting...';
+        return t('splash.starting');
       case 'error':
-        return 'Error checking updates';
+        return t('splash.error_checking_updates');
       default:
         return '';
     }
@@ -197,7 +199,7 @@ export default function SplashPage() {
       {/* Error message (subtle) */}
       {errorMessage && status === 'starting' && (
         <p className="text-xs mt-2" style={{ color: '#6b7280' }}>
-          (Offline mode)
+          {t('splash.offline_mode')}
         </p>
       )}
 

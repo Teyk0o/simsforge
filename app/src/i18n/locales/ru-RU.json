@@ -1,0 +1,518 @@
+{
+  "common": {
+    "save": "Сохранить",
+    "saving": "Сохранение...",
+    "cancel": "Отмена",
+    "delete": "Удалить",
+    "confirm": "Подтвердить",
+    "loading": "Загрузка...",
+    "error": "Ошибка",
+    "success": "Успех",
+    "warning": "Предупреждение",
+    "edit": "Редактировать",
+    "create": "Создать",
+    "remove": "Удалить",
+    "install": "Установить",
+    "installed": "Установлен",
+    "installing": "Установка...",
+    "update": "Обновить",
+    "updating": "Обновление...",
+    "enable": "Включить",
+    "disable": "Выключить",
+    "disabled": "Выключен",
+    "activate": "Активировать",
+    "tryAgain": "Попробовать снова",
+    "na": "Н/Д",
+    "mod": "мод",
+    "mods": "моды",
+    "processing": "Обработка...",
+    "dismiss": "Скрыть",
+    "close": "Закрыть",
+    "back": "Назад"
+  },
+  "ui": {
+    "view_toggle": {
+      "switch_to_grid": "Переключить на сетку",
+      "switch_to_list": "Переключить на список"
+    },
+    "image_lightbox": {
+      "previous": "Предыдущее изображение",
+      "next": "Следующее изображение",
+      "image_of": "Изображение {{current}} из {{total}}"
+    }
+  },
+  "layout": {
+    "sidebar": {
+      "logo_alt": "SimsForge",
+      "active_profile": "Активный профиль",
+      "browse": "Обзор",
+      "library": "Библиотека",
+      "settings": "Настройки"
+    }
+  },
+  "home": {
+    "search_placeholder": "Поиск модов...",
+    "reset": "Сбросить",
+    "console": "Консоль",
+    "console_tooltip": "Открыть консоль игры",
+    "play": "Играть",
+    "launching": "Запуск...",
+    "running": "Выполняется"
+  },
+  "library": {
+    "title": "Библиотека",
+    "loading": "Загрузка библиотеки...",
+    "search_placeholder": "Поиск модов...",
+    "filter_label": "Фильтр:",
+    "sort_label": "Сортировка:",
+    "check_updates": "Проверить обновления",
+    "checking": "Проверка...",
+    "update_all": "Обновить все ({{count}})",
+    "updating": "Обновление...",
+    "filters": {
+      "all": "Все моды",
+      "enabled": "Включены",
+      "disabled": "Выключены",
+      "updates": "Доступны обновления"
+    },
+    "sort": {
+      "name": "Название",
+      "last_updated": "Последнее обновление"
+    },
+    "empty": {
+      "no_profile_title": "Нет активного профиля",
+      "no_profile_message": "Создайте или активируйте профиль в боковой панели, чтобы увидеть моды",
+      "no_mods_title": "В этом профиле пока нет модов",
+      "no_search_results": "Моды по вашему запросу не найдены",
+      "all_updated": "Все моды обновлены!"
+    },
+    "mod_item": {
+      "updated": "Обновлен {{date}}",
+      "disable_tooltip": "Выключить мод",
+      "enable_tooltip": "Включить мод",
+      "remove_tooltip": "Удалить мод из профиля",
+      "by": "от"
+    },
+    "remove_modal": {
+      "title": "Удалить мод",
+      "message": "Вы уверены, что хотите удалить «{{modName}}» из профиля? Это действие нельзя отменить.",
+      "confirm": "Удалить"
+    }
+  },
+  "profiles": {
+    "title": "Профили",
+    "subtitle": "Управление профилями модов и настройками",
+    "create_profile": "Создать профиль",
+    "loading": "Загрузка профилей...",
+    "empty": {
+      "title": "Профилей пока нет",
+      "button": "Создайте первый профиль"
+    },
+    "card": {
+      "mods_count": "{{count}} мод",
+      "mods_count_plural": "{{count}} модов",
+      "activate": "Активировать",
+      "edit": "Редактировать",
+      "name_required": "Название профиля не может быть пустым",
+      "delete_confirmation": "Вы уверены, что хотите удалить этот профиль? Это действие нельзя отменить.",
+      "validation_error": "Ошибка валидации",
+      "update_failed": "Не удалось обновить профиль",
+      "description_placeholder": "Описание профиля..."
+    },
+    "create_modal": {
+      "title": "Создать профиль",
+      "name_label": "Название профиля *",
+      "name_placeholder": "напр., Реалистичный геймплей",
+      "description_label": "Описание",
+      "description_placeholder": "Необязательное описание профиля...",
+      "tags_label": "Теги",
+      "tags_placeholder": "Добавить тег и нажать Enter",
+      "add": "Добавить",
+      "name_required_error": "Название профиля обязательно",
+      "create_failed": "Не удалось создать профиль",
+      "creating": "Создание..."
+    },
+    "selector": {
+      "no_profile": "Нет профиля",
+      "empty": "Профилей пока нет"
+    },
+    "active_tooltip": "Активный профиль"
+  },
+  "settings": {
+    "title": "Настройки",
+    "application": {
+      "title": "Приложение",
+      "description": "Общие настройки приложения.",
+      "language": {
+        "title": "Язык",
+        "description": "Выберите язык отображения SimsForge."
+      }
+    },
+    "game_location": {
+      "title": "Расположение игры",
+      "description": "Укажите, где SimsForge должен искать установку игры и моды.",
+      "game_executable": "Исполняемый файл The Sims 4",
+      "mods_folder": "Папка модов",
+      "game_detected": "Игра успешно обнаружена",
+      "game_not_found": "Путь к игре не найден",
+      "mods_detected": "Папка модов обнаружена",
+      "mods_not_found": "Папка модов не найдена",
+      "game_path_updated": "Путь к игре обновлен",
+      "mods_path_updated": "Путь к папке модов обновлен",
+      "failed_to_save": "Не удалось сохранить путь"
+    },
+    "api_keys": {
+      "title": "Ключи API",
+      "description": "Настройка ключей API для внешних сервисов, таких как CurseForge.",
+      "curseforge_key": "Ключ API CurseForge",
+      "configured": "✓ Настроен",
+      "get_key_text": "Получите ключ API здесь",
+      "curseforge_console": "Консоль CurseForge",
+      "placeholder": "Введите ключ API CurseForge",
+      "saved": "Ключ API сохранен безопасно!",
+      "invalid": "Введите корректный ключ API",
+      "deleted": "Ключ API успешно удален",
+      "failed_to_delete": "Не удалось удалить ключ API"
+    },
+    "mod_preferences": {
+      "title": "Настройки модов",
+      "auto_updates": {
+        "title": "Автообновления",
+        "description": "Скачивать и устанавливать обновления модов сразу после их появления."
+      },
+      "backup": {
+        "title": "Резервное копирование перед обновлением",
+        "description": "Создавать копию перезаписанных файлов в папке /Backups."
+      },
+      "fake_detection": {
+        "title": "Обнаружение фейковых модов",
+        "description": "Показывать предупреждения и блокировать забаненных авторов при обнаружении подозрительных модов."
+      }
+    },
+    "advanced": {
+      "title": "Дополнительно",
+      "description": "Дополнительные опции для устранения неполадок и диагностики.",
+      "game_logging": {
+        "title": "Журнал игры",
+        "description_1": "Включить просмотр логов The Sims 4 в реальном времени. SimsForge автоматически установит",
+        "link_text": "мод Sims Log Enabler",
+        "description_2": "при активации."
+      },
+      "debug_logs": {
+        "title": "Показывать отладочные логи",
+        "description": "Только для разработчиков модов. Значительно увеличивает вывод консоли."
+      }
+    },
+    "disk_performance": {
+      "title": "Производительность диска",
+      "description": "Автоопределенная скорость диска определяет лимиты параллельных операций.",
+      "detected": "Обнаружено: {{type}}",
+      "speed": "({{speed}} МБ/с)",
+      "not_benchmarked": "Не протестировано",
+      "concurrent_ops": "Параллельные операции: {{poolSize}}",
+      "last_tested": "Последний тест: {{date}}",
+      "run_benchmark_desc": "Запустить тест для оптимизации скорости операций с файлами.",
+      "run_benchmark": "Запустить тест",
+      "rerun_benchmark": "Повторить тест"
+    },
+    "danger_zone": {
+      "title": "Зона риска",
+      "clear_cache": {
+        "title": "Очистить кэш SimsForge",
+        "description": "Может решить проблему отсутствующих изображений или заблокированных загрузок.",
+        "button": "Очистить кэш",
+        "clearing": "Очистка...",
+        "success": "Кэш очищен: удалено {{count}} элементов, освобождено {{size}} МБ"
+      },
+      "reset_database": {
+        "title": "Сброс базы данных",
+        "description": "Удалить все профили, кэшированные моды и файлы модов с диска.",
+        "button": "Сбросить",
+        "resetting": "Сброс...",
+        "success": "База данных сброшена. Все моды и профили удалены."
+      }
+    },
+    "modals": {
+      "reset_database": {
+        "title": "Сброс базы данных",
+        "message": "Это навсегда удалит все ваши профили, кэшированные моды и файлы модов из папки Mods. Действие нельзя отменить.",
+        "confirm": "Сбросить все"
+      },
+      "disable_fake_detection": {
+        "title": "Отключить обнаружение фейковых модов",
+        "message": "Отключение удалит все предупреждения, отчеты и блокировки забаненных авторов. Вы больше не будете защищены от подозрительных или фейковых модов.",
+        "confirm": "Отключить",
+        "cancel": "Оставить включенным"
+      },
+      "disable_logging": {
+        "title": "Отключить журнал игры",
+        "message": "Отключение журнала игры удалит мод Sims Log Enabler из папки Mods и запретит просмотр логов The Sims 4 в реальном времени.",
+        "confirm": "Отключить",
+        "cancel": "Оставить включенным"
+      }
+    },
+    "toasts": {
+      "mods_path_not_configured": "Папка модов не настроена",
+      "configure_mods_path": "Сначала настройте путь к папке модов.",
+      "installing_log_enabler": "Установка Sims Log Enabler",
+      "downloading": "Загрузка и установка...",
+      "logging_enabled": "Журнал игры включен",
+      "log_enabler_installed": "Sims Log Enabler успешно установлен.",
+      "installation_failed": "Ошибка установки",
+      "could_not_install": "Не удалось установить Sims Log Enabler.",
+      "logging_disabled": "Журнал игры отключен",
+      "log_enabler_removed": "Sims Log Enabler удален.",
+      "preference_updated": "Настройка обновлена, но файл мода удалить не удалось.",
+      "uninstall_warning": "Предупреждение об удалении",
+      "benchmark_complete": "Тест завершен",
+      "benchmark_result": "{{type}} обнаружен на {{speed}} МБ/с",
+      "benchmark_failed": "Тест не удался",
+      "benchmark_error": "Не удалось измерить производительность диска."
+    }
+  },
+  "splash": {
+    "checking_updates": "Проверка обновлений...",
+    "downloading_update": "Загрузка обновления... {{progress}}%",
+    "installing_update": "Установка обновления...",
+    "starting": "Запуск...",
+    "error_checking_updates": "Ошибка проверки обновлений",
+    "offline_mode": "(Офлайн режим)"
+  },
+  "mods": {
+    "filter": {
+      "category_label": "Категория:",
+      "none": "Нет",
+      "no_category": "Без категории",
+      "sort_label": "Сортировать по:",
+      "relevance": "Релевантность",
+      "trending": "Популярное",
+      "recent": "Недавнее",
+      "popular": "Популярное",
+      "category_groups": {
+        "sims_ages_body": {
+          "name": "Симы, Возраст, Тело",
+          "description": "Всё о самом симе"
+        },
+        "clothing_style": {
+          "name": "Одежда и стиль",
+          "description": "Всё, что носит сим"
+        },
+        "interior_construction": {
+          "name": "Внутренняя отделка",
+          "description": "Всё внутри дома"
+        },
+        "exterior_worlds": {
+          "name": "Внешняя отделка и миры",
+          "description": "Участки, сады и миры"
+        },
+        "animals_creatures": {
+          "name": "Животные и существа",
+          "description": "Всё о животных"
+        },
+        "languages_culture": {
+          "name": "Языки и культура",
+          "description": "Локализация и культурные темы"
+        },
+        "files_scenarios_misc": {
+          "name": "Файлы, сценарии и прочее",
+          "description": "Всё остальное"
+        }
+      }
+    },
+    "card": {
+      "already_installed": "Уже установлен",
+      "installing": "Установка...",
+      "install": "Установить",
+      "installed": "Установлен",
+      "by": "от",
+      "unknown_author": "Неизвестный"
+    },
+    "list": {
+      "column_mod": "Мод",
+      "column_categories": "Категории",
+      "column_downloads": "Загрузки",
+      "column_last_update": "Последнее обновление",
+      "no_results": "Моды по вашему запросу не найдены.",
+      "error": "Ошибка",
+      "try_again": "Попробовать снова"
+    },
+    "detail": {
+      "loading": "Загрузка данных мода...",
+      "not_found": "Мод не найден",
+      "error_title": "Ошибка",
+      "error_loading": "Не удалось загрузить данные мода",
+      "error_generic": "Не удалось загрузить мод",
+      "back_to_dashboard": "В панель управления",
+      "back": "Назад",
+      "tabs": {
+        "description": "Описание",
+        "files": "Файлы",
+        "images": "Изображения",
+        "changelog": "Список изменений",
+        "no_description_message": "Этот мод получен через API CurseForge. Для подробной информации посетите страницу мода на CurseForge:",
+        "view_on_curseforge": "Посмотреть на CurseForge",
+        "table_name": "Название",
+        "table_date": "Дата",
+        "table_size": "Размер",
+        "table_action": "Действие",
+        "latest_badge": "Последняя",
+        "install_file": "Установить файл",
+        "installing_file": "Установка...",
+        "no_files": "Нет доступных файлов.",
+        "screenshot_alt": "Скриншот {{index}}",
+        "no_images": "Нет доступных изображений.",
+        "coming_soon": "Скоро",
+        "changelog_message": "Просмотр списка изменений будет доступен в следующем обновлении."
+      },
+      "header": {
+        "share_copied": "Ссылка скопирована в буфер обмена!",
+        "more_categories": "+{{count}} еще",
+        "curseforge_badge": "CurseForge",
+        "by": "От",
+        "unknown_author": "Неизвестный",
+        "updated": "Обновлен {{date}}",
+        "already_installed": "Уже установлен",
+        "installing": "Установка...",
+        "install": "Установить",
+        "installed": "Установлен"
+      },
+      "sidebar": {
+        "warning_title": "Предупреждение",
+        "warning_banned_message": "Этот автор заблокирован из-за множества фейковых модов.",
+        "warning_reported_message": "На этот мод пожаловались {{count}} пользователей.",
+        "information": "Информация",
+        "size": "Размер",
+        "downloads": "Загрузки",
+        "license": "Лицензия",
+        "view_on_curseforge": "Посмотреть на CurseForge",
+        "dependencies": "Зависимости",
+        "no_dependencies": "Зависимости не требуются.",
+        "recommended": "Рекомендуемые моды",
+        "view_recommendations": "Посмотреть рекомендации на CurseForge",
+        "na": "Н/Д",
+        "report_title": "Пожаловаться",
+        "report_description": "Считаете мод фейковым или вводящим в заблуждение? Помогите сообществу, сообщив об этом."
+      }
+    },
+    "warnings": {
+      "creator_banned": "Автор заблокирован",
+      "suspicious_mod": "Предупреждение о подозрительном моде",
+      "banned_message": "Автор этого мода заблокирован за несколько фейковых или вводящих в заблуждение модов. Не рекомендуется устанавливать моды этого автора.",
+      "auto_warning_message": "Этот мод помечен как подозрительный: {{reason}}",
+      "user_reports_message": "{{count}} пользователь(ей) сообщили, что мод потенциально фейковый или вводящий в заблуждение.",
+      "banned_badge": "Заблокированный автор",
+      "suspicious_badge": "Подозрительный",
+      "reports_badge": "{{count}} жалоб",
+      "banned_tooltip": "Автор заблокирован за несколько фейковых модов",
+      "reports_tooltip": "{{count}} пользователей пожаловались на этот мод",
+      "suspicious": "Подозрительный"
+    },
+    "fake_warning_popup": {
+      "title": "Обнаружен подозрительный мод",
+      "message": "помечен как потенциально фейковый или вводящий в заблуждение.",
+      "suspicion_score": "Уровень подозрительности",
+      "score_suffix": "/100",
+      "details_label": "Дополнительная информация (необязательно):",
+      "details_placeholder": "Добавьте информацию о том, почему этот мод кажется фейковым...",
+      "install_anyway": "Все равно установить",
+      "report_cancel": "Пожаловаться и отменить",
+      "submit_report": "Отправить жалобу и отменить",
+      "submitting": "Отправка..."
+    },
+    "report": {
+      "button_title": "Пожаловаться на фейковый мод",
+      "button_text": "Пожаловаться",
+      "modal_title": "Пожаловаться на фейковый мод",
+      "modal_message_prefix": "Пожаловаться на",
+      "modal_message_suffix": "как потенциально фейковый или вводящий в заблуждение мод.",
+      "reason_label": "Причина (необязательно):",
+      "reason_placeholder": "Почему вы считаете этот мод фейковым?",
+      "submit": "Отправить жалобу",
+      "submitted_title": "Жалоба отправлена",
+      "submitted_message": "Спасибо за жалобу на «{{modName}}»",
+      "already_reported_title": "Уже жалоблено",
+      "already_reported_message": "Вы уже пожаловались на этот мод",
+      "failed_title": "Ошибка отправки жалобы",
+      "failed_message": "Не удалось отправить жалобу",
+      "cancel": "Отмена",
+      "submitting": "Отправка..."
+    },
+    "toasts": {
+      "mods_path_not_configured": "Путь к модам не настроен",
+      "configure_in_settings": "Настройте папку модов в настройках",
+      "failed_to_read_path": "Не удалось прочитать путь к модам",
+      "reconfigure_in_settings": "Перенастройте папку модов в настройках",
+      "installing": "Установка {{modName}}",
+      "starting_download": "Начало загрузки...",
+      "installation_complete": "Установка завершена!",
+      "installed_successfully": "{{modName}} успешно установлен",
+      "installation_failed": "Ошибка установки",
+      "unknown_error": "Неизвестная ошибка",
+      "unexpected_error": "Произошла непредвиденная ошибка"
+    }
+  },
+  "console": {
+    "title": "Консоль игры",
+    "logs_count": "{{count}} логов",
+    "paused_count": "(+{{count}} на паузе)",
+    "filter_placeholder": "Фильтр...",
+    "filter_by_source": "Фильтр по источнику",
+    "pause": "Пауза",
+    "resume": "Продолжить",
+    "scroll_to_bottom": "Прокрутить вниз",
+    "export_logs": "Экспорт логов в файл",
+    "clear_logs": "Очистить логи",
+    "close": "Закрыть",
+    "clear_filter": "Очистить фильтр",
+    "waiting_for_logs": "Ожидание логов...",
+    "no_match": "Нет логов по фильтру",
+    "sources_count": "{{count}} источников",
+    "total_logs": "{{count}} всего логов",
+    "auto_scroll_disabled": "Автопрокрутка отключена (прокрутите вниз для включения)"
+  },
+  "errors": {
+    "generic": "Произошла ошибка",
+    "try_again": "Попробовать снова"
+  },
+  "contexts": {
+    "profile": {
+      "initialization_failed": "Ошибка инициализации профиля",
+      "unknown_error": "Неизвестная ошибка",
+      "profile_created": "Профиль создан",
+      "profile_created_message": "«{{name}}» успешно создан",
+      "failed_to_create": "Не удалось создать профиль",
+      "profile_updated": "Профиль обновлен",
+      "changes_saved": "Изменения успешно сохранены",
+      "failed_to_update": "Не удалось обновить профиль",
+      "profile_deleted": "Профиль удален",
+      "profile_removed": "Профиль успешно удален",
+      "failed_to_delete": "Не удалось удалить профиль",
+      "failed_to_activate": "Не удалось активировать профиль",
+      "still_initializing": "Система профилей все еще инициализируется. Пожалуйста, подождите и попробуйте снова.",
+      "mods_path_not_configured": "Путь к модам не настроен. Не удалось найти установку The Sims 4.",
+      "profile_not_found": "Профиль не найден",
+      "failed_to_create_symlinks": "Не удалось создать {{count}} символических ссылок:\n{{errors}}\n\nПроверьте права доступа и убедитесь, что The Sims 4 не запущен.",
+      "mod_removed": "Мод удален",
+      "mod_removed_from_profile": "Мод удален из профиля",
+      "failed_to_remove_mod": "Не удалось удалить мод"
+    },
+    "update": {
+      "auto_updating_mods": "Автообновление модов",
+      "installing_updates": "Установка {{count}} обновлений...",
+      "updates_available": "Доступны обновления",
+      "updates_available_message": "Доступно {{count}} обновлений модов",
+      "update_check_failed": "Ошибка проверки обновлений",
+      "failed_to_check": "Не удалось проверить наличие обновлений",
+      "update_failed": "Ошибка обновления",
+      "no_update_info": "Информация об обновлении для этого мода не найдена",
+      "mods_path_not_configured": "Путь к модам не настроен",
+      "mod_updated": "Мод обновлен",
+      "mod_updated_message": "{{name}} успешно обновлен",
+      "all_mods_updated": "Все моды обновлены",
+      "all_mods_updated_message": "Успешно обновлено {{count}} модов",
+      "partial_update": "Частичное обновление",
+      "partial_update_message": "Обновлено {{successful}}/{{total}} модов. Ошибок: {{failed}}.",
+      "update_failed_message": "Не удалось обновить {{count}} модов"
+    }
+  }
+}

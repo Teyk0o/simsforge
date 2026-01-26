@@ -8,6 +8,7 @@ import { ShareNetwork, Heart, DownloadSimple, Spinner, Check, Warning } from '@p
 import { useToast } from '@/context/ToastContext';
 import { useProfiles } from '@/context/ProfileContext';
 import { modInstallationService } from '@/lib/services/ModInstallationService';
+import { useTranslation } from 'react-i18next';
 import WarningBadge from './WarningBadge';
 
 interface ModDetailHeaderProps {
@@ -16,6 +17,7 @@ interface ModDetailHeaderProps {
 }
 
 export default function ModDetailHeader({ mod, warningStatus }: ModDetailHeaderProps) {
+  const { t } = useTranslation();
   const { showToast, updateToast } = useToast();
   const { activeProfile, refreshProfiles } = useProfiles();
   const [isInstalling, setIsInstalling] = useState(false);
@@ -30,7 +32,7 @@ export default function ModDetailHeader({ mod, warningStatus }: ModDetailHeaderP
   const handleShare = () => {
     if (typeof window !== 'undefined') {
       navigator.clipboard.writeText(window.location.href);
-      alert('Link copied to clipboard!');
+      alert(t('mods.detail.header.share_copied'));
     }
   };
 
@@ -79,8 +81,8 @@ export default function ModDetailHeader({ mod, warningStatus }: ModDetailHeaderP
       if (!encryptedModsPath) {
         showToast({
           type: 'error',
-          title: 'Mods path not configured',
-          message: 'Please configure your mods folder in Settings',
+          title: t('mods.toasts.mods_path_not_configured'),
+          message: t('mods.toasts.configure_in_settings'),
           duration: 5000,
         });
         setIsInstalling(false);
@@ -91,8 +93,8 @@ export default function ModDetailHeader({ mod, warningStatus }: ModDetailHeaderP
       if (!modsPath) {
         showToast({
           type: 'error',
-          title: 'Failed to read mods path',
-          message: 'Please reconfigure your mods folder in Settings',
+          title: t('mods.toasts.failed_to_read_path'),
+          message: t('mods.toasts.reconfigure_in_settings'),
           duration: 5000,
         });
         setIsInstalling(false);
@@ -102,8 +104,8 @@ export default function ModDetailHeader({ mod, warningStatus }: ModDetailHeaderP
       // Show initial toast
       const toastId = showToast({
         type: 'download',
-        title: `Installing ${mod.name}`,
-        message: 'Starting download...',
+        title: t('mods.toasts.installing', { modName: mod.name }),
+        message: t('mods.toasts.starting_download'),
         progress: 0,
         duration: 0, // Don't auto-dismiss
       });
@@ -114,7 +116,7 @@ export default function ModDetailHeader({ mod, warningStatus }: ModDetailHeaderP
         modsPath,
         (progress) => {
           updateToast(toastId, {
-            title: `Installing ${mod.name}`,
+            title: t('mods.toasts.installing', { modName: mod.name }),
             message: progress.message,
             progress: progress.percent,
           });
@@ -125,8 +127,8 @@ export default function ModDetailHeader({ mod, warningStatus }: ModDetailHeaderP
       if (result.success) {
         updateToast(toastId, {
           type: 'success',
-          title: 'Installation complete!',
-          message: `${result.modName} has been installed successfully`,
+          title: t('mods.toasts.installation_complete'),
+          message: t('mods.toasts.installed_successfully', { modName: result.modName }),
           duration: 3000,
         });
         // Refresh profiles to update the library
@@ -134,16 +136,16 @@ export default function ModDetailHeader({ mod, warningStatus }: ModDetailHeaderP
       } else {
         updateToast(toastId, {
           type: 'error',
-          title: 'Installation failed',
-          message: result.error || 'Unknown error',
+          title: t('mods.toasts.installation_failed'),
+          message: result.error || t('mods.toasts.unknown_error'),
           duration: 3000,
         });
       }
     } catch (error: any) {
       showToast({
         type: 'error',
-        title: 'Installation failed',
-        message: error.message || 'An unexpected error occurred',
+        title: t('mods.toasts.installation_failed'),
+        message: error.message || t('mods.toasts.unexpected_error'),
         duration: 5000,
       });
     } finally {
@@ -176,7 +178,7 @@ export default function ModDetailHeader({ mod, warningStatus }: ModDetailHeaderP
                 className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F16436] text-white border border-[#c4491f] hover:bg-[#d65228] transition-colors text-shadow-md cursor-pointer"
               >
                 <span className="font-bold text-xs uppercase tracking-wide">
-                  CurseForge
+                  {t('mods.detail.header.curseforge_badge')}
                 </span>
               </a>
             )}
@@ -185,11 +187,11 @@ export default function ModDetailHeader({ mod, warningStatus }: ModDetailHeaderP
           {/* Author and date */}
           <div className="flex items-center gap-2 mb-4 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>
             <span>
-              By{' '}
-              <span className="font-bold" style={{ color: 'var(--text-primary)' }}>{authorNames || 'Unknown'}</span>
+              {t('mods.detail.header.by')}{' '}
+              <span className="font-bold" style={{ color: 'var(--text-primary)' }}>{authorNames || t('mods.detail.header.unknown_author')}</span>
             </span>
             <span className="w-1 h-1 rounded-full" style={{ backgroundColor: 'var(--text-tertiary)' }} />
-            <span>Updated {formatRelativeDate(mod.dateModified)}</span>
+            <span>{t('mods.detail.header.updated', { date: formatRelativeDate(mod.dateModified) })}</span>
           </div>
 
           {/* Category tags */}
@@ -209,7 +211,7 @@ export default function ModDetailHeader({ mod, warningStatus }: ModDetailHeaderP
             ))}
             {remainingCategories > 0 && (
               <span className="px-2.5 py-1 text-xs font-semibold" style={{ color: 'var(--text-tertiary)' }}>
-                +{remainingCategories} more
+                {t('mods.detail.header.more_categories', { count: remainingCategories })}
               </span>
             )}
           </div>
@@ -225,22 +227,22 @@ export default function ModDetailHeader({ mod, warningStatus }: ModDetailHeaderP
                 ? 'bg-gray-500 text-white shadow-gray-500/25'
                 : 'bg-brand-green hover:bg-brand-dark text-white shadow-brand-green/25 disabled:opacity-50'
             }`}
-            title={isInstalled ? "Already installed" : isInstalling ? "Installing..." : "Install"}
+            title={isInstalled ? t('mods.detail.header.already_installed') : isInstalling ? t('mods.detail.header.installing') : t('mods.detail.header.install')}
           >
             {isInstalled ? (
               <>
                 <Check size={20} weight="bold" />
-                <span>Installed</span>
+                <span>{t('mods.detail.header.installed')}</span>
               </>
             ) : isInstalling ? (
               <>
                 <Spinner size={20} className="animate-spin" />
-                <span>Installing...</span>
+                <span>{t('mods.detail.header.installing')}</span>
               </>
             ) : (
               <>
                 <DownloadSimple size={20} />
-                <span>Install</span>
+                <span>{t('mods.detail.header.install')}</span>
               </>
             )}
           </button>
@@ -271,7 +273,7 @@ export default function ModDetailHeader({ mod, warningStatus }: ModDetailHeaderP
                 color: warningStatus.creatorBanned ? '#fca5a5' : '#fbbf24',
               }}
             >
-              {warningStatus.creatorBanned ? 'Creator Banned' : 'Suspicious Mod Warning'}
+              {warningStatus.creatorBanned ? t('mods.warnings.creator_banned') : t('mods.warnings.suspicious_mod')}
             </h3>
             <p
               className="text-sm mb-3"
@@ -280,10 +282,10 @@ export default function ModDetailHeader({ mod, warningStatus }: ModDetailHeaderP
               }}
             >
               {warningStatus.creatorBanned
-                ? 'This mod creator has been banned due to multiple fake or misleading mods. We recommend not installing mods from this creator.'
+                ? t('mods.warnings.banned_message')
                 : warningStatus.isAutoWarned
-                  ? `This mod has been flagged as suspicious: ${warningStatus.warningReason || 'No valid mod files detected'}`
-                  : `This mod has been reported by ${warningStatus.reportCount} user${warningStatus.reportCount !== 1 ? 's' : ''} as potentially fake or misleading.`}
+                  ? t('mods.warnings.auto_warning_message', { reason: warningStatus.warningReason || 'No valid mod files detected' })
+                  : t('mods.warnings.user_reports_message', { count: warningStatus.reportCount })}
             </p>
             {warningStatus.warningReason && !warningStatus.creatorBanned && (
               <p

@@ -10,6 +10,7 @@ import { userPreferencesService } from '@/lib/services/UserPreferencesService';
 import { CurseForgeMod } from '@/types/curseforge';
 import { ViewMode } from '@/hooks/useViewMode';
 import { useSearchState } from '@/context/SearchStateContext';
+import { useTranslation } from 'react-i18next';
 import type { ModWarningStatus } from '@/types/fakeDetection';
 
 interface ModListProps {
@@ -29,6 +30,7 @@ interface PaginationState {
 }
 
 export default function ModList({ searchQuery, sortBy, category, viewMode, activeFilter = 'all', scrollIndex = 0 }: ModListProps) {
+  const { t } = useTranslation();
   const searchState = useSearchState();
   const [mods, setMods] = useState<CurseForgeMod[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -330,13 +332,13 @@ export default function ModList({ searchQuery, sortBy, category, viewMode, activ
     return (
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="text-center max-w-md rounded-lg p-8 border" style={{ backgroundColor: 'var(--ui-panel)', borderColor: 'var(--ui-border)' }}>
-          <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Error</h3>
+          <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>{t('mods.list.error')}</h3>
           <p className="text-red-200 mb-4" style={{ color: 'var(--text-secondary)' }}>{error}</p>
           <button
             onClick={() => fetchModsForPage(0)}
             className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded font-medium text-white transition"
           >
-            Try Again
+            {t('mods.list.try_again')}
           </button>
         </div>
       </div>
@@ -352,10 +354,10 @@ export default function ModList({ searchQuery, sortBy, category, viewMode, activ
       {/* Column Headers - Only for list view */}
       {viewMode === 'list' && (
         <div className="flex-shrink-0 grid grid-cols-12 gap-4 px-4 lg:px-8 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider bg-gray-50 border-b" style={{ backgroundColor: 'var(--ui-dark)', color: 'var(--text-secondary)', borderColor: 'var(--ui-border)' }}>
-          <div className="col-span-6 lg:col-span-5">Mod</div>
-          <div className="col-span-3 lg:col-span-2 hidden md:block">Catégories</div>
-          <div className="col-span-2 hidden lg:block">Téléchargements</div>
-          <div className="col-span-3 lg:col-span-2 hidden lg:block text-right">Dernière MAJ</div>
+          <div className="col-span-6 lg:col-span-5">{t('mods.list.column_mod')}</div>
+          <div className="col-span-3 lg:col-span-2 hidden md:block">{t('mods.list.column_categories')}</div>
+          <div className="col-span-2 hidden lg:block">{t('mods.list.column_downloads')}</div>
+          <div className="col-span-3 lg:col-span-2 hidden lg:block text-right">{t('mods.list.column_last_update')}</div>
           <div className="col-span-6 md:col-span-3 lg:col-span-1 text-right" />
         </div>
       )}
@@ -410,7 +412,7 @@ export default function ModList({ searchQuery, sortBy, category, viewMode, activ
       ) : (
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center py-12 text-gray-500">
-            <p>Aucun mod trouvé correspondant à votre recherche.</p>
+            <p>{t('mods.list.no_results')}</p>
           </div>
         </div>
       )}

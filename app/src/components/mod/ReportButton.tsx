@@ -5,6 +5,7 @@ import { Flag, X } from '@phosphor-icons/react';
 import { useToast } from '@/context/ToastContext';
 import { submitFakeModReport } from '@/lib/fakeDetectionApi';
 import { fakeScoreService } from '@/lib/services/FakeScoreService';
+import { useTranslation } from 'react-i18next';
 
 interface ReportButtonProps {
   /** CurseForge mod ID */
@@ -30,6 +31,7 @@ export default function ReportButton({
   creatorName,
   className = '',
 }: ReportButtonProps) {
+  const { t } = useTranslation();
   const [isReporting, setIsReporting] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [reason, setReason] = useState('');
@@ -56,8 +58,8 @@ export default function ReportButton({
 
       showToast({
         type: 'success',
-        title: 'Report Submitted',
-        message: `Thank you for reporting "${modName}"`,
+        title: t('mods.report.submitted_title'),
+        message: t('mods.report.submitted_message', { modName }),
         duration: 3000,
       });
 
@@ -68,15 +70,15 @@ export default function ReportButton({
       if (error.response?.status === 409) {
         showToast({
           type: 'info',
-          title: 'Already Reported',
-          message: 'You have already reported this mod',
+          title: t('mods.report.already_reported_title'),
+          message: t('mods.report.already_reported_message'),
           duration: 3000,
         });
       } else {
         showToast({
           type: 'error',
-          title: 'Report Failed',
-          message: error.message || 'Could not submit report',
+          title: t('mods.report.failed_title'),
+          message: error.message || t('mods.report.failed_message'),
           duration: 3000,
         });
       }
@@ -105,10 +107,10 @@ export default function ReportButton({
           filter: mainButtonHover ? 'brightness(1.2)' : 'brightness(1)',
           transition: 'filter 0.2s ease-in-out',
         }}
-        title="Report as fake mod"
+        title={t('mods.report.button_title')}
       >
         <Flag size={16} />
-        Report
+        {t('mods.report.button_text')}
       </button>
 
       {/* Report Modal */}
@@ -132,7 +134,7 @@ export default function ReportButton({
               style={{ borderColor: 'var(--border-color)' }}
             >
               <h3 className="font-bold" style={{ color: 'var(--text-primary)' }}>
-                Report Fake Mod
+                {t('mods.report.modal_title')}
               </h3>
               <button
                 onClick={handleClose}
@@ -147,8 +149,8 @@ export default function ReportButton({
             {/* Content */}
             <div className="p-4 space-y-3">
               <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                Report <strong style={{ color: 'var(--text-primary)' }}>{modName}</strong>{' '}
-                as a potentially fake or misleading mod.
+                {t('mods.report.modal_message_prefix')} <strong style={{ color: 'var(--text-primary)' }}>{modName}</strong>{' '}
+                {t('mods.report.modal_message_suffix')}
               </p>
 
               <div>
@@ -156,12 +158,12 @@ export default function ReportButton({
                   className="text-sm mb-1 block"
                   style={{ color: 'var(--text-secondary)' }}
                 >
-                  Reason (optional):
+                  {t('mods.report.reason_label')}
                 </label>
                 <textarea
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  placeholder="Why do you think this mod is fake?"
+                  placeholder={t('mods.report.reason_placeholder')}
                   className="w-full rounded p-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-red-500"
                   style={{
                     backgroundColor: 'var(--ui-dark)',
@@ -193,7 +195,7 @@ export default function ReportButton({
                   transition: 'filter 0.2s ease-in-out',
                 }}
               >
-                Cancel
+                {t('mods.report.cancel')}
               </button>
               <button
                 onClick={handleReport}
@@ -208,7 +210,7 @@ export default function ReportButton({
                   transition: 'filter 0.2s ease-in-out',
                 }}
               >
-                {isReporting ? 'Submitting...' : 'Submit Report'}
+                {isReporting ? t('mods.report.submitting') : t('mods.report.submit')}
               </button>
             </div>
           </div>

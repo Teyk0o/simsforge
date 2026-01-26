@@ -1,6 +1,7 @@
 'use client';
 
 import { Warning } from '@phosphor-icons/react';
+import { useTranslation } from 'react-i18next';
 import type { ModWarningStatus } from '@/types/fakeDetection';
 
 interface WarningBadgeProps {
@@ -24,6 +25,8 @@ export default function WarningBadge({
   showText = false,
   className = '',
 }: WarningBadgeProps) {
+  const { t } = useTranslation();
+
   // Don't render if no warning and creator not banned
   if (!status.hasWarning && !status.creatorBanned) {
     return null;
@@ -45,12 +48,12 @@ export default function WarningBadge({
   // Determine warning text based on status
   const getWarningText = (): string => {
     if (status.creatorBanned) {
-      return 'Banned Creator';
+      return t('mods.warnings.banned_badge');
     }
     if (status.isAutoWarned) {
-      return 'Suspicious';
+      return t('mods.warnings.suspicious');
     }
-    return `${status.reportCount} Reports`;
+    return t('mods.warnings.reports_badge', { count: status.reportCount });
   };
 
   // Determine tooltip text
@@ -59,9 +62,9 @@ export default function WarningBadge({
       return status.warningReason;
     }
     if (status.creatorBanned) {
-      return 'This creator has been banned due to multiple fake mods';
+      return t('mods.warnings.banned_tooltip');
     }
-    return `This mod has been reported by ${status.reportCount} users`;
+    return t('mods.warnings.reports_tooltip', { count: status.reportCount });
   };
 
   // Determine color based on severity

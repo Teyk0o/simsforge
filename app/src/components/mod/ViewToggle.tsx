@@ -8,6 +8,7 @@
 
 import { List, GridFour } from '@phosphor-icons/react';
 import { ViewMode } from '@/hooks/useViewMode';
+import { useTranslation } from 'react-i18next';
 
 interface ViewToggleProps {
   viewMode: ViewMode;
@@ -19,6 +20,8 @@ interface ViewToggleProps {
  * Shows the current mode icon and toggles on click
  */
 export default function ViewToggle({ viewMode, onViewModeChange }: ViewToggleProps) {
+  const { t } = useTranslation();
+
   const handleToggle = () => {
     const newMode = viewMode === 'list' ? 'grid' : 'list';
     if (typeof onViewModeChange === 'function') {
@@ -26,12 +29,14 @@ export default function ViewToggle({ viewMode, onViewModeChange }: ViewTogglePro
     }
   };
 
+  const toggleLabel = viewMode === 'list' ? t('ui.view_toggle.switch_to_grid') : t('ui.view_toggle.switch_to_list');
+
   return (
     <button
       onClick={handleToggle}
       className="p-2 text-gray-400 hover:text-brand-green hover:bg-ui-hover rounded transition-colors cursor-pointer"
-      title={viewMode === 'list' ? 'Switch to grid view' : 'Switch to list view'}
-      aria-label={viewMode === 'list' ? 'Switch to grid view' : 'Switch to list view'}
+      title={toggleLabel}
+      aria-label={toggleLabel}
     >
       {viewMode === 'list' ? (
         <GridFour size={20} weight="regular" />

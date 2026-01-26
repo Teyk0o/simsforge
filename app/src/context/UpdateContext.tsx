@@ -20,6 +20,7 @@ import {
 } from '@/lib/utils/concurrencyPool';
 import { useProfiles } from '@/context/ProfileContext';
 import { useToast } from '@/context/ToastContext';
+import i18n from '@/i18n';
 import type {
   UpdateInfo,
   UpdateCheckResult,
@@ -124,8 +125,8 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
 
           showToast({
             type: 'info',
-            title: 'Auto-updating mods',
-            message: `Installing ${checkResult.updatesFound} update${checkResult.updatesFound > 1 ? 's' : ''}...`,
+            title: i18n.t('contexts.update.auto_updating_mods'),
+            message: i18n.t('contexts.update.installing_updates', { count: checkResult.updatesFound }),
             duration: 3000,
           });
 
@@ -209,8 +210,8 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
       if (result.updatesFound > 0) {
         showToast({
           type: 'info',
-          title: 'Updates available',
-          message: `${result.updatesFound} mod update${result.updatesFound > 1 ? 's' : ''} available`,
+          title: i18n.t('contexts.update.updates_available'),
+          message: i18n.t('contexts.update.updates_available_message', { count: result.updatesFound }),
           duration: 5000,
         });
       }
@@ -220,8 +221,8 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
       console.error('[UpdateContext] checkForUpdates error:', error);
       showToast({
         type: 'error',
-        title: 'Update check failed',
-        message: error.message || 'Failed to check for updates',
+        title: i18n.t('contexts.update.update_check_failed'),
+        message: error.message || i18n.t('contexts.update.failed_to_check'),
         duration: 5000,
       });
 
@@ -229,7 +230,7 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
         checkedCount: 0,
         updatesFound: 0,
         updates: [],
-        errors: [error.message || 'Failed to check for updates'],
+        errors: [error.message || i18n.t('contexts.update.failed_to_check')],
       };
     } finally {
       setIsChecking(false);
@@ -258,8 +259,8 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
       if (!updateInfo) {
         showToast({
           type: 'error',
-          title: 'Update failed',
-          message: 'No update information found for this mod',
+          title: i18n.t('contexts.update.update_failed'),
+          message: i18n.t('contexts.update.no_update_info'),
           duration: 5000,
         });
         return false;
@@ -269,8 +270,8 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
       if (!modsPath) {
         showToast({
           type: 'error',
-          title: 'Update failed',
-          message: 'Mods path not configured',
+          title: i18n.t('contexts.update.update_failed'),
+          message: i18n.t('contexts.update.mods_path_not_configured'),
           duration: 5000,
         });
         return false;
@@ -315,8 +316,8 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
 
           showToast({
             type: 'success',
-            title: 'Mod updated',
-            message: `${updateInfo.modName} updated successfully`,
+            title: i18n.t('contexts.update.mod_updated'),
+            message: i18n.t('contexts.update.mod_updated_message', { name: updateInfo.modName }),
             duration: 3000,
           });
 
@@ -324,8 +325,8 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
         } else {
           showToast({
             type: 'error',
-            title: 'Update failed',
-            message: result.error || 'Failed to update mod',
+            title: i18n.t('contexts.update.update_failed'),
+            message: result.error || i18n.t('contexts.update.update_failed'),
             duration: 5000,
           });
           return false;
@@ -334,8 +335,8 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
         console.error('[UpdateContext] updateMod error:', error);
         showToast({
           type: 'error',
-          title: 'Update failed',
-          message: error.message || 'Failed to update mod',
+          title: i18n.t('contexts.update.update_failed'),
+          message: error.message || i18n.t('contexts.update.update_failed'),
           duration: 5000,
         });
         return false;
@@ -360,8 +361,8 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
     if (!modsPath) {
       showToast({
         type: 'error',
-        title: 'Update failed',
-        message: 'Mods path not configured',
+        title: i18n.t('contexts.update.update_failed'),
+        message: i18n.t('contexts.update.mods_path_not_configured'),
         duration: 5000,
       });
       return { successful: 0, failed: updates.length, results: [] };
@@ -480,22 +481,26 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
     if (successful > 0 && failed === 0) {
       showToast({
         type: 'success',
-        title: 'All mods updated',
-        message: `Successfully updated ${successful} mod${successful > 1 ? 's' : ''}`,
+        title: i18n.t('contexts.update.all_mods_updated'),
+        message: i18n.t('contexts.update.all_mods_updated_message', { count: successful }),
         duration: 5000,
       });
     } else if (successful > 0 && failed > 0) {
       showToast({
         type: 'warning',
-        title: 'Partial update',
-        message: `Updated ${successful}/${successful + failed} mods. ${failed} failed.`,
+        title: i18n.t('contexts.update.partial_update'),
+        message: i18n.t('contexts.update.partial_update_message', {
+          successful,
+          total: successful + failed,
+          failed
+        }),
         duration: 5000,
       });
     } else {
       showToast({
         type: 'error',
-        title: 'Update failed',
-        message: `Failed to update ${failed} mod${failed > 1 ? 's' : ''}`,
+        title: i18n.t('contexts.update.update_failed'),
+        message: i18n.t('contexts.update.update_failed_message', { count: failed }),
         duration: 5000,
       });
     }

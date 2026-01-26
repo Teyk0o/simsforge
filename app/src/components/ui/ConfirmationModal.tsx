@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { X, Warning } from '@phosphor-icons/react';
+import { useTranslation } from 'react-i18next';
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -25,12 +26,17 @@ export default function ConfirmationModal({
   onConfirm,
   title,
   message,
-  confirmText = 'Confirm',
-  cancelText = 'Cancel',
+  confirmText,
+  cancelText,
   isDangerous = false,
   isLoading = false,
 }: ConfirmationModalProps) {
+  const { t } = useTranslation();
+
   if (!isOpen) return null;
+
+  const finalConfirmText = confirmText || t('common.confirm');
+  const finalCancelText = cancelText || t('common.cancel');
 
   const handleConfirm = async () => {
     await onConfirm();
@@ -114,7 +120,7 @@ export default function ConfirmationModal({
               cursor: isLoading ? 'not-allowed' : 'pointer',
             }}
           >
-            {cancelText}
+            {finalCancelText}
           </button>
           <button
             onClick={handleConfirm}
@@ -126,7 +132,7 @@ export default function ConfirmationModal({
               cursor: isLoading ? 'not-allowed' : 'pointer',
             }}
           >
-            {isLoading ? 'Processing...' : confirmText}
+            {isLoading ? t('common.processing') : finalConfirmText}
           </button>
         </div>
       </div>

@@ -9,6 +9,7 @@ import ImageLightbox from '@/components/mod/ImageLightbox';
 import { useToast } from '@/context/ToastContext';
 import { useProfiles } from '@/context/ProfileContext';
 import { modInstallationService } from '@/lib/services/ModInstallationService';
+import { useTranslation } from 'react-i18next';
 
 interface ModDetailTabsProps {
   mod: CurseForgeMod;
@@ -18,18 +19,19 @@ interface ModDetailTabsProps {
 
 type TabId = 'description' | 'files' | 'images' | 'changelog';
 
-const tabs = [
-  { id: 'description' as TabId, label: 'Description' },
-  { id: 'files' as TabId, label: 'Files' },
-  { id: 'images' as TabId, label: 'Images' },
-  { id: 'changelog' as TabId, label: 'Changelog', disabled: true },
-];
-
 export default function ModDetailTabs({ mod, activeTab, onTabChange }: ModDetailTabsProps) {
+  const { t } = useTranslation();
   const { showToast } = useToast();
   const { refreshProfiles } = useProfiles();
   const [lightboxImage, setLightboxImage] = useState<number | null>(null);
   const [installingFileId, setInstallingFileId] = useState<number | null>(null);
+
+  const tabs = [
+    { id: 'description' as TabId, label: t('mods.detail.tabs.description') },
+    { id: 'files' as TabId, label: t('mods.detail.tabs.files') },
+    { id: 'images' as TabId, label: t('mods.detail.tabs.images') },
+    { id: 'changelog' as TabId, label: t('mods.detail.tabs.changelog'), disabled: true },
+  ];
 
   const handleInstallFile = async (file: any) => {
     if (installingFileId === file.id) return;
@@ -76,8 +78,8 @@ export default function ModDetailTabs({ mod, activeTab, onTabChange }: ModDetail
       if (!encryptedModsPath) {
         showToast({
           type: 'error',
-          title: 'Mods path not configured',
-          message: 'Please configure your mods folder in Settings',
+          title: t('mods.toasts.mods_path_not_configured'),
+          message: t('mods.toasts.configure_in_settings'),
           duration: 5000,
         });
         setInstallingFileId(null);
@@ -88,8 +90,8 @@ export default function ModDetailTabs({ mod, activeTab, onTabChange }: ModDetail
       if (!modsPath) {
         showToast({
           type: 'error',
-          title: 'Failed to read mods path',
-          message: 'Please reconfigure your mods folder in Settings',
+          title: t('mods.toasts.failed_to_read_path'),
+          message: t('mods.toasts.reconfigure_in_settings'),
           duration: 5000,
         });
         setInstallingFileId(null);
@@ -99,8 +101,8 @@ export default function ModDetailTabs({ mod, activeTab, onTabChange }: ModDetail
       // Show initial toast
       const toastId = showToast({
         type: 'download',
-        title: `Installing ${mod.name}`,
-        message: 'Starting download...',
+        title: t('mods.toasts.installing', { modName: mod.name }),
+        message: t('mods.toasts.starting_download'),
         progress: 0,
         duration: 0, // Don't auto-dismiss
       });
@@ -112,7 +114,7 @@ export default function ModDetailTabs({ mod, activeTab, onTabChange }: ModDetail
         (progress) => {
           showToast({
             type: 'info',
-            title: `Installing ${mod.name}`,
+            title: t('mods.toasts.installing', { modName: mod.name }),
             message: progress.message,
             duration: 0,
           });
@@ -123,8 +125,8 @@ export default function ModDetailTabs({ mod, activeTab, onTabChange }: ModDetail
       if (result.success) {
         showToast({
           type: 'success',
-          title: 'Installation complete!',
-          message: `${result.modName} has been installed successfully`,
+          title: t('mods.toasts.installation_complete'),
+          message: t('mods.toasts.installed_successfully', { modName: result.modName }),
           duration: 3000,
         });
         // Refresh profiles to update the library
@@ -132,16 +134,16 @@ export default function ModDetailTabs({ mod, activeTab, onTabChange }: ModDetail
       } else {
         showToast({
           type: 'error',
-          title: 'Installation failed',
-          message: result.error || 'Unknown error',
+          title: t('mods.toasts.installation_failed'),
+          message: result.error || t('mods.toasts.unknown_error'),
           duration: 3000,
         });
       }
     } catch (error: any) {
       showToast({
         type: 'error',
-        title: 'Installation failed',
-        message: error.message || 'An unexpected error occurred',
+        title: t('mods.toasts.installation_failed'),
+        message: error.message || t('mods.toasts.unexpected_error'),
         duration: 5000,
       });
     } finally {
@@ -215,7 +217,7 @@ export default function ModDetailTabs({ mod, activeTab, onTabChange }: ModDetail
               />
             ) : (
               <div className="border rounded-lg p-4" style={{ backgroundColor: 'var(--ui-hover)', color: 'var(--text-primary)', borderColor: 'var(--ui-border)' }}>
-                <p className="mb-2">This mod is sourced from the CurseForge API. For detailed information, visit the mod page on CurseForge:</p>
+                <p className="mb-2">{t('mods.detail.tabs.no_description_message')}</p>
                 {mod.websiteUrl && (
                   <a
                     href={mod.websiteUrl}
@@ -223,7 +225,7 @@ export default function ModDetailTabs({ mod, activeTab, onTabChange }: ModDetail
                     rel="noopener noreferrer"
                     className="inline-block text-brand-green hover:text-brand-dark transition-colors font-semibold cursor-pointer"
                   >
-                    View on CurseForge
+                    {t('mods.detail.tabs.view_on_curseforge')}
                   </a>
                 )}
               </div>
@@ -238,10 +240,10 @@ export default function ModDetailTabs({ mod, activeTab, onTabChange }: ModDetail
               <table className="w-full text-sm" style={{ color: 'var(--text-secondary)' }}>
                 <thead>
                   <tr style={{ borderColor: 'var(--ui-border)' }} className="border-b">
-                    <th className="text-left py-3 px-4 font-semibold" style={{ color: 'var(--text-primary)' }}>Name</th>
-                    <th className="text-left py-3 px-4 font-semibold" style={{ color: 'var(--text-primary)' }}>Date</th>
-                    <th className="text-left py-3 px-4 font-semibold" style={{ color: 'var(--text-primary)' }}>Size</th>
-                    <th className="text-center py-3 px-4 font-semibold" style={{ color: 'var(--text-primary)' }}>Action</th>
+                    <th className="text-left py-3 px-4 font-semibold" style={{ color: 'var(--text-primary)' }}>{t('mods.detail.tabs.table_name')}</th>
+                    <th className="text-left py-3 px-4 font-semibold" style={{ color: 'var(--text-primary)' }}>{t('mods.detail.tabs.table_date')}</th>
+                    <th className="text-left py-3 px-4 font-semibold" style={{ color: 'var(--text-primary)' }}>{t('mods.detail.tabs.table_size')}</th>
+                    <th className="text-center py-3 px-4 font-semibold" style={{ color: 'var(--text-primary)' }}>{t('mods.detail.tabs.table_action')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -261,7 +263,7 @@ export default function ModDetailTabs({ mod, activeTab, onTabChange }: ModDetail
                             <span className="truncate">{file.displayName}</span>
                             {index === 0 && (
                               <span className="inline-block px-2 py-0.5 bg-brand-green/20 text-brand-green text-xs font-semibold rounded whitespace-nowrap">
-                                Latest
+                                {t('mods.detail.tabs.latest_badge')}
                               </span>
                             )}
                           </div>
@@ -275,7 +277,7 @@ export default function ModDetailTabs({ mod, activeTab, onTabChange }: ModDetail
                             onClick={() => handleInstallFile(file)}
                             disabled={installingFileId === file.id}
                             className="inline-flex items-center gap-1 text-brand-green hover:text-brand-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                            title={installingFileId === file.id ? "Installing..." : "Install file"}
+                            title={installingFileId === file.id ? t('mods.detail.tabs.installing_file') : t('mods.detail.tabs.install_file')}
                           >
                             {installingFileId === file.id ? (
                               <Spinner size={16} className="animate-spin" />
@@ -289,7 +291,7 @@ export default function ModDetailTabs({ mod, activeTab, onTabChange }: ModDetail
                 </tbody>
               </table>
             ) : (
-              <p className="py-8" style={{ color: 'var(--text-secondary)' }}>No files available.</p>
+              <p className="py-8" style={{ color: 'var(--text-secondary)' }}>{t('mods.detail.tabs.no_files')}</p>
             )}
           </div>
         )}
@@ -308,7 +310,7 @@ export default function ModDetailTabs({ mod, activeTab, onTabChange }: ModDetail
                   >
                     <Image
                       src={screenshot}
-                      alt={`Screenshot ${index + 1}`}
+                      alt={t('mods.detail.tabs.screenshot_alt', { index: index + 1 })}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
                       unoptimized
@@ -319,7 +321,7 @@ export default function ModDetailTabs({ mod, activeTab, onTabChange }: ModDetail
                 ))}
               </div>
             ) : (
-              <p className="py-8" style={{ color: 'var(--text-secondary)' }}>No images available.</p>
+              <p className="py-8" style={{ color: 'var(--text-secondary)' }}>{t('mods.detail.tabs.no_images')}</p>
             )}
           </div>
         )}
@@ -327,8 +329,8 @@ export default function ModDetailTabs({ mod, activeTab, onTabChange }: ModDetail
         {/* Changelog Tab */}
         {activeTab === 'changelog' && (
           <div className="py-8 text-center" style={{ color: 'var(--text-secondary)' }}>
-            <p className="text-lg font-semibold mb-2">Coming soon</p>
-            <p className="text-sm">Changelog view will be available in the next update.</p>
+            <p className="text-lg font-semibold mb-2">{t('mods.detail.tabs.coming_soon')}</p>
+            <p className="text-sm">{t('mods.detail.tabs.changelog_message')}</p>
           </div>
         )}
       </div>

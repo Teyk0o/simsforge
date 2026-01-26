@@ -1,6 +1,7 @@
 'use client';
 
 import React, { Suspense } from 'react';
+import { useTranslation } from 'react-i18next';
 import Layout from '@/components/layouts/Layout';
 import LibraryContent from './library-content';
 
@@ -21,6 +22,8 @@ export default function LibraryPage() {
  * Loading fallback component displayed while library content loads
  */
 function LibraryLoadingFallback() {
+  const { t } = useTranslation();
+
   return (
     <main
       className="flex-1 flex flex-col min-w-0 bg-gray-50 dark:bg-ui-dark"
@@ -30,7 +33,7 @@ function LibraryLoadingFallback() {
         className="flex items-center justify-center h-full"
         style={{ color: 'var(--text-secondary)' }}
       >
-        Loading library...
+        {t('library.loading')}
       </div>
     </main>
   );

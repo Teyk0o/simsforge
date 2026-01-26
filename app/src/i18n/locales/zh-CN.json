@@ -1,0 +1,518 @@
+{
+  "common": {
+    "save": "保存",
+    "saving": "保存中...",
+    "cancel": "取消",
+    "delete": "删除",
+    "confirm": "确认",
+    "loading": "加载中...",
+    "error": "错误",
+    "success": "成功",
+    "warning": "警告",
+    "edit": "编辑",
+    "create": "创建",
+    "remove": "移除",
+    "install": "安装",
+    "installed": "已安装",
+    "installing": "安装中...",
+    "update": "更新",
+    "updating": "更新中...",
+    "enable": "启用",
+    "disable": "禁用",
+    "disabled": "已禁用",
+    "activate": "激活",
+    "tryAgain": "重试",
+    "na": "N/A",
+    "mod": "模组",
+    "mods": "模组",
+    "processing": "处理中...",
+    "dismiss": "忽略",
+    "close": "关闭",
+    "back": "返回"
+  },
+  "ui": {
+    "view_toggle": {
+      "switch_to_grid": "切换到网格视图",
+      "switch_to_list": "切换到列表视图"
+    },
+    "image_lightbox": {
+      "previous": "上一张图片",
+      "next": "下一张图片",
+      "image_of": "图片 {{current}} / {{total}}"
+    }
+  },
+  "layout": {
+    "sidebar": {
+      "logo_alt": "SimsForge",
+      "active_profile": "当前配置文件",
+      "browse": "浏览",
+      "library": "库",
+      "settings": "设置"
+    }
+  },
+  "home": {
+    "search_placeholder": "搜索模组...",
+    "reset": "重置",
+    "console": "控制台",
+    "console_tooltip": "打开游戏控制台",
+    "play": "开始游戏",
+    "launching": "启动中...",
+    "running": "运行中"
+  },
+  "library": {
+    "title": "库",
+    "loading": "加载库中...",
+    "search_placeholder": "搜索模组...",
+    "filter_label": "筛选：",
+    "sort_label": "排序：",
+    "check_updates": "检查更新",
+    "checking": "检查中...",
+    "update_all": "全部更新 ({{count}})",
+    "updating": "更新中...",
+    "filters": {
+      "all": "所有模组",
+      "enabled": "已启用",
+      "disabled": "已禁用",
+      "updates": "有更新可用"
+    },
+    "sort": {
+      "name": "名称",
+      "last_updated": "最后更新"
+    },
+    "empty": {
+      "no_profile_title": "没有激活的配置文件",
+      "no_profile_message": "在侧边栏创建或激活配置文件以查看您的模组",
+      "no_mods_title": "此配置文件中还没有模组",
+      "no_search_results": "未找到匹配搜索的模组",
+      "all_updated": "所有模组都是最新版本！"
+    },
+    "mod_item": {
+      "updated": "更新于 {{date}}",
+      "disable_tooltip": "禁用模组",
+      "enable_tooltip": "启用模组",
+      "remove_tooltip": "从配置文件中移除模组",
+      "by": "作者"
+    },
+    "remove_modal": {
+      "title": "移除模组",
+      "message": "确定要从配置文件中移除「{{modName}}」吗？此操作无法撤销。",
+      "confirm": "移除"
+    }
+  },
+  "profiles": {
+    "title": "配置文件",
+    "subtitle": "管理您的模组配置文件和设置",
+    "create_profile": "创建配置文件",
+    "loading": "加载配置文件中...",
+    "empty": {
+      "title": "还没有配置文件",
+      "button": "创建您的第一个配置文件"
+    },
+    "card": {
+      "mods_count": "{{count}} 个模组",
+      "mods_count_plural": "{{count}} 个模组",
+      "activate": "激活",
+      "edit": "编辑",
+      "name_required": "配置文件名称不能为空",
+      "delete_confirmation": "确定要删除此配置文件吗？此操作无法撤销。",
+      "validation_error": "验证错误",
+      "update_failed": "更新配置文件失败",
+      "description_placeholder": "配置文件描述..."
+    },
+    "create_modal": {
+      "title": "创建配置文件",
+      "name_label": "配置文件名称 *",
+      "name_placeholder": "例如：真实游戏玩法",
+      "description_label": "描述",
+      "description_placeholder": "此配置文件的可选描述...",
+      "tags_label": "标签",
+      "tags_placeholder": "添加标签后按回车",
+      "add": "添加",
+      "name_required_error": "配置文件名称是必填项",
+      "create_failed": "创建配置文件失败",
+      "creating": "创建中..."
+    },
+    "selector": {
+      "no_profile": "无配置文件",
+      "empty": "还没有配置文件"
+    },
+    "active_tooltip": "当前配置文件"
+  },
+  "settings": {
+    "title": "设置",
+    "application": {
+      "title": "应用",
+      "description": "通用应用设置。",
+      "language": {
+        "title": "语言",
+        "description": "选择 SimsForge 的显示语言。"
+      }
+    },
+    "game_location": {
+      "title": "游戏位置",
+      "description": "定义 SimsForge 查找游戏安装和模组的位置。",
+      "game_executable": "The Sims 4 可执行文件",
+      "mods_folder": "模组文件夹",
+      "game_detected": "成功检测到游戏",
+      "game_not_found": "未找到游戏路径",
+      "mods_detected": "检测到模组文件夹",
+      "mods_not_found": "未找到模组文件夹",
+      "game_path_updated": "游戏路径已更新",
+      "mods_path_updated": "模组路径已更新",
+      "failed_to_save": "保存路径失败"
+    },
+    "api_keys": {
+      "title": "API 密钥",
+      "description": "为 CurseForge 等外部服务配置 API 密钥。",
+      "curseforge_key": "CurseForge API 密钥",
+      "configured": "✓ 已配置",
+      "get_key_text": "从此处获取您的 API 密钥",
+      "curseforge_console": "CurseForge 控制台",
+      "placeholder": "输入您的 CurseForge API 密钥",
+      "saved": "API 密钥已安全保存！",
+      "invalid": "请输入有效的 API 密钥",
+      "deleted": "API 密钥删除成功",
+      "failed_to_delete": "删除 API 密钥失败"
+    },
+    "mod_preferences": {
+      "title": "模组偏好设置",
+      "auto_updates": {
+        "title": "自动更新",
+        "description": "模组更新可用时立即下载并安装。"
+      },
+      "backup": {
+        "title": "更新前备份",
+        "description": "将覆盖的文件复制到 /Backups 文件夹中。"
+      },
+      "fake_detection": {
+        "title": "假模组检测",
+        "description": "检测到可疑模组时显示警告并阻止已封禁的创作者。"
+      }
+    },
+    "advanced": {
+      "title": "高级",
+      "description": "用于故障排除和诊断的附加选项。",
+      "game_logging": {
+        "title": "游戏日志",
+        "description_1": "启用 The Sims 4 的实时日志查看。SimsForge 将自动安装",
+        "link_text": "Sims Log Enabler",
+        "description_2": "模组。"
+      },
+      "debug_logs": {
+        "title": "显示调试日志",
+        "description": "仅供模组开发者使用。会显著增加控制台输出。"
+      }
+    },
+    "disk_performance": {
+      "title": "磁盘性能",
+      "description": "自动检测的磁盘速度决定并行操作限制。",
+      "detected": "检测到：{{type}}",
+      "speed": "({{speed}} MB/s)",
+      "not_benchmarked": "未基准测试",
+      "concurrent_ops": "并发操作：{{poolSize}}",
+      "last_tested": "最后测试：{{date}}",
+      "run_benchmark_desc": "运行基准测试以优化文件操作速度。",
+      "run_benchmark": "运行基准测试",
+      "rerun_benchmark": "重新运行基准测试"
+    },
+    "danger_zone": {
+      "title": "危险区域",
+      "clear_cache": {
+        "title": "清除 SimsForge 缓存",
+        "description": "可解决缺少的图片或被阻止的下载。",
+        "button": "清除缓存",
+        "clearing": "清除中...",
+        "success": "缓存已清除：移除了 {{count}} 个项目，释放了 {{size}} MB"
+      },
+      "reset_database": {
+        "title": "重置数据库",
+        "description": "删除所有配置文件、缓存模组和磁盘上的模组文件。",
+        "button": "重置",
+        "resetting": "重置中...",
+        "success": "数据库重置完成。所有模组和配置文件已被删除。"
+      }
+    },
+    "modals": {
+      "reset_database": {
+        "title": "重置数据库",
+        "message": "这将永久删除您的所有配置文件、缓存模组和模组文件夹中的模组文件。此操作无法撤销。",
+        "confirm": "全部重置"
+      },
+      "disable_fake_detection": {
+        "title": "禁用假模组检测",
+        "message": "禁用此功能将移除所有警告、报告和已封禁创作者的阻止。您将不再受到可疑或假模组的保护。",
+        "confirm": "禁用",
+        "cancel": "保持启用"
+      },
+      "disable_logging": {
+        "title": "禁用游戏日志",
+        "message": "禁用游戏日志将从您的模组文件夹中移除 Sims Log Enabler 模组，并阻止您查看 The Sims 4 的实时日志。",
+        "confirm": "禁用",
+        "cancel": "保持启用"
+      }
+    },
+    "toasts": {
+      "mods_path_not_configured": "模组文件夹未配置",
+      "configure_mods_path": "请先配置您的模组文件夹路径。",
+      "installing_log_enabler": "安装 Sims Log Enabler",
+      "downloading": "下载并安装中...",
+      "logging_enabled": "游戏日志已启用",
+      "log_enabler_installed": "Sims Log Enabler 安装成功。",
+      "installation_failed": "安装失败",
+      "could_not_install": "无法安装 Sims Log Enabler。",
+      "logging_disabled": "游戏日志已禁用",
+      "log_enabler_removed": "Sims Log Enabler 已移除。",
+      "preference_updated": "偏好设置已更新，但无法移除模组文件。",
+      "uninstall_warning": "卸载警告",
+      "benchmark_complete": "基准测试完成",
+      "benchmark_result": "检测到 {{type}}，速度 {{speed}} MB/s",
+      "benchmark_failed": "基准测试失败",
+      "benchmark_error": "无法测量磁盘性能。"
+    }
+  },
+  "splash": {
+    "checking_updates": "检查更新中...",
+    "downloading_update": "下载更新中... {{progress}}%",
+    "installing_update": "安装更新中...",
+    "starting": "启动中...",
+    "error_checking_updates": "检查更新时出错",
+    "offline_mode": "(离线模式)"
+  },
+  "mods": {
+    "filter": {
+      "category_label": "分类：",
+      "none": "无",
+      "no_category": "无分类",
+      "sort_label": "排序方式：",
+      "relevance": "相关性",
+      "trending": "趋势",
+      "recent": "最近",
+      "popular": "热门",
+      "category_groups": {
+        "sims_ages_body": {
+          "name": "模拟市民、年龄、身体",
+          "description": "关于模拟市民本身的一切"
+        },
+        "clothing_style": {
+          "name": "服装与风格",
+          "description": "模拟市民穿戴的一切"
+        },
+        "interior_construction": {
+          "name": "室内建筑",
+          "description": "房子内部的一切"
+        },
+        "exterior_worlds": {
+          "name": "室外建筑与世界",
+          "description": "地块、花园和世界"
+        },
+        "animals_creatures": {
+          "name": "动物与生物",
+          "description": "关于动物的一切"
+        },
+        "languages_culture": {
+          "name": "语言与文化",
+          "description": "本地化与文化主题"
+        },
+        "files_scenarios_misc": {
+          "name": "文件、场景与杂项",
+          "description": "其他一切"
+        }
+      }
+    },
+    "card": {
+      "already_installed": "已安装",
+      "installing": "安装中...",
+      "install": "安装",
+      "installed": "已安装",
+      "by": "作者",
+      "unknown_author": "未知"
+    },
+    "list": {
+      "column_mod": "模组",
+      "column_categories": "分类",
+      "column_downloads": "下载量",
+      "column_last_update": "最后更新",
+      "no_results": "未找到匹配搜索的模组。",
+      "error": "错误",
+      "try_again": "重试"
+    },
+    "detail": {
+      "loading": "加载模组详情中...",
+      "not_found": "未找到模组",
+      "error_title": "错误",
+      "error_loading": "加载模组详情失败",
+      "error_generic": "加载模组失败",
+      "back_to_dashboard": "返回仪表板",
+      "back": "返回",
+      "tabs": {
+        "description": "描述",
+        "files": "文件",
+        "images": "图片",
+        "changelog": "更新日志",
+        "no_description_message": "此模组来自 CurseForge API。有关详细信息，请访问 CurseForge 上的模组页面：",
+        "view_on_curseforge": "在 CurseForge 上查看",
+        "table_name": "名称",
+        "table_date": "日期",
+        "table_size": "大小",
+        "table_action": "操作",
+        "latest_badge": "最新",
+        "install_file": "安装文件",
+        "installing_file": "安装中...",
+        "no_files": "暂无可用文件。",
+        "screenshot_alt": "截图 {{index}}",
+        "no_images": "暂无可用图片。",
+        "coming_soon": "即将推出",
+        "changelog_message": "更新日志视图将在下一次更新中提供。"
+      },
+      "header": {
+        "share_copied": "链接已复制到剪贴板！",
+        "more_categories": "还有 {{count}} 个",
+        "curseforge_badge": "CurseForge",
+        "by": "作者",
+        "unknown_author": "未知",
+        "updated": "更新于 {{date}}",
+        "already_installed": "已安装",
+        "installing": "安装中...",
+        "install": "安装",
+        "installed": "已安装"
+      },
+      "sidebar": {
+        "warning_title": "警告",
+        "warning_banned_message": "此创作者因发布多个假模组而被封禁。",
+        "warning_reported_message": "此模组已被 {{count}} 名用户举报。",
+        "information": "信息",
+        "size": "大小",
+        "downloads": "下载量",
+        "license": "许可证",
+        "view_on_curseforge": "在 CurseForge 上查看",
+        "dependencies": "依赖项",
+        "no_dependencies": "无需依赖项。",
+        "recommended": "推荐模组",
+        "view_recommendations": "在 CurseForge 上查看推荐",
+        "na": "N/A",
+        "report_title": "举报",
+        "report_description": "认为此模组是假的或误导性的？通过举报帮助社区。"
+      }
+    },
+    "warnings": {
+      "creator_banned": "创作者被封禁",
+      "suspicious_mod": "可疑模组警告",
+      "banned_message": "此模组创作者因发布多个假模组或误导性模组而被封禁。我们不建议安装此创作者的模组。",
+      "auto_warning_message": "此模组被标记为可疑：{{reason}}",
+      "user_reports_message": "{{count}} 名用户报告此模组可能是假的或误导性的。",
+      "banned_badge": "被封禁的创作者",
+      "suspicious_badge": "可疑",
+      "reports_badge": "{{count}} 份报告",
+      "banned_tooltip": "此创作者因多个假模组被封禁",
+      "reports_tooltip": "{{count}} 名用户报告了此模组",
+      "suspicious": "可疑"
+    },
+    "fake_warning_popup": {
+      "title": "检测到可疑模组",
+      "message": "已被标记为可能为假模组或误导性模组。",
+      "suspicion_score": "可疑分数",
+      "score_suffix": "/100",
+      "details_label": "附加详情（可选）：",
+      "details_placeholder": "添加有关此模组为何看似假的相关信息...",
+      "install_anyway": "仍然安装",
+      "report_cancel": "举报并取消",
+      "submit_report": "提交报告并取消",
+      "submitting": "提交中..."
+    },
+    "report": {
+      "button_title": "举报为假模组",
+      "button_text": "举报",
+      "modal_title": "举报假模组",
+      "modal_message_prefix": "举报",
+      "modal_message_suffix": "作为可能为假的或误导性的模组。",
+      "reason_label": "原因（可选）：",
+      "reason_placeholder": "您为什么认为此模组是假的？",
+      "submit": "提交报告",
+      "submitted_title": "报告已提交",
+      "submitted_message": "感谢您举报「{{modName}}」",
+      "already_reported_title": "已举报",
+      "already_reported_message": "您已举报此模组",
+      "failed_title": "报告失败",
+      "failed_message": "无法提交报告",
+      "cancel": "取消",
+      "submitting": "提交中..."
+    },
+    "toasts": {
+      "mods_path_not_configured": "模组路径未配置",
+      "configure_in_settings": "请在设置中配置您的模组文件夹",
+      "failed_to_read_path": "读取模组路径失败",
+      "reconfigure_in_settings": "请在设置中重新配置您的模组文件夹",
+      "installing": "安装 {{modName}}",
+      "starting_download": "开始下载...",
+      "installation_complete": "安装完成！",
+      "installed_successfully": "{{modName}} 安装成功",
+      "installation_failed": "安装失败",
+      "unknown_error": "未知错误",
+      "unexpected_error": "发生意外错误"
+    }
+  },
+  "console": {
+    "title": "游戏控制台",
+    "logs_count": "{{count}} 条日志",
+    "paused_count": "(+{{count}} 条暂停)",
+    "filter_placeholder": "筛选...",
+    "filter_by_source": "按来源筛选",
+    "pause": "暂停",
+    "resume": "恢复",
+    "scroll_to_bottom": "滚动到底部",
+    "export_logs": "导出日志到文件",
+    "clear_logs": "清除日志",
+    "close": "关闭",
+    "clear_filter": "清除筛选",
+    "waiting_for_logs": "等待日志...",
+    "no_match": "没有匹配筛选的日志",
+    "sources_count": "{{count}} 个来源",
+    "total_logs": "共 {{count}} 条日志",
+    "auto_scroll_disabled": "自动滚动已禁用（滚动到底部以启用）"
+  },
+  "errors": {
+    "generic": "发生错误",
+    "try_again": "重试"
+  },
+  "contexts": {
+    "profile": {
+      "initialization_failed": "配置文件初始化失败",
+      "unknown_error": "未知错误",
+      "profile_created": "配置文件已创建",
+      "profile_created_message": "「{{name}}」已成功创建",
+      "failed_to_create": "创建配置文件失败",
+      "profile_updated": "配置文件已更新",
+      "changes_saved": "更改已成功保存",
+      "failed_to_update": "更新配置文件失败",
+      "profile_deleted": "配置文件已删除",
+      "profile_removed": "配置文件已成功移除",
+      "failed_to_delete": "删除配置文件失败",
+      "failed_to_activate": "激活配置文件失败",
+      "still_initializing": "配置文件系统仍在初始化中。请稍候再试。",
+      "mods_path_not_configured": "模组路径未配置。无法找到 The Sims 4 安装。",
+      "profile_not_found": "未找到配置文件",
+      "failed_to_create_symlinks": "创建 {{count}} 个符号链接失败：\n{{errors}}\n\n请检查权限并确保 The Sims 4 未在运行。",
+      "mod_removed": "模组已移除",
+      "mod_removed_from_profile": "模组已从配置文件中移除",
+      "failed_to_remove_mod": "移除模组失败"
+    },
+    "update": {
+      "auto_updating_mods": "自动更新模组",
+      "installing_updates": "正在安装 {{count}} 个更新...",
+      "updates_available": "有更新可用",
+      "updates_available_message": "有 {{count}} 个模组更新可用",
+      "update_check_failed": "更新检查失败",
+      "failed_to_check": "检查更新失败",
+      "update_failed": "更新失败",
+      "no_update_info": "未找到此模组的更新信息",
+      "mods_path_not_configured": "模组路径未配置",
+      "mod_updated": "模组已更新",
+      "mod_updated_message": "{{name}} 更新成功",
+      "all_mods_updated": "所有模组已更新",
+      "all_mods_updated_message": "成功更新了 {{count}} 个模组",
+      "partial_update": "部分更新",
+      "partial_update_message": "更新了 {{successful}}/{{total}} 个模组。{{failed}} 个失败。",
+      "update_failed_message": "更新 {{count}} 个模组失败"
+    }
+  }
+}
