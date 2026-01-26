@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Trash, Folder, Sliders, Warning, CheckCircle, FolderOpen, Terminal, HardDrive } from '@phosphor-icons/react';
+import { useState, useEffect, useRef } from 'react';
+import { Trash, Folder, Sliders, Warning, CheckCircle, FolderOpen, Terminal, HardDrive, Globe, CaretDown } from '@phosphor-icons/react';
 import { open } from '@tauri-apps/plugin-dialog';
 import { exists, readDir, remove } from '@tauri-apps/plugin-fs';
 import { join } from '@tauri-apps/api/path';
@@ -20,6 +20,7 @@ import {
 } from '@/lib/services/DiskPerformanceService';
 import { concurrentMap } from '@/lib/utils/concurrencyPool';
 import { useToast } from '@/context/ToastContext';
+import { useLanguage, type SupportedLanguage } from '@/context/LanguageContext';
 
 interface Message {
   type: 'success' | 'error';
@@ -147,11 +148,35 @@ export default function SettingsPage() {
   const [diskType, setDiskType] = useState<DiskType | null>(null);
   const [runningBenchmark, setRunningBenchmark] = useState(false);
   const [benchmarkProgress, setBenchmarkProgress] = useState(0);
+  const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
+  const languageDropdownRef = useRef<HTMLDivElement>(null);
   const { showToast, dismissToast } = useToast();
+  const { language, setLanguage, supportedLanguages, languageNames } = useLanguage();
 
   useEffect(() => {
     loadLocalSettings();
   }, []);
+
+  // Close language dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (languageDropdownRef.current && !languageDropdownRef.current.contains(event.target as Node)) {
+        setLanguageDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  /**
+   * Handle language change
+   */
+  function handleLanguageChange(lang: SupportedLanguage) {
+    setLanguage(lang);
+    userPreferencesService.setLanguage(lang);
+    setLanguageDropdownOpen(false);
+  }
 
   async function checkPathExists(path: string): Promise<boolean> {
     try {
@@ -603,6 +628,61 @@ export default function SettingsPage() {
         {/* Settings Content */}
         <div className="flex-1 overflow-y-auto p-6 lg:p-10 scroll-smooth">
           <div className="max-w-4xl mx-auto space-y-10">
+
+            {/* SECTION: APPLICATION */}
+            <section id="application">
+              <div className="mb-6">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <Globe size={20} className="text-brand-green" /> Application
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">General application settings.</p>
+              </div>
+
+              <div className="bg-white dark:bg-ui-panel border border-gray-200 dark:border-ui-border rounded-xl p-6 shadow-sm space-y-6">
+                {/* Language Selector */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-bold text-gray-900 dark:text-white">Language</div>
+                    <div className="text-sm text-gray-500">Choose the display language for SimsForge.</div>
+                  </div>
+
+                  <div className="relative" ref={languageDropdownRef}>
+                    <button
+                      type="button"
+                      onClick={() => setLanguageDropdownOpen(!languageDropdownOpen)}
+                      className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-ui-hover border border-gray-300 dark:border-ui-border rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer min-w-[160px] justify-between"
+                    >
+                      <span className="text-gray-900 dark:text-white font-medium">
+                        {languageNames[language]}
+                      </span>
+                      <CaretDown
+                        size={16}
+                        className={`text-gray-500 transition-transform ${languageDropdownOpen ? 'rotate-180' : ''}`}
+                      />
+                    </button>
+
+                    {languageDropdownOpen && (
+                      <div className="absolute right-0 mt-2 w-full bg-white dark:bg-ui-panel border border-gray-200 dark:border-ui-border rounded-lg shadow-lg z-50 overflow-hidden">
+                        {supportedLanguages.map((lang) => (
+                          <button
+                            key={lang}
+                            type="button"
+                            onClick={() => handleLanguageChange(lang)}
+                            className={`w-full px-4 py-2.5 text-left hover:bg-gray-100 dark:hover:bg-ui-hover transition-colors cursor-pointer ${
+                              lang === language
+                                ? 'bg-brand-green/10 text-brand-green font-medium'
+                                : 'text-gray-900 dark:text-white'
+                            }`}
+                          >
+                            {languageNames[lang]}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </section>
 
             {/* SECTION: GAME PATHS */}
             <section id="game-paths">

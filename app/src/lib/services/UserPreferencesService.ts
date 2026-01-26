@@ -5,6 +5,8 @@
  * and backup settings. Persists preferences to localStorage with encryption.
  */
 
+import type { SupportedLanguage } from '@/context/LanguageContext';
+
 /**
  * User preferences structure
  */
@@ -14,6 +16,7 @@ export interface UserPreferences {
   fakeModDetection: boolean;
   gameLogging: boolean;
   showDebugLogs: boolean;
+  language: SupportedLanguage | null;
 }
 
 /**
@@ -25,6 +28,7 @@ const DEFAULT_PREFERENCES: UserPreferences = {
   fakeModDetection: true,
   gameLogging: true,
   showDebugLogs: false,
+  language: null,
 };
 
 const STORAGE_KEY = 'simsforge_user_preferences';
@@ -174,6 +178,23 @@ export class UserPreferencesService {
   setShowDebugLogs(enabled: boolean): void {
     this.ensureInitialized();
     this.preferences.showDebugLogs = enabled;
+    this.savePreferences();
+  }
+
+  /**
+   * Get language preference
+   */
+  getLanguage(): SupportedLanguage | null {
+    this.ensureInitialized();
+    return this.preferences.language;
+  }
+
+  /**
+   * Set language preference
+   */
+  setLanguage(language: SupportedLanguage): void {
+    this.ensureInitialized();
+    this.preferences.language = language;
     this.savePreferences();
   }
 
