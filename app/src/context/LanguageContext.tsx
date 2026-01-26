@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import i18n, {
   SUPPORTED_LANGUAGES,
   LANGUAGE_NAMES,
+  LANGUAGE_FLAGS,
   DEFAULT_LANGUAGE,
   LANGUAGE_STORAGE_KEY,
   normalizeLanguage,
@@ -23,6 +24,8 @@ interface LanguageContextType {
   supportedLanguages: readonly SupportedLanguage[];
   /** Map of language codes to display names */
   languageNames: Record<SupportedLanguage, string>;
+  /** Map of language codes to country flag codes */
+  languageFlags: Record<SupportedLanguage, string>;
   /** Whether the language system is ready */
   isReady: boolean;
 }
@@ -96,6 +99,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
         setLanguage,
         supportedLanguages: SUPPORTED_LANGUAGES,
         languageNames: LANGUAGE_NAMES,
+        languageFlags: LANGUAGE_FLAGS,
         isReady,
       }}
     >

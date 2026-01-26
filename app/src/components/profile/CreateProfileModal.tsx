@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { X } from '@phosphor-icons/react';
 import { useProfiles } from '@/context/ProfileContext';
+import { useTranslation } from 'react-i18next';
 
 interface CreateProfileModalProps {
   onClose: () => void;
@@ -13,6 +14,7 @@ export default function CreateProfileModal({
   onClose,
   onCreated,
 }: CreateProfileModalProps) {
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState<string[]>([]);
@@ -27,7 +29,7 @@ export default function CreateProfileModal({
 
     // Validation
     if (!name.trim()) {
-      setError('Profile name is required');
+      setError(t('profiles.create_modal.name_required_error'));
       return;
     }
 
@@ -43,7 +45,7 @@ export default function CreateProfileModal({
       onClose();
     } catch (error: any) {
       console.error('[CreateProfileModal] Error creating profile:', error);
-      setError(error.message || 'Failed to create profile');
+      setError(error.message || t('profiles.create_modal.create_failed'));
     } finally {
       setIsLoading(false);
     }
@@ -83,7 +85,7 @@ export default function CreateProfileModal({
             className="text-lg font-bold"
             style={{ color: 'var(--text-primary)' }}
           >
-            Create Profile
+            {t('profiles.create_modal.title')}
           </h2>
           <button
             onClick={onClose}
@@ -109,14 +111,14 @@ export default function CreateProfileModal({
               className="block text-sm font-medium mb-1"
               style={{ color: 'var(--text-primary)' }}
             >
-              Profile Name *
+              {t('profiles.create_modal.name_label')}
             </label>
             <input
               id="profile-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g., Gameplay Realistic"
+              placeholder={t('profiles.create_modal.name_placeholder')}
               disabled={isLoading}
               className="w-full px-3 py-2 rounded border transition-colors"
               style={{
@@ -140,13 +142,13 @@ export default function CreateProfileModal({
               className="block text-sm font-medium mb-1"
               style={{ color: 'var(--text-primary)' }}
             >
-              Description
+              {t('profiles.create_modal.description_label')}
             </label>
             <textarea
               id="profile-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Optional description of this profile..."
+              placeholder={t('profiles.create_modal.description_placeholder')}
               disabled={isLoading}
               rows={3}
               className="w-full px-3 py-2 rounded border transition-colors resize-none"
@@ -171,7 +173,7 @@ export default function CreateProfileModal({
               className="block text-sm font-medium mb-1"
               style={{ color: 'var(--text-primary)' }}
             >
-              Tags
+              {t('profiles.create_modal.tags_label')}
             </label>
             <div className="flex gap-2 mb-2">
               <input
@@ -185,7 +187,7 @@ export default function CreateProfileModal({
                     handleAddTag();
                   }
                 }}
-                placeholder="Add tag and press Enter"
+                placeholder={t('profiles.create_modal.tags_placeholder')}
                 disabled={isLoading}
                 className="flex-1 px-3 py-2 rounded border transition-colors"
                 style={{
@@ -205,7 +207,7 @@ export default function CreateProfileModal({
                   opacity: isLoading || !tagInput.trim() ? 0.5 : 1,
                 }}
               >
-                Add
+                {t('profiles.create_modal.add')}
               </button>
             </div>
 
@@ -266,7 +268,7 @@ export default function CreateProfileModal({
                 opacity: isLoading ? 0.5 : 1,
               }}
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
@@ -277,7 +279,7 @@ export default function CreateProfileModal({
                 opacity: isLoading || !name.trim() ? 0.5 : 1,
               }}
             >
-              {isLoading ? 'Creating...' : 'Create Profile'}
+              {isLoading ? t('profiles.create_modal.creating') : t('profiles.create_modal.title')}
             </button>
           </div>
         </form>

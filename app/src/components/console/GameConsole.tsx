@@ -6,6 +6,7 @@ import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import { save } from '@tauri-apps/plugin-dialog';
 import { writeTextFile } from '@tauri-apps/plugin-fs';
 import { gameLogService, LogEntry } from '@/lib/services/GameLogService';
+import { useTranslation } from 'react-i18next';
 
 interface GameConsoleProps {
   isOpen: boolean;
@@ -88,6 +89,7 @@ function LogRow({ log }: { log: LogEntry }) {
  * Game Console Panel - Displays real-time Sims 4 logs with virtualization
  */
 export default function GameConsole({ isOpen, onClose, modsPath, showDebugLogs }: GameConsoleProps) {
+  const { t } = useTranslation();
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [isPaused, setIsPaused] = useState(false);
   const [atBottom, setAtBottom] = useState(true);
@@ -264,9 +266,9 @@ export default function GameConsole({ isOpen, onClose, modsPath, showDebugLogs }
           style={{ borderColor: '#333', backgroundColor: '#252526' }}
         >
           <div className="flex items-center gap-3">
-            <h2 className="text-sm font-bold text-white">Game Console</h2>
+            <h2 className="text-sm font-bold text-white">{t('console.title')}</h2>
             <span className="text-xs text-gray-500">
-              {filteredLogs.length} logs {isPaused && `(+${pausedLogsRef.current.length} paused)`}
+              {t('console.logs_count', { count: filteredLogs.length })} {isPaused && t('console.paused_count', { count: pausedLogsRef.current.length })}
             </span>
           </div>
 
@@ -274,7 +276,7 @@ export default function GameConsole({ isOpen, onClose, modsPath, showDebugLogs }
             {/* Filter input */}
             <input
               type="text"
-              placeholder="Filter..."
+              placeholder={t('console.filter_placeholder')}
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
               className="px-2 py-1 text-xs rounded border bg-transparent text-white"
@@ -285,7 +287,7 @@ export default function GameConsole({ isOpen, onClose, modsPath, showDebugLogs }
             <button
               onClick={() => setShowSourceFilter(!showSourceFilter)}
               className="p-1.5 rounded hover:bg-gray-700 transition-colors"
-              title="Filter by source"
+              title={t('console.filter_by_source')}
             >
               <FunnelSimple
                 size={16}
@@ -297,7 +299,7 @@ export default function GameConsole({ isOpen, onClose, modsPath, showDebugLogs }
             <button
               onClick={() => isPaused ? handleResume() : setIsPaused(true)}
               className="p-1.5 rounded hover:bg-gray-700 transition-colors"
-              title={isPaused ? 'Resume' : 'Pause'}
+              title={isPaused ? t('console.resume') : t('console.pause')}
             >
               {isPaused ? (
                 <Play size={16} className="text-green-400" />
@@ -310,7 +312,7 @@ export default function GameConsole({ isOpen, onClose, modsPath, showDebugLogs }
             <button
               onClick={scrollToBottom}
               className="p-1.5 rounded hover:bg-gray-700 transition-colors"
-              title="Scroll to bottom"
+              title={t('console.scroll_to_bottom')}
             >
               <ArrowDown size={16} className={atBottom ? 'text-brand-green' : 'text-gray-400'} />
             </button>
@@ -319,7 +321,7 @@ export default function GameConsole({ isOpen, onClose, modsPath, showDebugLogs }
             <button
               onClick={handleExport}
               className="p-1.5 rounded hover:bg-gray-700 transition-colors"
-              title="Export logs to file"
+              title={t('console.export_logs')}
             >
               <Export size={16} className="text-gray-400" />
             </button>
@@ -328,7 +330,7 @@ export default function GameConsole({ isOpen, onClose, modsPath, showDebugLogs }
             <button
               onClick={handleClear}
               className="p-1.5 rounded hover:bg-gray-700 transition-colors"
-              title="Clear logs"
+              title={t('console.clear_logs')}
             >
               <Trash size={16} className="text-gray-400" />
             </button>
@@ -337,7 +339,7 @@ export default function GameConsole({ isOpen, onClose, modsPath, showDebugLogs }
             <button
               onClick={onClose}
               className="p-1.5 rounded hover:bg-gray-700 transition-colors"
-              title="Close"
+              title={t('console.close')}
             >
               <X size={16} className="text-gray-400" />
             </button>
@@ -369,7 +371,7 @@ export default function GameConsole({ isOpen, onClose, modsPath, showDebugLogs }
                 onClick={() => setSelectedSources(new Set())}
                 className="px-2 py-0.5 text-xs rounded bg-gray-600 text-white hover:bg-gray-500"
               >
-                Clear filter
+                {t('console.clear_filter')}
               </button>
             )}
           </div>
@@ -379,7 +381,7 @@ export default function GameConsole({ isOpen, onClose, modsPath, showDebugLogs }
         <div className="flex-1" style={{ backgroundColor: '#1E1E1E' }}>
           {filteredLogs.length === 0 ? (
             <div className="flex items-center justify-center h-full text-gray-500 text-sm">
-              {logs.length === 0 ? 'Waiting for logs...' : 'No logs match the filter'}
+              {logs.length === 0 ? t('console.waiting_for_logs') : t('console.no_match')}
             </div>
           ) : (
             <Virtuoso
@@ -399,10 +401,10 @@ export default function GameConsole({ isOpen, onClose, modsPath, showDebugLogs }
           style={{ borderColor: '#333', backgroundColor: '#252526', color: '#888' }}
         >
           <span>
-            {availableSources.length} sources | {logs.length} total logs
+            {t('console.sources_count', { count: availableSources.length })} | {t('console.total_logs', { count: logs.length })}
           </span>
           {!atBottom && (
-            <span className="text-yellow-500">Auto-scroll disabled (scroll to bottom to enable)</span>
+            <span className="text-yellow-500">{t('console.auto_scroll_disabled')}</span>
           )}
         </div>
       </div>

@@ -11,30 +11,32 @@ import ConfirmationModal from '@/components/ui/ConfirmationModal';
 import UpdateBadge from '@/components/update/UpdateBadge';
 import { getBatchWarningStatus } from '@/lib/fakeDetectionApi';
 import { userPreferencesService } from '@/lib/services/UserPreferencesService';
+import { useTranslation } from 'react-i18next';
 import type { ModWarningStatus } from '@/types/fakeDetection';
-
-/** Filter options for the library */
-const FILTER_OPTIONS = [
-  { value: 'all' as const, label: 'All Mods' },
-  { value: 'enabled' as const, label: 'Enabled' },
-  { value: 'disabled' as const, label: 'Disabled' },
-  { value: 'updates' as const, label: 'Updates Available' },
-];
-
-/** Sort options for the library */
-const SORT_OPTIONS = [
-  { value: 'name' as const, label: 'Name' },
-  { value: 'lastUpdated' as const, label: 'Last Updated' },
-];
 
 /**
  * Library content component that handles displaying and managing mods
  */
 export default function LibraryContent() {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const { activeProfile, isLoading, toggleModInProfile, removeModFromProfile } =
     useProfiles();
   const { hasUpdate, updateMod, updateAllMods, updateCount, isUpdating, isChecking, checkForUpdates } = useUpdates();
+
+  /** Filter options for the library */
+  const FILTER_OPTIONS = [
+    { value: 'all' as const, label: t('library.filters.all') },
+    { value: 'enabled' as const, label: t('library.filters.enabled') },
+    { value: 'disabled' as const, label: t('library.filters.disabled') },
+    { value: 'updates' as const, label: t('library.filters.updates') },
+  ];
+
+  /** Sort options for the library */
+  const SORT_OPTIONS = [
+    { value: 'name' as const, label: t('library.sort.name') },
+    { value: 'lastUpdated' as const, label: t('library.sort.last_updated') },
+  ];
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'enabled' | 'disabled' | 'updates'>('all');
@@ -200,7 +202,7 @@ export default function LibraryContent() {
           className="text-xl font-bold"
           style={{ color: 'var(--text-primary)' }}
         >
-          Library
+          {t('library.title')}
         </h1>
 
         <div className="flex items-center gap-4">
@@ -218,13 +220,15 @@ export default function LibraryContent() {
               }}
             >
               <ArrowCircleUp size={18} weight={isUpdating ? 'regular' : 'fill'} />
-              {isUpdating ? 'Updating...' : `Update All (${updateCount})`}
+              {isUpdating ? t('library.updating') : t('library.update_all', { count: updateCount })}
             </button>
           )}
 
           {activeProfile && (
             <p style={{ color: 'var(--text-secondary)' }} className="text-sm">
-              {activeProfile.name} • {activeProfile.mods.length} mod{activeProfile.mods.length !== 1 ? 's' : ''}
+              {activeProfile.name} • {activeProfile.mods.length === 1
+                ? t('common.mod')
+                : `${activeProfile.mods.length} ${t('common.mods')}`}
             </p>
           )}
         </div>
@@ -250,7 +254,7 @@ export default function LibraryContent() {
             <MagnifyingGlass size={18} style={{ color: 'var(--text-secondary)' }} />
             <input
               type="text"
-              placeholder="Search mods..."
+              placeholder={t('library.search_placeholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               style={{
@@ -272,7 +276,7 @@ export default function LibraryContent() {
                 className="flex items-center gap-2 px-3 h-10 border rounded-lg text-sm font-medium hover:border-brand-green transition-colors cursor-pointer"
                 style={{ backgroundColor: 'var(--ui-panel)', borderColor: 'var(--border-color)' }}
               >
-                <span>Filter:</span>
+                <span>{t('library.filter_label')}</span>
                 <span className="text-brand-green">
                   {filterStatus === 'updates' && updateCount > 0
                     ? `${FILTER_OPTIONS.find((o) => o.value === filterStatus)?.label} (${updateCount})`
@@ -322,7 +326,7 @@ export default function LibraryContent() {
                 className="flex items-center gap-2 px-3 h-10 border rounded-lg text-sm font-medium hover:border-brand-green transition-colors cursor-pointer"
                 style={{ backgroundColor: 'var(--ui-panel)', borderColor: 'var(--border-color)' }}
               >
-                <span>Sort:</span>
+                <span>{t('library.sort_label')}</span>
                 <span className="text-brand-green">
                   {SORT_OPTIONS.find((o) => o.value === sortBy)?.label}
                 </span>
@@ -376,10 +380,10 @@ export default function LibraryContent() {
               opacity: isChecking ? 0.6 : 1,
               cursor: isChecking ? 'not-allowed' : 'pointer',
             }}
-            title="Check for updates"
+            title={t('library.check_updates')}
           >
             <ArrowsClockwise size={16} className={isChecking ? 'animate-spin' : ''} />
-            <span className="hidden md:inline">{isChecking ? 'Checking...' : 'Check Updates'}</span>
+            <span className="hidden md:inline">{isChecking ? t('library.checking') : t('library.check_updates')}</span>
           </button>
         </section>
       )}
@@ -392,8 +396,8 @@ export default function LibraryContent() {
             style={{ color: 'var(--text-secondary)' }}
           >
             <div className="text-center">
-              <p className="font-medium mb-2" style={{ color: 'var(--text-primary)' }}>No active profile</p>
-              <p className="text-sm">Create or activate a profile in the sidebar to see your mods</p>
+              <p className="font-medium mb-2" style={{ color: 'var(--text-primary)' }}>{t('library.empty.no_profile_title')}</p>
+              <p className="text-sm">{t('library.empty.no_profile_message')}</p>
             </div>
           </div>
         ) : isLoading ? (
@@ -401,7 +405,7 @@ export default function LibraryContent() {
             className="flex items-center justify-center h-64"
             style={{ color: 'var(--text-secondary)' }}
           >
-            Loading library...
+            {t('library.loading')}
           </div>
         ) : filteredMods.length === 0 ? (
           <div
@@ -410,10 +414,10 @@ export default function LibraryContent() {
           >
             <p>
               {searchTerm
-                ? 'No mods found matching your search'
+                ? t('library.empty.no_search_results')
                 : filterStatus === 'updates'
-                  ? 'All mods are up to date!'
-                  : 'No mods in this profile yet'}
+                  ? t('library.empty.all_updated')
+                  : t('library.empty.no_mods_title')}
             </p>
           </div>
         ) : (
@@ -487,13 +491,13 @@ export default function LibraryContent() {
                         <div className="flex items-center gap-2 text-xs">
                           {mod.lastUpdateDate && (
                             <span style={{ color: 'var(--text-secondary)' }}>
-                              Updated {new Date(mod.lastUpdateDate).toLocaleDateString()}
+                              {t('library.mod_item.updated', { date: new Date(mod.lastUpdateDate).toLocaleDateString() })}
                             </span>
                           )}
                           {!mod.enabled && (
                             <>
                               <span style={{ color: 'var(--text-secondary)' }}>•</span>
-                              <span style={{ color: '#fbbf24' }}>Disabled</span>
+                              <span style={{ color: '#fbbf24' }}>{t('common.disabled')}</span>
                             </>
                           )}
                         </div>
@@ -512,7 +516,7 @@ export default function LibraryContent() {
                           }}
                           disabled={isUpdating || updatingModId === mod.modId}
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
-                          title="Update mod"
+                          title={t('common.update')}
                           style={{
                             backgroundColor: '#46C89B',
                             color: '#fff',
@@ -521,7 +525,7 @@ export default function LibraryContent() {
                           }}
                         >
                           <ArrowCircleUp size={16} className={updatingModId === mod.modId ? 'animate-spin' : ''} />
-                          {updatingModId === mod.modId ? 'Updating...' : 'Update'}
+                          {updatingModId === mod.modId ? t('common.updating') : t('common.update')}
                         </button>
                       )}
 
@@ -534,7 +538,7 @@ export default function LibraryContent() {
                         }}
                         disabled={isLoading}
                         className="p-2 rounded transition-colors"
-                        title={mod.enabled ? 'Disable mod' : 'Enable mod'}
+                        title={mod.enabled ? t('library.mod_item.disable_tooltip') : t('library.mod_item.enable_tooltip')}
                         style={{
                           backgroundColor: 'var(--ui-hover)',
                           color: mod.enabled ? '#46C89B' : 'var(--text-secondary)',
@@ -561,7 +565,7 @@ export default function LibraryContent() {
                         }}
                         disabled={isLoading}
                         className="p-2 rounded transition-colors"
-                        title="Remove mod from profile"
+                        title={t('library.mod_item.remove_tooltip')}
                         style={{
                           color: '#ef4444',
                           opacity: isLoading ? 0.5 : 1,
@@ -597,10 +601,10 @@ export default function LibraryContent() {
           })
         }
         onConfirm={handleRemoveModConfirm}
-        title="Remove Mod"
-        message={`Are you sure you want to remove "${confirmationModal.modName}" from your profile? This action cannot be undone.`}
-        confirmText="Remove"
-        cancelText="Cancel"
+        title={t('library.remove_modal.title')}
+        message={t('library.remove_modal.message', { modName: confirmationModal.modName })}
+        confirmText={t('library.remove_modal.confirm')}
+        cancelText={t('common.cancel')}
         isDangerous={true}
         isLoading={confirmationModal.isLoading}
       />

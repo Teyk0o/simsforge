@@ -16,6 +16,7 @@ import { attachConsole } from '@tauri-apps/plugin-log';
 import { userPreferencesService } from '@/lib/services/UserPreferencesService';
 import { gameLogService } from '@/lib/services/GameLogService';
 import { logEnablerService } from '@/lib/services/LogEnablerService';
+import { useTranslation } from 'react-i18next';
 
 type SortOption = 'downloads' | 'date' | 'trending' | 'relevance';
 type FilterChip = 'all' | 'updates' | 'early-access' | 'installed';
@@ -63,6 +64,7 @@ const StorageHelper = {
 export default function Home() {
   const { viewMode, toggleViewMode } = useViewMode();
   const searchState = useSearchState();
+  const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
   const [previousSort, setPreviousSort] = useState<SortOption>('trending');
   const [gamePath, setGamePath] = useState<string | null>(null);
@@ -308,7 +310,7 @@ export default function Home() {
               </svg>
               <input
                   type="text"
-                  placeholder="Rechercher des mods..."
+                  placeholder={t('home.search_placeholder')}
                   value={searchState.searchQuery}
                   onChange={(e) => searchState.setSearchQuery(e.target.value)}
                   className="w-full rounded-full text-sm py-2.5 pl-10 pr-4 transition-all"
@@ -347,7 +349,7 @@ export default function Home() {
                 }}
               >
                 <X size={14} />
-                Réinitialiser
+                {t('home.reset')}
               </button>
             )}
 
@@ -372,10 +374,10 @@ export default function Home() {
                   e.currentTarget.style.backgroundColor = 'var(--ui-panel)';
                   e.currentTarget.style.color = '#8B5CF6';
                 }}
-                title="Open game console"
+                title={t('home.console_tooltip')}
               >
                 <Terminal size={14} weight="bold" />
-                Console
+                {t('home.console')}
               </button>
             )}
 
@@ -408,7 +410,7 @@ export default function Home() {
                 ) : (
                   <Play size={14} weight="fill" />
                 )}
-                {isLaunching ? 'Lancement...' : isGameRunning ? 'En cours' : 'Jouer'}
+                {isLaunching ? t('home.launching') : isGameRunning ? t('home.running') : t('home.play')}
               </button>
             )}
           </header>

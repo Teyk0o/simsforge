@@ -21,6 +21,8 @@ import {
 import { concurrentMap } from '@/lib/utils/concurrencyPool';
 import { useToast } from '@/context/ToastContext';
 import { useLanguage, type SupportedLanguage } from '@/context/LanguageContext';
+import { useTranslation } from 'react-i18next';
+import * as flags from 'country-flag-icons/react/3x2';
 
 interface Message {
   type: 'success' | 'error';
@@ -151,7 +153,8 @@ export default function SettingsPage() {
   const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
   const languageDropdownRef = useRef<HTMLDivElement>(null);
   const { showToast, dismissToast } = useToast();
-  const { language, setLanguage, supportedLanguages, languageNames } = useLanguage();
+  const { language, setLanguage, supportedLanguages, languageNames, languageFlags } = useLanguage();
+  const { t } = useTranslation();
 
   useEffect(() => {
     loadLocalSettings();
@@ -262,10 +265,10 @@ export default function SettingsPage() {
       try {
         const encrypted = await StorageHelper.encryptData(path);
         StorageHelper.setLocal('simsforge_game_path', encrypted);
-        setPathsMessage({ type: 'success', text: 'Game path updated' });
+        setPathsMessage({ type: 'success', text: t('settings.game_location.game_path_updated') });
         setTimeout(() => setPathsMessage(null), 5000);
       } catch (error) {
-        setPathsMessage({ type: 'error', text: 'Failed to save game path' });
+        setPathsMessage({ type: 'error', text: t('settings.game_location.failed_to_save') });
       }
     }
   }
@@ -288,17 +291,17 @@ export default function SettingsPage() {
       try {
         const encrypted = await StorageHelper.encryptData(path);
         StorageHelper.setLocal('simsforge_mods_path', encrypted);
-        setPathsMessage({ type: 'success', text: 'Mods path updated' });
+        setPathsMessage({ type: 'success', text: t('settings.game_location.mods_path_updated') });
         setTimeout(() => setPathsMessage(null), 5000);
       } catch (error) {
-        setPathsMessage({ type: 'error', text: 'Failed to save mods path' });
+        setPathsMessage({ type: 'error', text: t('settings.game_location.failed_to_save') });
       }
     }
   }
 
   async function handleSave() {
     if (!curseforgeKey.trim()) {
-      setApiKeyMessage({ type: 'error', text: 'Please enter a valid API key' });
+      setApiKeyMessage({ type: 'error', text: t('settings.api_keys.invalid') });
       return;
     }
 
@@ -309,11 +312,11 @@ export default function SettingsPage() {
       const encrypted = await StorageHelper.encryptData(curseforgeKey);
       StorageHelper.setLocal('simsforge_api_key', encrypted);
 
-      setApiKeyMessage({ type: 'success', text: 'API key saved securely!' });
+      setApiKeyMessage({ type: 'success', text: t('settings.api_keys.saved') });
       setIsConfigured(true);
       setTimeout(() => setApiKeyMessage(null), 5000);
     } catch (error: any) {
-      const errorMessage = 'Failed to save API key';
+      const errorMessage = t('settings.api_keys.failed_to_delete');
       setApiKeyMessage({ type: 'error', text: errorMessage });
     } finally {
       setLoading(false);
@@ -327,12 +330,12 @@ export default function SettingsPage() {
       // Remove from local storage
       StorageHelper.removeLocal('simsforge_api_key');
 
-      setApiKeyMessage({ type: 'success', text: 'API key deleted successfully' });
+      setApiKeyMessage({ type: 'success', text: t('settings.api_keys.deleted') });
       setIsConfigured(false);
       setCurseforgeKey('');
       setTimeout(() => setApiKeyMessage(null), 5000);
     } catch (error: any) {
-      const errorMessage = 'Failed to delete API key';
+      const errorMessage = t('settings.api_keys.failed_to_delete');
       setApiKeyMessage({ type: 'error', text: errorMessage });
     } finally {
       setLoading(false);
@@ -366,7 +369,7 @@ export default function SettingsPage() {
 
       setDangerMessage({
         type: 'success',
-        text: `Cache cleared: ${totalDeleted} items removed, ${freedMB} MB freed`,
+        text: t('settings.danger_zone.clear_cache.success', { count: totalDeleted, size: freedMB }),
       });
       setTimeout(() => setDangerMessage(null), 5000);
     } catch (error: any) {
@@ -442,7 +445,7 @@ export default function SettingsPage() {
       setShowResetConfirmation(false);
       setDangerMessage({
         type: 'success',
-        text: 'Database reset complete. All mods and profiles have been deleted.',
+        text: t('settings.danger_zone.reset_database.success'),
       });
 
       // Reload the page to reset all state
@@ -479,16 +482,16 @@ export default function SettingsPage() {
 
       showToast({
         type: 'success',
-        title: 'Benchmark complete',
-        message: `Detected ${type?.toUpperCase() || 'disk'} at ${config.diskSpeedMBps} MB/s`,
+        title: t('settings.toasts.benchmark_complete'),
+        message: t('settings.toasts.benchmark_result', { type: type?.toUpperCase() || 'disk', speed: config.diskSpeedMBps }),
         duration: 3000,
       });
     } catch (error: any) {
       console.error('Benchmark failed:', error);
       showToast({
         type: 'error',
-        title: 'Benchmark failed',
-        message: error.message || 'Could not measure disk performance.',
+        title: t('settings.toasts.benchmark_failed'),
+        message: error.message || t('settings.toasts.benchmark_error'),
         duration: 5000,
       });
     } finally {
@@ -505,8 +508,8 @@ export default function SettingsPage() {
     if (!modsPath || !modsPathExists) {
       showToast({
         type: 'error',
-        title: 'Mods folder not configured',
-        message: 'Please configure your Mods folder path first.',
+        title: t('settings.toasts.mods_path_not_configured'),
+        message: t('settings.toasts.configure_mods_path'),
         duration: 5000,
       });
       return;
@@ -516,8 +519,8 @@ export default function SettingsPage() {
 
     const toastId = showToast({
       type: 'info',
-      title: 'Installing Sims Log Enabler',
-      message: 'Downloading and installing...',
+      title: t('settings.toasts.installing_log_enabler'),
+      message: t('settings.toasts.downloading'),
       duration: 0, // Don't auto-dismiss
     });
 
@@ -531,15 +534,15 @@ export default function SettingsPage() {
         userPreferencesService.setGameLogging(true);
         showToast({
           type: 'success',
-          title: 'Game logging enabled',
-          message: 'Sims Log Enabler installed successfully.',
+          title: t('settings.toasts.logging_enabled'),
+          message: t('settings.toasts.log_enabler_installed'),
           duration: 3000,
         });
       } else {
         showToast({
           type: 'error',
-          title: 'Installation failed',
-          message: result.error || 'Could not install Sims Log Enabler.',
+          title: t('settings.toasts.installation_failed'),
+          message: result.error || t('settings.toasts.could_not_install'),
           duration: 5000,
         });
       }
@@ -548,8 +551,8 @@ export default function SettingsPage() {
       console.error('Failed to enable game logging:', error);
       showToast({
         type: 'error',
-        title: 'Installation failed',
-        message: error.message || 'Could not install Sims Log Enabler.',
+        title: t('settings.toasts.installation_failed'),
+        message: error.message || t('settings.toasts.could_not_install'),
         duration: 5000,
       });
     } finally {
@@ -572,8 +575,8 @@ export default function SettingsPage() {
         if (!result.success) {
           showToast({
             type: 'warning',
-            title: 'Uninstall warning',
-            message: result.error || 'Could not remove the mod file, but logging has been disabled.',
+            title: t('settings.toasts.uninstall_warning'),
+            message: result.error || t('settings.toasts.could_not_install'),
             duration: 5000,
           });
         }
@@ -585,8 +588,8 @@ export default function SettingsPage() {
 
       showToast({
         type: 'success',
-        title: 'Game logging disabled',
-        message: 'Sims Log Enabler has been removed.',
+        title: t('settings.toasts.logging_disabled'),
+        message: t('settings.toasts.log_enabler_removed'),
         duration: 3000,
       });
     } catch (error: any) {
@@ -597,8 +600,8 @@ export default function SettingsPage() {
 
       showToast({
         type: 'warning',
-        title: 'Game logging disabled',
-        message: 'Preference updated, but could not remove the mod file.',
+        title: t('settings.toasts.logging_disabled'),
+        message: t('settings.toasts.preference_updated'),
         duration: 5000,
       });
     } finally {
@@ -609,7 +612,7 @@ export default function SettingsPage() {
   if (checkingConfig) {
     return (
       <div className="min-h-screen bg-gray-100 dark:bg-ui-dark text-gray-800 dark:text-gray-200 p-8 flex items-center justify-center">
-        <div className="text-gray-500 dark:text-gray-400">Loading settings...</div>
+        <div className="text-gray-500 dark:text-gray-400">{t('common.loading')}</div>
       </div>
     );
   }
@@ -619,9 +622,9 @@ export default function SettingsPage() {
       <main className="flex-1 flex flex-col min-w-0 bg-gray-50 dark:bg-ui-dark">
         {/* Header */}
         <header className="h-16 flex items-center justify-between px-8 border-b border-gray-200 dark:border-ui-border bg-white dark:bg-ui-panel shrink-0 z-10">
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Settings</h1>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">{t('settings.title')}</h1>
           <button onClick={handleSave} disabled={loading || !curseforgeKey.trim()} className="px-4 py-2 bg-brand-green text-white text-sm font-bold rounded-lg shadow-lg hover:bg-brand-dark transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed">
-            {loading ? 'Saving...' : 'Save'}
+            {loading ? t('common.saving') : t('common.save')}
           </button>
         </header>
 
@@ -633,28 +636,34 @@ export default function SettingsPage() {
             <section id="application">
               <div className="mb-6">
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                  <Globe size={20} className="text-brand-green" /> Application
+                  <Globe size={20} className="text-brand-green" /> {t('settings.application.title')}
                 </h2>
-                <p className="text-sm text-gray-500 mt-1">General application settings.</p>
+                <p className="text-sm text-gray-500 mt-1">{t('settings.application.description')}</p>
               </div>
 
               <div className="bg-white dark:bg-ui-panel border border-gray-200 dark:border-ui-border rounded-xl p-6 shadow-sm space-y-6">
                 {/* Language Selector */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="font-bold text-gray-900 dark:text-white">Language</div>
-                    <div className="text-sm text-gray-500">Choose the display language for SimsForge.</div>
+                    <div className="font-bold text-gray-900 dark:text-white">{t('settings.application.language.title')}</div>
+                    <div className="text-sm text-gray-500">{t('settings.application.language.description')}</div>
                   </div>
 
                   <div className="relative" ref={languageDropdownRef}>
                     <button
                       type="button"
                       onClick={() => setLanguageDropdownOpen(!languageDropdownOpen)}
-                      className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-ui-hover border border-gray-300 dark:border-ui-border rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer min-w-[160px] justify-between"
+                      className="flex items-center gap-3 px-4 py-2 bg-gray-100 dark:bg-ui-hover border border-gray-300 dark:border-ui-border rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer min-w-[200px] justify-between"
                     >
-                      <span className="text-gray-900 dark:text-white font-medium">
-                        {languageNames[language]}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        {(() => {
+                          const FlagComponent = flags[languageFlags[language] as keyof typeof flags];
+                          return FlagComponent ? <FlagComponent className="w-6 h-4 rounded-sm shadow-sm" /> : null;
+                        })()}
+                        <span className="text-gray-900 dark:text-white font-medium">
+                          {languageNames[language]}
+                        </span>
+                      </div>
                       <CaretDown
                         size={16}
                         className={`text-gray-500 transition-transform ${languageDropdownOpen ? 'rotate-180' : ''}`}
@@ -663,20 +672,24 @@ export default function SettingsPage() {
 
                     {languageDropdownOpen && (
                       <div className="absolute right-0 mt-2 w-full bg-white dark:bg-ui-panel border border-gray-200 dark:border-ui-border rounded-lg shadow-lg z-50 overflow-hidden">
-                        {supportedLanguages.map((lang) => (
-                          <button
-                            key={lang}
-                            type="button"
-                            onClick={() => handleLanguageChange(lang)}
-                            className={`w-full px-4 py-2.5 text-left hover:bg-gray-100 dark:hover:bg-ui-hover transition-colors cursor-pointer ${
-                              lang === language
-                                ? 'bg-brand-green/10 text-brand-green font-medium'
-                                : 'text-gray-900 dark:text-white'
-                            }`}
-                          >
-                            {languageNames[lang]}
-                          </button>
-                        ))}
+                        {supportedLanguages.map((lang) => {
+                          const FlagComponent = flags[languageFlags[lang] as keyof typeof flags];
+                          return (
+                            <button
+                              key={lang}
+                              type="button"
+                              onClick={() => handleLanguageChange(lang)}
+                              className={`w-full px-4 py-2.5 text-left hover:bg-gray-100 dark:hover:bg-ui-hover transition-colors cursor-pointer flex items-center gap-2 ${
+                                lang === language
+                                  ? 'bg-brand-green/10 text-brand-green font-medium'
+                                  : 'text-gray-900 dark:text-white'
+                              }`}
+                            >
+                              {FlagComponent && <FlagComponent className="w-6 h-4 rounded-sm shadow-sm" />}
+                              {languageNames[lang]}
+                            </button>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -688,15 +701,15 @@ export default function SettingsPage() {
             <section id="game-paths">
               <div className="mb-6">
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                  <Folder size={20} className="text-brand-green" /> Game Location
+                  <Folder size={20} className="text-brand-green" /> {t('settings.game_location.title')}
                 </h2>
-                <p className="text-sm text-gray-500 mt-1">Define where SimsForge should look for your installation and mods.</p>
+                <p className="text-sm text-gray-500 mt-1">{t('settings.game_location.description')}</p>
               </div>
 
               <div className="bg-white dark:bg-ui-panel border border-gray-200 dark:border-ui-border rounded-xl p-6 shadow-sm space-y-6">
                 {/* Game Path */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">The Sims 4 Executable</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('settings.game_location.game_executable')}</label>
                   <div className="flex gap-2">
                     <input
                       type="text"
@@ -712,11 +725,11 @@ export default function SettingsPage() {
                   <div className={`mt-2 flex items-center gap-2 text-xs font-medium ${gamePathExists ? 'text-brand-green' : 'text-amber-500'}`}>
                     {gamePathExists ? (
                       <>
-                        <CheckCircle size={16} /> Game detected successfully
+                        <CheckCircle size={16} /> {t('settings.game_location.game_detected')}
                       </>
                     ) : (
                       <>
-                        <Warning size={16} /> Game path not found
+                        <Warning size={16} /> {t('settings.game_location.game_not_found')}
                       </>
                     )}
                   </div>
@@ -724,7 +737,7 @@ export default function SettingsPage() {
 
                 {/* Mods Folder */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mods Folder</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('settings.game_location.mods_folder')}</label>
                   <div className="flex gap-2">
                     <input
                       type="text"
@@ -740,11 +753,11 @@ export default function SettingsPage() {
                   <div className={`mt-2 flex items-center gap-2 text-xs font-medium ${modsPathExists ? 'text-brand-green' : 'text-amber-500'}`}>
                     {modsPathExists ? (
                       <>
-                        <CheckCircle size={16} /> Mods folder detected
+                        <CheckCircle size={16} /> {t('settings.game_location.mods_detected')}
                       </>
                     ) : (
                       <>
-                        <Warning size={16} /> Mods folder not found
+                        <Warning size={16} /> {t('settings.game_location.mods_not_found')}
                       </>
                     )}
                   </div>
@@ -770,30 +783,30 @@ export default function SettingsPage() {
             <section id="api-keys">
               <div className="mb-6">
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                  <Sliders size={20} className="text-brand-blue" /> API Keys
+                  <Sliders size={20} className="text-brand-blue" /> {t('settings.api_keys.title')}
                 </h2>
-                <p className="text-sm text-gray-500 mt-1">Configure API keys for external services like CurseForge.</p>
+                <p className="text-sm text-gray-500 mt-1">{t('settings.api_keys.description')}</p>
               </div>
 
               <div className="bg-white dark:bg-ui-panel border border-gray-200 dark:border-ui-border rounded-xl p-6 shadow-sm space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    CurseForge API Key
+                    {t('settings.api_keys.curseforge_key')}
                     {isConfigured && (
                       <span className="ml-2 inline-block text-brand-green text-xs bg-green-900/30 px-2 py-1 rounded">
-                        ✓ Configured
+                        {t('settings.api_keys.configured')}
                       </span>
                     )}
                   </label>
                   <p className="text-xs text-gray-500 mb-3">
-                    Get your API key from{' '}
+                    {t('settings.api_keys.get_key_text')}{' '}
                     <a
                       href="https://console.curseforge.com"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-brand-green hover:underline"
                     >
-                      CurseForge Console
+                      {t('settings.api_keys.curseforge_console')}
                     </a>
                   </p>
 
@@ -808,7 +821,7 @@ export default function SettingsPage() {
                             handleSave();
                           }
                         }}
-                        placeholder="Enter your CurseForge API key"
+                        placeholder={t('settings.api_keys.placeholder')}
                         disabled={loading}
                         className="w-full bg-gray-50 dark:bg-ui-input border border-gray-300 dark:border-ui-border text-gray-900 dark:text-gray-900 text-sm rounded-lg px-4 py-2.5 pr-10 focus:ring-2 focus:ring-brand-green outline-none disabled:opacity-50"
                       />
@@ -845,7 +858,7 @@ export default function SettingsPage() {
             <section id="preferences">
               <div className="mb-6">
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                  <Sliders size={20} className="text-brand-blue" /> Mod Preferences
+                  <Sliders size={20} className="text-brand-blue" /> {t('settings.mod_preferences.title')}
                 </h2>
               </div>
 
@@ -853,8 +866,8 @@ export default function SettingsPage() {
                 {/* Auto Updates */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="font-bold text-gray-900 dark:text-white">Auto-updates</div>
-                    <div className="text-sm text-gray-500">Download and install mod updates as soon as they're available.</div>
+                    <div className="font-bold text-gray-900 dark:text-white">{t('settings.mod_preferences.auto_updates.title')}</div>
+                    <div className="text-sm text-gray-500">{t('settings.mod_preferences.auto_updates.description')}</div>
                   </div>
 
                   <button
@@ -880,8 +893,8 @@ export default function SettingsPage() {
                 {/* Backup */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="font-bold text-gray-900 dark:text-white">Backup before updating</div>
-                    <div className="text-sm text-gray-500">Create a copy of overwritten files in the <code>/Backups</code> folder.</div>
+                    <div className="font-bold text-gray-900 dark:text-white">{t('settings.mod_preferences.backup.title')}</div>
+                    <div className="text-sm text-gray-500">{t('settings.mod_preferences.backup.description')}</div>
                   </div>
 
                   <button
@@ -908,9 +921,9 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="font-bold text-gray-900 dark:text-white">
-                      Fake mod detection
+                      {t('settings.mod_preferences.fake_detection.title')}
                     </div>
-                    <div className="text-sm text-gray-500">Show warnings and block banned creators when suspicious mods are detected.</div>
+                    <div className="text-sm text-gray-500">{t('settings.mod_preferences.fake_detection.description')}</div>
                   </div>
 
                   <button
@@ -942,29 +955,29 @@ export default function SettingsPage() {
             <section id="advanced">
               <div className="mb-6">
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                  <Terminal size={20} className="text-purple-500" /> Advanced
+                  <Terminal size={20} className="text-purple-500" /> {t('settings.advanced.title')}
                 </h2>
-                <p className="text-sm text-gray-500 mt-1">Additional options for troubleshooting and diagnostics.</p>
+                <p className="text-sm text-gray-500 mt-1">{t('settings.advanced.description')}</p>
               </div>
 
               <div className="bg-white dark:bg-ui-panel border border-gray-200 dark:border-ui-border rounded-xl p-6 shadow-sm space-y-6">
                 {/* Game Logging */}
-                <div className="flex items-center justify-between">
-                  <div>
+                <div className="flex items-center justify-between gap-6">
+                  <div className="flex-1">
                     <div className="font-bold text-gray-900 dark:text-white">
-                      Game logging
+                      {t('settings.advanced.game_logging.title')}
                     </div>
                     <div className="text-sm text-gray-500">
-                      Enable real-time log viewing from The Sims 4. SimsForge will automatically install the{' '}
+                      {t('settings.advanced.game_logging.description_1')}{' '}
                       <a
                         href="https://scumbumbomods.com/sims-log-enabler/"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-brand-green hover:underline"
                       >
-                        Sims Log Enabler
+                        {t('settings.advanced.game_logging.link_text')}
                       </a>{' '}
-                      mod when enabled.
+                      {t('settings.advanced.game_logging.description_2')}
                     </div>
                   </div>
 
@@ -1001,13 +1014,13 @@ export default function SettingsPage() {
 
                 {/* Show Debug Logs - only visible when Game Logging is enabled */}
                 {gameLogging && (
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-ui-border">
-                    <div>
+                  <div className="flex items-center justify-between gap-6 pt-4 border-t border-gray-200 dark:border-ui-border">
+                    <div className="flex-1">
                       <div className="font-bold text-gray-900 dark:text-white">
-                        Show debug logs
+                        {t('settings.advanced.debug_logs.title')}
                       </div>
                       <div className="text-sm text-gray-500 dark:text-gray-400">
-                        For mod developers only. Significantly increases console output.
+                        {t('settings.advanced.debug_logs.description')}
                       </div>
                     </div>
 
@@ -1036,10 +1049,10 @@ export default function SettingsPage() {
             <section id="disk-performance">
               <div className="mb-6">
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                  <HardDrive size={20} className="text-brand-blue" /> Disk Performance
+                  <HardDrive size={20} className="text-brand-blue" /> {t('settings.disk_performance.title')}
                 </h2>
                 <p className="text-sm text-gray-500 mt-1">
-                  Auto-detected disk speed determines parallel operation limits.
+                  {t('settings.disk_performance.description')}
                 </p>
               </div>
 
@@ -1049,24 +1062,24 @@ export default function SettingsPage() {
                     <div className="font-bold text-gray-900 dark:text-white">
                       {diskConfig ? (
                         <>
-                          Detected: {diskType?.toUpperCase() || 'Unknown'}
+                          {t('settings.disk_performance.detected', { type: diskType?.toUpperCase() || 'Unknown' })}
                           <span className="ml-2 text-sm font-normal text-gray-500">
-                            ({diskConfig.diskSpeedMBps} MB/s)
+                            {t('settings.disk_performance.speed', { speed: diskConfig.diskSpeedMBps })}
                           </span>
                         </>
                       ) : (
-                        'Not benchmarked'
+                        t('settings.disk_performance.not_benchmarked')
                       )}
                     </div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">
                       {diskConfig ? (
                         <>
-                          Concurrent operations: {diskConfig.poolSize}
+                          {t('settings.disk_performance.concurrent_ops', { poolSize: diskConfig.poolSize })}
                           <span className="mx-2">·</span>
-                          Last tested: {new Date(diskConfig.lastBenchmark).toLocaleDateString()}
+                          {t('settings.disk_performance.last_tested', { date: new Date(diskConfig.lastBenchmark).toLocaleDateString() })}
                         </>
                       ) : (
-                        'Run a benchmark to optimize file operation speed.'
+                        t('settings.disk_performance.run_benchmark_desc')
                       )}
                     </div>
                   </div>
@@ -1082,7 +1095,7 @@ export default function SettingsPage() {
                         {benchmarkProgress}%
                       </>
                     ) : (
-                      diskConfig ? 'Re-run Benchmark' : 'Run Benchmark'
+                      diskConfig ? t('settings.disk_performance.rerun_benchmark') : t('settings.disk_performance.run_benchmark')
                     )}
                   </button>
                 </div>
@@ -1102,36 +1115,36 @@ export default function SettingsPage() {
             <section id="danger" className="pb-10">
               <div className="mb-6">
                 <h2 className="text-lg font-bold text-brand-danger flex items-center gap-2">
-                  <Warning size={20} /> Danger Zone
+                  <Warning size={20} /> {t('settings.danger_zone.title')}
                 </h2>
               </div>
 
               <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/30 rounded-xl p-6 space-y-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="font-bold text-gray-900 dark:text-white">Clear SimsForge cache</div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">Can resolve missing images or blocked downloads.</div>
+                    <div className="font-bold text-gray-900 dark:text-white">{t('settings.danger_zone.clear_cache.title')}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">{t('settings.danger_zone.clear_cache.description')}</div>
                   </div>
                   <button
                     onClick={handleClearCache}
                     disabled={clearingCache}
                     className="px-4 py-2 bg-white dark:bg-ui-panel border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 font-bold text-sm rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                   >
-                    {clearingCache ? 'Clearing...' : 'Clear cache'}
+                    {clearingCache ? t('settings.danger_zone.clear_cache.clearing') : t('settings.danger_zone.clear_cache.button')}
                   </button>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="font-bold text-gray-900 dark:text-white">Reset database</div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">Delete all profiles, cached mods, and mod files from disk.</div>
+                    <div className="font-bold text-gray-900 dark:text-white">{t('settings.danger_zone.reset_database.title')}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">{t('settings.danger_zone.reset_database.description')}</div>
                   </div>
                   <button
                     onClick={() => setShowResetConfirmation(true)}
                     disabled={resettingDatabase}
                     className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-sm rounded-lg transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                   >
-                    {resettingDatabase ? 'Resetting...' : 'Reset'}
+                    {resettingDatabase ? t('settings.danger_zone.reset_database.resetting') : t('settings.danger_zone.reset_database.button')}
                   </button>
                 </div>
 
@@ -1160,10 +1173,10 @@ export default function SettingsPage() {
         isOpen={showResetConfirmation}
         onClose={() => setShowResetConfirmation(false)}
         onConfirm={handleResetDatabase}
-        title="Reset Database"
-        message="This will permanently delete all your profiles, cached mods, and mod files from your Mods folder. This action cannot be undone."
-        confirmText="Reset Everything"
-        cancelText="Cancel"
+        title={t('settings.modals.reset_database.title')}
+        message={t('settings.modals.reset_database.message')}
+        confirmText={t('settings.modals.reset_database.confirm')}
+        cancelText={t('common.cancel')}
         isDangerous={true}
         isLoading={resettingDatabase}
       />
@@ -1177,10 +1190,10 @@ export default function SettingsPage() {
           userPreferencesService.setFakeModDetection(false);
           setShowDisableDetectionConfirmation(false);
         }}
-        title="Disable Fake Mod Detection"
-        message="Disabling this feature will remove all warnings, reports, and banned creator blocks. You will no longer be protected against suspicious or fake mods."
-        confirmText="Disable"
-        cancelText="Keep Enabled"
+        title={t('settings.modals.disable_fake_detection.title')}
+        message={t('settings.modals.disable_fake_detection.message')}
+        confirmText={t('settings.modals.disable_fake_detection.confirm')}
+        cancelText={t('settings.modals.disable_fake_detection.cancel')}
         isDangerous={true}
       />
 
@@ -1189,10 +1202,10 @@ export default function SettingsPage() {
         isOpen={showDisableLoggingConfirmation}
         onClose={() => setShowDisableLoggingConfirmation(false)}
         onConfirm={handleDisableGameLogging}
-        title="Disable Game Logging"
-        message="Disabling game logging will remove the Sims Log Enabler mod from your Mods folder and prevent you from viewing real-time logs from The Sims 4."
-        confirmText="Disable"
-        cancelText="Keep Enabled"
+        title={t('settings.modals.disable_logging.title')}
+        message={t('settings.modals.disable_logging.message')}
+        confirmText={t('settings.modals.disable_logging.confirm')}
+        cancelText={t('settings.modals.disable_logging.cancel')}
         isDangerous={false}
         isLoading={installingLogEnabler}
       />
