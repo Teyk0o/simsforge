@@ -1,0 +1,518 @@
+{
+  "common": {
+    "save": "Save",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "edit": "Edit",
+    "create": "Create",
+    "remove": "Remove",
+    "install": "Install",
+    "installed": "Installed",
+    "installing": "Installing...",
+    "update": "Update",
+    "updating": "Updating...",
+    "enable": "Enable",
+    "disable": "Disable",
+    "disabled": "Disabled",
+    "activate": "Activate",
+    "tryAgain": "Try Again",
+    "na": "N/A",
+    "mod": "mod",
+    "mods": "mods",
+    "processing": "Processing...",
+    "dismiss": "Dismiss",
+    "close": "Close",
+    "back": "Back"
+  },
+  "ui": {
+    "view_toggle": {
+      "switch_to_grid": "Switch to grid view",
+      "switch_to_list": "Switch to list view"
+    },
+    "image_lightbox": {
+      "previous": "Previous image",
+      "next": "Next image",
+      "image_of": "Image {{current}} of {{total}}"
+    }
+  },
+  "layout": {
+    "sidebar": {
+      "logo_alt": "SimsForge",
+      "active_profile": "Active Profile",
+      "browse": "Browse",
+      "library": "Library",
+      "settings": "Settings"
+    }
+  },
+  "home": {
+    "search_placeholder": "Search for mods...",
+    "reset": "Reset",
+    "console": "Console",
+    "console_tooltip": "Open game console",
+    "play": "Play",
+    "launching": "Launching...",
+    "running": "Running"
+  },
+  "library": {
+    "title": "Library",
+    "loading": "Loading library...",
+    "search_placeholder": "Search mods...",
+    "filter_label": "Filter:",
+    "sort_label": "Sort:",
+    "check_updates": "Check Updates",
+    "checking": "Checking...",
+    "update_all": "Update All ({{count}})",
+    "updating": "Updating...",
+    "filters": {
+      "all": "All Mods",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "updates": "Updates Available"
+    },
+    "sort": {
+      "name": "Name",
+      "last_updated": "Last Updated"
+    },
+    "empty": {
+      "no_profile_title": "No active profile",
+      "no_profile_message": "Create or activate a profile in the sidebar to see your mods",
+      "no_mods_title": "No mods in this profile yet",
+      "no_search_results": "No mods found matching your search",
+      "all_updated": "All mods are up to date!"
+    },
+    "mod_item": {
+      "updated": "Updated {{date}}",
+      "disable_tooltip": "Disable mod",
+      "enable_tooltip": "Enable mod",
+      "remove_tooltip": "Remove mod from profile",
+      "by": "by"
+    },
+    "remove_modal": {
+      "title": "Remove Mod",
+      "message": "Are you sure you want to remove \"{{modName}}\" from your profile? This action cannot be undone.",
+      "confirm": "Remove"
+    }
+  },
+  "profiles": {
+    "title": "Profiles",
+    "subtitle": "Manage your mod profiles and configurations",
+    "create_profile": "Create Profile",
+    "loading": "Loading profiles...",
+    "empty": {
+      "title": "No profiles yet",
+      "button": "Create your first profile"
+    },
+    "card": {
+      "mods_count": "{{count}} mod",
+      "mods_count_plural": "{{count}} mods",
+      "activate": "Activate",
+      "edit": "Edit",
+      "name_required": "Profile name cannot be empty",
+      "delete_confirmation": "Are you sure you want to delete this profile? This action cannot be undone.",
+      "validation_error": "Validation Error",
+      "update_failed": "Failed to update profile",
+      "description_placeholder": "Profile description..."
+    },
+    "create_modal": {
+      "title": "Create Profile",
+      "name_label": "Profile Name *",
+      "name_placeholder": "e.g., Gameplay Realistic",
+      "description_label": "Description",
+      "description_placeholder": "Optional description of this profile...",
+      "tags_label": "Tags",
+      "tags_placeholder": "Add tag and press Enter",
+      "add": "Add",
+      "name_required_error": "Profile name is required",
+      "create_failed": "Failed to create profile",
+      "creating": "Creating..."
+    },
+    "selector": {
+      "no_profile": "No Profile",
+      "empty": "No profiles yet"
+    },
+    "active_tooltip": "Active Profile"
+  },
+  "settings": {
+    "title": "Settings",
+    "application": {
+      "title": "Application",
+      "description": "General application settings.",
+      "language": {
+        "title": "Language",
+        "description": "Choose the display language for SimsForge."
+      }
+    },
+    "game_location": {
+      "title": "Game Location",
+      "description": "Define where SimsForge should look for your installation and mods.",
+      "game_executable": "The Sims 4 Executable",
+      "mods_folder": "Mods Folder",
+      "game_detected": "Game detected successfully",
+      "game_not_found": "Game path not found",
+      "mods_detected": "Mods folder detected",
+      "mods_not_found": "Mods folder not found",
+      "game_path_updated": "Game path updated",
+      "mods_path_updated": "Mods path updated",
+      "failed_to_save": "Failed to save path"
+    },
+    "api_keys": {
+      "title": "API Keys",
+      "description": "Configure API keys for external services like CurseForge.",
+      "curseforge_key": "CurseForge API Key",
+      "configured": "✓ Configured",
+      "get_key_text": "Get your API key from",
+      "curseforge_console": "CurseForge Console",
+      "placeholder": "Enter your CurseForge API key",
+      "saved": "API key saved securely!",
+      "invalid": "Please enter a valid API key",
+      "deleted": "API key deleted successfully",
+      "failed_to_delete": "Failed to delete API key"
+    },
+    "mod_preferences": {
+      "title": "Mod Preferences",
+      "auto_updates": {
+        "title": "Auto-updates",
+        "description": "Download and install mod updates as soon as they're available."
+      },
+      "backup": {
+        "title": "Backup before updating",
+        "description": "Create a copy of overwritten files in the /Backups folder."
+      },
+      "fake_detection": {
+        "title": "Fake mod detection",
+        "description": "Show warnings and block banned creators when suspicious mods are detected."
+      }
+    },
+    "advanced": {
+      "title": "Advanced",
+      "description": "Additional options for troubleshooting and diagnostics.",
+      "game_logging": {
+        "title": "Game logging",
+        "description_1": "Enable real-time log viewing from The Sims 4. SimsForge will automatically install the",
+        "link_text": "Sims Log Enabler",
+        "description_2": "mod when enabled."
+      },
+      "debug_logs": {
+        "title": "Show debug logs",
+        "description": "For mod developers only. Significantly increases console output."
+      }
+    },
+    "disk_performance": {
+      "title": "Disk Performance",
+      "description": "Auto-detected disk speed determines parallel operation limits.",
+      "detected": "Detected: {{type}}",
+      "speed": "({{speed}} MB/s)",
+      "not_benchmarked": "Not benchmarked",
+      "concurrent_ops": "Concurrent operations: {{poolSize}}",
+      "last_tested": "Last tested: {{date}}",
+      "run_benchmark_desc": "Run a benchmark to optimize file operation speed.",
+      "run_benchmark": "Run Benchmark",
+      "rerun_benchmark": "Re-run Benchmark"
+    },
+    "danger_zone": {
+      "title": "Danger Zone",
+      "clear_cache": {
+        "title": "Clear SimsForge cache",
+        "description": "Can resolve missing images or blocked downloads.",
+        "button": "Clear cache",
+        "clearing": "Clearing...",
+        "success": "Cache cleared: {{count}} items removed, {{size}} MB freed"
+      },
+      "reset_database": {
+        "title": "Reset database",
+        "description": "Delete all profiles, cached mods, and mod files from disk.",
+        "button": "Reset",
+        "resetting": "Resetting...",
+        "success": "Database reset complete. All mods and profiles have been deleted."
+      }
+    },
+    "modals": {
+      "reset_database": {
+        "title": "Reset Database",
+        "message": "This will permanently delete all your profiles, cached mods, and mod files from your Mods folder. This action cannot be undone.",
+        "confirm": "Reset Everything"
+      },
+      "disable_fake_detection": {
+        "title": "Disable Fake Mod Detection",
+        "message": "Disabling this feature will remove all warnings, reports, and banned creator blocks. You will no longer be protected against suspicious or fake mods.",
+        "confirm": "Disable",
+        "cancel": "Keep Enabled"
+      },
+      "disable_logging": {
+        "title": "Disable Game Logging",
+        "message": "Disabling game logging will remove the Sims Log Enabler mod from your Mods folder and prevent you from viewing real-time logs from The Sims 4.",
+        "confirm": "Disable",
+        "cancel": "Keep Enabled"
+      }
+    },
+    "toasts": {
+      "mods_path_not_configured": "Mods folder not configured",
+      "configure_mods_path": "Please configure your Mods folder path first.",
+      "installing_log_enabler": "Installing Sims Log Enabler",
+      "downloading": "Downloading and installing...",
+      "logging_enabled": "Game logging enabled",
+      "log_enabler_installed": "Sims Log Enabler installed successfully.",
+      "installation_failed": "Installation failed",
+      "could_not_install": "Could not install Sims Log Enabler.",
+      "logging_disabled": "Game logging disabled",
+      "log_enabler_removed": "Sims Log Enabler has been removed.",
+      "preference_updated": "Preference updated, but could not remove the mod file.",
+      "uninstall_warning": "Uninstall warning",
+      "benchmark_complete": "Benchmark complete",
+      "benchmark_result": "Detected {{type}} at {{speed}} MB/s",
+      "benchmark_failed": "Benchmark failed",
+      "benchmark_error": "Could not measure disk performance."
+    }
+  },
+  "splash": {
+    "checking_updates": "Checking for updates...",
+    "downloading_update": "Downloading update... {{progress}}%",
+    "installing_update": "Installing update...",
+    "starting": "Starting...",
+    "error_checking_updates": "Error checking updates",
+    "offline_mode": "(Offline mode)"
+  },
+  "mods": {
+    "filter": {
+      "category_label": "Category:",
+      "none": "None",
+      "no_category": "No category",
+      "sort_label": "Sort by:",
+      "relevance": "Relevance",
+      "trending": "Trending",
+      "recent": "Recent",
+      "popular": "Popular",
+      "category_groups": {
+        "sims_ages_body": {
+          "name": "Sims, Ages, Body",
+          "description": "Everything about the Sim itself"
+        },
+        "clothing_style": {
+          "name": "Clothing and Style",
+          "description": "Everything worn by the Sim"
+        },
+        "interior_construction": {
+          "name": "Interior Construction",
+          "description": "Everything inside the house"
+        },
+        "exterior_worlds": {
+          "name": "Exterior Construction and Worlds",
+          "description": "Lots, gardens, and worlds"
+        },
+        "animals_creatures": {
+          "name": "Animals and Creatures",
+          "description": "Everything about animals"
+        },
+        "languages_culture": {
+          "name": "Languages and Culture",
+          "description": "Localization and cultural themes"
+        },
+        "files_scenarios_misc": {
+          "name": "Files, Scenarios and Misc",
+          "description": "Everything else"
+        }
+      }
+    },
+    "card": {
+      "already_installed": "Already installed",
+      "installing": "Installing...",
+      "install": "Install",
+      "installed": "Installed",
+      "by": "by",
+      "unknown_author": "Unknown"
+    },
+    "list": {
+      "column_mod": "Mod",
+      "column_categories": "Categories",
+      "column_downloads": "Downloads",
+      "column_last_update": "Last Updated",
+      "no_results": "No mods found matching your search.",
+      "error": "Error",
+      "try_again": "Try Again"
+    },
+    "detail": {
+      "loading": "Loading mod details...",
+      "not_found": "Mod not found",
+      "error_title": "Error",
+      "error_loading": "Failed to load mod details",
+      "error_generic": "Failed to load mod",
+      "back_to_dashboard": "Back to Dashboard",
+      "back": "Back",
+      "tabs": {
+        "description": "Description",
+        "files": "Files",
+        "images": "Images",
+        "changelog": "Changelog",
+        "no_description_message": "This mod is sourced from the CurseForge API. For detailed information, visit the mod page on CurseForge:",
+        "view_on_curseforge": "View on CurseForge",
+        "table_name": "Name",
+        "table_date": "Date",
+        "table_size": "Size",
+        "table_action": "Action",
+        "latest_badge": "Latest",
+        "install_file": "Install file",
+        "installing_file": "Installing...",
+        "no_files": "No files available.",
+        "screenshot_alt": "Screenshot {{index}}",
+        "no_images": "No images available.",
+        "coming_soon": "Coming soon",
+        "changelog_message": "Changelog view will be available in the next update."
+      },
+      "header": {
+        "share_copied": "Link copied to clipboard!",
+        "more_categories": "+{{count}} more",
+        "curseforge_badge": "CurseForge",
+        "by": "By",
+        "unknown_author": "Unknown",
+        "updated": "Updated {{date}}",
+        "already_installed": "Already installed",
+        "installing": "Installing...",
+        "install": "Install",
+        "installed": "Installed"
+      },
+      "sidebar": {
+        "warning_title": "Warning",
+        "warning_banned_message": "This creator has been banned due to multiple fake mods.",
+        "warning_reported_message": "This mod has been reported by {{count}} users.",
+        "information": "Information",
+        "size": "Size",
+        "downloads": "Downloads",
+        "license": "License",
+        "view_on_curseforge": "View on CurseForge",
+        "dependencies": "Dependencies",
+        "no_dependencies": "No dependencies required.",
+        "recommended": "Recommended Mods",
+        "view_recommendations": "View recommendations on CurseForge",
+        "na": "N/A",
+        "report_title": "Report",
+        "report_description": "Think this mod is fake or misleading? Help the community by reporting it."
+      }
+    },
+    "warnings": {
+      "creator_banned": "Creator Banned",
+      "suspicious_mod": "Suspicious Mod Warning",
+      "banned_message": "This mod creator has been banned due to multiple fake or misleading mods. We recommend not installing mods from this creator.",
+      "auto_warning_message": "This mod has been flagged as suspicious: {{reason}}",
+      "user_reports_message": "This mod has been reported by {{count}} user(s) as potentially fake or misleading.",
+      "banned_badge": "Banned Creator",
+      "suspicious_badge": "Suspicious",
+      "reports_badge": "{{count}} Reports",
+      "banned_tooltip": "This creator has been banned due to multiple fake mods",
+      "reports_tooltip": "This mod has been reported by {{count}} users",
+      "suspicious": "Suspicious"
+    },
+    "fake_warning_popup": {
+      "title": "Suspicious Mod Detected",
+      "message": "has been flagged as potentially fake or misleading.",
+      "suspicion_score": "Suspicion Score",
+      "score_suffix": "/100",
+      "details_label": "Additional details (optional):",
+      "details_placeholder": "Add any additional information about why this mod seems fake...",
+      "install_anyway": "Install Anyway",
+      "report_cancel": "Report and Cancel",
+      "submit_report": "Submit Report & Cancel",
+      "submitting": "Submitting..."
+    },
+    "report": {
+      "button_title": "Report as fake mod",
+      "button_text": "Report",
+      "modal_title": "Report Fake Mod",
+      "modal_message_prefix": "Report",
+      "modal_message_suffix": "as a potentially fake or misleading mod.",
+      "reason_label": "Reason (optional):",
+      "reason_placeholder": "Why do you think this mod is fake?",
+      "submit": "Submit Report",
+      "submitted_title": "Report Submitted",
+      "submitted_message": "Thank you for reporting \"{{modName}}\"",
+      "already_reported_title": "Already Reported",
+      "already_reported_message": "You have already reported this mod",
+      "failed_title": "Report Failed",
+      "failed_message": "Could not submit report",
+      "cancel": "Cancel",
+      "submitting": "Submitting..."
+    },
+    "toasts": {
+      "mods_path_not_configured": "Mods path not configured",
+      "configure_in_settings": "Please configure your mods folder in Settings",
+      "failed_to_read_path": "Failed to read mods path",
+      "reconfigure_in_settings": "Please reconfigure your mods folder in Settings",
+      "installing": "Installing {{modName}}",
+      "starting_download": "Starting download...",
+      "installation_complete": "Installation complete!",
+      "installed_successfully": "{{modName}} has been installed successfully",
+      "installation_failed": "Installation failed",
+      "unknown_error": "Unknown error",
+      "unexpected_error": "An unexpected error occurred"
+    }
+  },
+  "console": {
+    "title": "Game Console",
+    "logs_count": "{{count}} logs",
+    "paused_count": "(+{{count}} paused)",
+    "filter_placeholder": "Filter...",
+    "filter_by_source": "Filter by source",
+    "pause": "Pause",
+    "resume": "Resume",
+    "scroll_to_bottom": "Scroll to bottom",
+    "export_logs": "Export logs to file",
+    "clear_logs": "Clear logs",
+    "close": "Close",
+    "clear_filter": "Clear filter",
+    "waiting_for_logs": "Waiting for logs...",
+    "no_match": "No logs match the filter",
+    "sources_count": "{{count}} sources",
+    "total_logs": "{{count}} total logs",
+    "auto_scroll_disabled": "Auto-scroll disabled (scroll to bottom to enable)"
+  },
+  "errors": {
+    "generic": "An error occurred",
+    "try_again": "Try Again"
+  },
+  "contexts": {
+    "profile": {
+      "initialization_failed": "Profile initialization failed",
+      "unknown_error": "Unknown error",
+      "profile_created": "Profile created",
+      "profile_created_message": "\"{{name}}\" has been created successfully",
+      "failed_to_create": "Failed to create profile",
+      "profile_updated": "Profile updated",
+      "changes_saved": "Changes saved successfully",
+      "failed_to_update": "Failed to update profile",
+      "profile_deleted": "Profile deleted",
+      "profile_removed": "Profile removed successfully",
+      "failed_to_delete": "Failed to delete profile",
+      "failed_to_activate": "Failed to activate profile",
+      "still_initializing": "Profile system is still initializing. Please wait a moment and try again.",
+      "mods_path_not_configured": "Mods path not configured. Could not find The Sims 4 installation.",
+      "profile_not_found": "Profile not found",
+      "failed_to_create_symlinks": "Failed to create {{count}} symlinks:\n{{errors}}\n\nCheck permissions and that The Sims 4 is not running.",
+      "mod_removed": "Mod removed",
+      "mod_removed_from_profile": "Mod removed from profile",
+      "failed_to_remove_mod": "Failed to remove mod"
+    },
+    "update": {
+      "auto_updating_mods": "Auto-updating mods",
+      "installing_updates": "Installing {{count}} update(s)...",
+      "updates_available": "Updates available",
+      "updates_available_message": "{{count}} mod update(s) available",
+      "update_check_failed": "Update check failed",
+      "failed_to_check": "Failed to check for updates",
+      "update_failed": "Update failed",
+      "no_update_info": "No update information found for this mod",
+      "mods_path_not_configured": "Mods path not configured",
+      "mod_updated": "Mod updated",
+      "mod_updated_message": "{{name}} updated successfully",
+      "all_mods_updated": "All mods updated",
+      "all_mods_updated_message": "Successfully updated {{count}} mod(s)",
+      "partial_update": "Partial update",
+      "partial_update_message": "Updated {{successful}}/{{total}} mods. {{failed}} failed.",
+      "update_failed_message": "Failed to update {{count}} mod(s)"
+    }
+  }
+}
