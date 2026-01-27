@@ -47,6 +47,7 @@
       "active_profile": "Profil actif",
       "browse": "Parcourir",
       "library": "Bibliothèque",
+      "profiles": "Profils",
       "settings": "Paramètres"
     }
   },
@@ -112,9 +113,11 @@
       "mods_count": "{{count}} mod",
       "mods_count_plural": "{{count}} mods",
       "activate": "Activer",
+      "active": "Actif",
       "edit": "Modifier",
       "name_required": "Le nom du profil ne peut pas être vide",
-      "delete_confirmation": "Êtes-vous sûr de vouloir supprimer ce profil ? Cette action est irréversible.",
+      "delete_confirmation_title": "Supprimer le profil",
+      "delete_confirmation_message": "Êtes-vous sûr de vouloir supprimer \"{{name}}\" ? Cette action est irréversible.",
       "validation_error": "Erreur de validation",
       "update_failed": "Échec de la mise à jour du profil",
       "description_placeholder": "Description du profil..."

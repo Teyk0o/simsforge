@@ -147,7 +147,7 @@ export default function FilterBar({
         <div className="relative">
           <button
             onClick={() => setOpenDropdown(openDropdown === 'category' ? null : 'category')}
-            className="flex items-center gap-2 px-3 py-1.5 border rounded-lg text-sm font-medium hover:border-brand-green transition-colors cursor-pointer"
+            className="flex items-center gap-2 px-3 h-10 border rounded-lg text-sm font-medium hover:border-brand-green transition-colors cursor-pointer"
             style={{ backgroundColor: 'var(--ui-panel)', borderColor: 'var(--ui-border)' }}
           >
             <span>{t('mods.filter.category_label')}</span>
@@ -261,7 +261,7 @@ export default function FilterBar({
         <div className="relative">
           <button
             onClick={() => setOpenDropdown(openDropdown === 'sort' ? null : 'sort')}
-            className="flex items-center gap-2 px-3 py-1.5 border rounded-lg text-sm font-medium hover:border-brand-green transition-colors cursor-pointer"
+            className="flex items-center gap-2 px-3 h-10 border rounded-lg text-sm font-medium hover:border-brand-green transition-colors cursor-pointer"
             style={{ backgroundColor: 'var(--ui-panel)', borderColor: 'var(--ui-border)' }}
           >
             <span>{t('mods.filter.sort_label')}</span>

@@ -47,6 +47,7 @@
       "active_profile": "Perfil Ativo",
       "browse": "Explorar",
       "library": "Biblioteca",
+      "profiles": "Perfis",
       "settings": "Configurações"
     }
   },
@@ -112,9 +113,11 @@
       "mods_count": "{{count}} mod",
       "mods_count_plural": "{{count}} mods",
       "activate": "Ativar",
+      "active": "Ativo",
       "edit": "Editar",
       "name_required": "O nome do perfil não pode estar vazio",
-      "delete_confirmation": "Tem certeza que deseja excluir este perfil? Esta ação não pode ser desfeita.",
+      "delete_confirmation_title": "Excluir perfil",
+      "delete_confirmation_message": "Tem certeza que deseja excluir \"{{name}}\"? Esta ação não pode ser desfeita.",
       "validation_error": "Erro de Validação",
       "update_failed": "Falha ao atualizar perfil",
       "description_placeholder": "Descrição do perfil..."

@@ -43,7 +43,7 @@ export default function ProfileSelector({
         <button
           onClick={() => setIsOpen(!isOpen)}
           disabled={isLoading || !isInitialized}
-          className="w-full flex items-center gap-2 px-3 py-2.5 rounded-md border transition-all"
+          className="w-full flex items-center gap-2 px-3 h-10 rounded-md border transition-all"
           style={{
             backgroundColor: 'var(--ui-panel)',
             borderColor: 'var(--border-color)',

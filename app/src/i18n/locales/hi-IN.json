@@ -47,6 +47,7 @@
       "active_profile": "सक्रिय प्रोफ़ाइल",
       "browse": "देखें",
       "library": "लाइब्रेरी",
+      "profiles": "प्रोफ़ाइल",
       "settings": "सेटिंग्स"
     }
   },
@@ -112,9 +113,11 @@
       "mods_count": "{{count}} मॉड",
       "mods_count_plural": "{{count}} मॉड्स",
       "activate": "सक्रिय करें",
+      "active": "सक्रिय",
       "edit": "संपादित करें",
       "name_required": "प्रोफ़ाइल का नाम खाली नहीं हो सकता",
-      "delete_confirmation": "क्या आप वाकई इस प्रोफ़ाइल को हटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।",
+      "delete_confirmation_title": "प्रोफ़ाइल हटाएँ",
+      "delete_confirmation_message": "क्या आप वाकई \"{{name}}\" को हटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।",
       "validation_error": "मान्यता त्रुटि",
       "update_failed": "प्रोफ़ाइल अपडेट करने में विफल",
       "description_placeholder": "प्रोफ़ाइल विवरण..."

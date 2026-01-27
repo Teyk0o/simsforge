@@ -47,6 +47,7 @@
       "active_profile": "Active Profile",
       "browse": "Browse",
       "library": "Library",
+      "profiles": "Profiles",
       "settings": "Settings"
     }
   },
@@ -112,9 +113,11 @@
       "mods_count": "{{count}} mod",
       "mods_count_plural": "{{count}} mods",
       "activate": "Activate",
+      "active": "Active",
       "edit": "Edit",
       "name_required": "Profile name cannot be empty",
-      "delete_confirmation": "Are you sure you want to delete this profile? This action cannot be undone.",
+      "delete_confirmation_title": "Delete Profile",
+      "delete_confirmation_message": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
       "validation_error": "Validation Error",
       "update_failed": "Failed to update profile",
       "description_placeholder": "Profile description..."

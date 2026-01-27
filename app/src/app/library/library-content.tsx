@@ -239,7 +239,7 @@ export default function LibraryContent() {
         <section
           className="px-8 py-4 flex flex-col md:flex-row md:items-center gap-4 border-b sticky top-0 z-10 backdrop-blur-md shrink-0"
           style={{
-            borderColor: 'var(--border-color)',
+            borderColor: 'var(--ui-border)',
             backgroundColor: 'var(--ui-panel)',
           }}
         >

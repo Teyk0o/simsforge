@@ -47,6 +47,7 @@
       "active_profile": "当前配置文件",
       "browse": "浏览",
       "library": "库",
+      "profiles": "配置文件",
       "settings": "设置"
     }
   },
@@ -112,9 +113,11 @@
       "mods_count": "{{count}} 个模组",
       "mods_count_plural": "{{count}} 个模组",
       "activate": "激活",
+      "active": "已激活",
       "edit": "编辑",
       "name_required": "配置文件名称不能为空",
-      "delete_confirmation": "确定要删除此配置文件吗？此操作无法撤销。",
+      "delete_confirmation_title": "删除配置文件",
+      "delete_confirmation_message": "确定要删除 \"{{name}}\" 吗？此操作无法撤销。",
       "validation_error": "验证错误",
       "update_failed": "更新配置文件失败",
       "description_placeholder": "配置文件描述..."

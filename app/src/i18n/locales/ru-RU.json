@@ -47,6 +47,7 @@
       "active_profile": "Активный профиль",
       "browse": "Обзор",
       "library": "Библиотека",
+      "profiles": "Профили",
       "settings": "Настройки"
     }
   },
@@ -112,9 +113,11 @@
       "mods_count": "{{count}} мод",
       "mods_count_plural": "{{count}} модов",
       "activate": "Активировать",
+      "active": "Активен",
       "edit": "Редактировать",
       "name_required": "Название профиля не может быть пустым",
-      "delete_confirmation": "Вы уверены, что хотите удалить этот профиль? Это действие нельзя отменить.",
+      "delete_confirmation_title": "Удалить профиль",
+      "delete_confirmation_message": "Вы уверены, что хотите удалить \"{{name}}\"? Это действие нельзя отменить.",
       "validation_error": "Ошибка валидации",
       "update_failed": "Не удалось обновить профиль",
       "description_placeholder": "Описание профиля..."

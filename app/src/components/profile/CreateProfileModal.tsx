@@ -89,7 +89,7 @@ export default function CreateProfileModal({
           </h2>
           <button
             onClick={onClose}
-            className="p-1 rounded transition-colors"
+            className="p-1 rounded transition-colors cursor-pointer"
             style={{ color: 'var(--text-secondary)' }}
             onMouseEnter={(e) => {
               e.currentTarget.style.color = '#ef4444';
@@ -200,11 +200,20 @@ export default function CreateProfileModal({
                 type="button"
                 onClick={handleAddTag}
                 disabled={isLoading || !tagInput.trim()}
-                className="px-3 py-2 rounded transition-colors font-medium"
+                className="px-3 py-2 rounded transition-colors font-medium cursor-pointer"
                 style={{
                   backgroundColor: '#46C89B',
                   color: 'white',
                   opacity: isLoading || !tagInput.trim() ? 0.5 : 1,
+                  cursor: isLoading || !tagInput.trim() ? 'not-allowed' : 'pointer',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isLoading && tagInput.trim()) {
+                    e.currentTarget.style.backgroundColor = '#3fb889';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#46C89B';
                 }}
               >
                 {t('profiles.create_modal.add')}
@@ -225,8 +234,11 @@ export default function CreateProfileModal({
                       type="button"
                       onClick={() => handleRemoveTag(tag)}
                       disabled={isLoading}
-                      className="p-0.5 rounded transition-colors"
-                      style={{ color: 'var(--text-secondary)' }}
+                      className="p-0.5 rounded transition-colors cursor-pointer"
+                      style={{
+                        color: 'var(--text-secondary)',
+                        cursor: isLoading ? 'not-allowed' : 'pointer',
+                      }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.color = '#ef4444';
                       }}
@@ -261,11 +273,20 @@ export default function CreateProfileModal({
               type="button"
               onClick={onClose}
               disabled={isLoading}
-              className="flex-1 px-4 py-2 rounded transition-colors font-medium"
+              className="flex-1 px-4 py-2 rounded transition-colors font-medium cursor-pointer"
               style={{
                 backgroundColor: 'var(--ui-hover)',
                 color: 'var(--text-primary)',
                 opacity: isLoading ? 0.5 : 1,
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+              }}
+              onMouseEnter={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.opacity = '0.8';
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.opacity = isLoading ? '0.5' : '1';
               }}
             >
               {t('common.cancel')}
@@ -273,10 +294,19 @@ export default function CreateProfileModal({
             <button
               type="submit"
               disabled={isLoading || !name.trim()}
-              className="flex-1 px-4 py-2 rounded transition-colors font-medium text-white"
+              className="flex-1 px-4 py-2 rounded transition-colors font-medium text-white cursor-pointer"
               style={{
                 backgroundColor: '#46C89B',
                 opacity: isLoading || !name.trim() ? 0.5 : 1,
+                cursor: isLoading || !name.trim() ? 'not-allowed' : 'pointer',
+              }}
+              onMouseEnter={(e) => {
+                if (!isLoading && name.trim()) {
+                  e.currentTarget.style.backgroundColor = '#3fb889';
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#46C89B';
               }}
             >
               {isLoading ? t('profiles.create_modal.creating') : t('profiles.create_modal.title')}
