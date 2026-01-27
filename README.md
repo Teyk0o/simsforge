@@ -1,7 +1,7 @@
 ![banner.png](assets/banner.png)
 
 ![Backend Coverage](https://img.shields.io/badge/Coverage_96.4%25-C21325?style=for-the-badge&logo=jest&logoColor=white)
-![Frontend Tests](https://img.shields.io/badge/218_tests_passed-6E9F18?style=for-the-badge&logo=vitest&logoColor=white)
+![Frontend Tests](https://img.shields.io/badge/262_tests_passed-6E9F18?style=for-the-badge&logo=vitest&logoColor=white)
 
 SimsForge is an open-source mod manager for The Sims 4. It provides a desktop application for mod discovery, installation, and management through integration with CurseForge, along with a system for detecting and reporting fake/malicious mods to protect the community.
 
@@ -42,6 +42,7 @@ simsforge/
 - Mod discovery and search interface
 - Virtual list rendering for performance
 - CurseForge integration for mod browsing
+- **Local mod import** - Import .package, .ts4script, and .zip files from filesystem
 - Real-time game console for viewing Sims 4 logs
 - Auto-installation of Sims Log Enabler mod
 - **Parallel disk operations** with auto-detected concurrency based on disk speed (HDD/SSD/NVMe)
@@ -278,6 +279,40 @@ To add a new language:
 2. Add the locale to `SUPPORTED_LANGUAGES` in `app/src/i18n/index.ts`
 3. Add language name and flag to `LANGUAGE_NAMES` and `LANGUAGE_FLAGS`
 
+## Features
+
+### Local Mod Import
+
+Import mod files directly from your filesystem into SimsForge's mod management system.
+
+**Supported Formats:**
+- `.package` - Standard Sims 4 mod files
+- `.ts4script` - Script mods
+- `.zip` - Compressed mod archives
+
+**Key Capabilities:**
+- **Multi-file selection** - Import multiple mods at once
+- **Automatic naming** - Extracts mod name from filename with intelligent sanitization
+- **Visual identification** - Each local mod gets a unique colored avatar based on its first letter
+- **Fake mod detection** - ZIP files are analyzed for suspicious content before import
+- **Hash-based deduplication** - Prevents duplicate storage across profiles
+- **Profile integration** - Full support for enable/disable/remove operations
+- **Import progress tracking** - Real-time progress modal with error reporting
+
+**Usage:**
+1. Activate a profile in the sidebar
+2. Click "Import Mods" button in the library header
+3. Select one or more mod files (.package, .ts4script, or .zip)
+4. Review import progress and any errors
+5. Local mods appear in library with colored avatar and "Local" badge
+
+**Technical Details:**
+- Local mods use UUID v4 for unique identification
+- Same deduplication system as CurseForge mods (SHA-256 hashing)
+- Fake detection applies same security analysis as online mods
+- Local mods are excluded from automatic update checks
+- Full i18n support for all 7 languages
+
 ## API Documentation
 
 The backend provides a REST API with the following main endpoints:
@@ -341,12 +376,13 @@ npm run test:coverage
 Test suites cover:
 - **Utilities**: Formatters (with localization), path sanitizer, text normalizer, concurrency pool
 - **Hooks**: useDebounce, useDateFormatters (date localization with all 7 languages)
-- **Services**: FakeScoreService, LogEnablerService, GameLogService, DiskPerformanceService
+- **Services**: FakeScoreService, LogEnablerService, GameLogService, DiskPerformanceService, LocalModImportService
+- **Components**: LocalModAvatar, LocalModBadge (local mod UI components)
 - **Date Localization**: dateLocales module (locale imports, caching, fallbacks)
 - **API Client**: Axios instance creation, interceptors, HTTP helpers
 - **i18n**: Translations, language detection, locale loading
 
-**Test Statistics**: 218 tests covering all frontend modules
+**Test Statistics**: 262+ tests covering all frontend modules
 
 ## Code Quality
 

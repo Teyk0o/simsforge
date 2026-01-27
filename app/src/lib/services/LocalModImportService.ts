@@ -269,10 +269,11 @@ export class LocalModImportService {
 
     // Sanitize special characters
     const sanitized = nameWithoutExt
+      .trim() // Trim whitespace first
       .replace(/[^\w\s-]/g, '_') // Replace special chars with underscore
       .replace(/\s+/g, '_') // Spaces to underscore
       .replace(/_+/g, '_') // Multiple underscores to single
-      .trim();
+      .replace(/^_+|_+$/g, ''); // Remove leading/trailing underscores
 
     return sanitized || 'Imported_Mod';
   }
