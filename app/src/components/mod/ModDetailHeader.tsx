@@ -3,12 +3,13 @@
 import { useState } from 'react';
 import { CurseForgeMod } from '@/types/curseforge';
 import type { ModWarningStatus } from '@/types/fakeDetection';
-import { formatRelativeDate } from '@/utils/formatters';
 import { ShareNetwork, Heart, DownloadSimple, Spinner, Check, Warning } from '@phosphor-icons/react';
 import { useToast } from '@/context/ToastContext';
 import { useProfiles } from '@/context/ProfileContext';
 import { modInstallationService } from '@/lib/services/ModInstallationService';
+import { useDateFormatters } from '@/hooks/useDateFormatters';
 import { useTranslation } from 'react-i18next';
+import { useCategoryLocalization } from '@/utils/categoryTranslation';
 import WarningBadge from './WarningBadge';
 
 interface ModDetailHeaderProps {
@@ -18,6 +19,8 @@ interface ModDetailHeaderProps {
 
 export default function ModDetailHeader({ mod, warningStatus }: ModDetailHeaderProps) {
   const { t } = useTranslation();
+  const { formatRelativeDate } = useDateFormatters();
+  const localizeCategory = useCategoryLocalization();
   const { showToast, updateToast } = useToast();
   const { activeProfile, refreshProfiles } = useProfiles();
   const [isInstalling, setIsInstalling] = useState(false);
@@ -26,7 +29,7 @@ export default function ModDetailHeader({ mod, warningStatus }: ModDetailHeaderP
   const isInstalled = activeProfile?.mods.some((m) => m.modId === mod.id) ?? false;
 
   const authorNames = mod.authors.map((a) => a.name).join(', ');
-  const categoryNames = mod.categories.slice(0, 3);
+  const categoryNames = mod.categories.slice(0, 3).map(cat => localizeCategory(cat));
   const remainingCategories = Math.max(0, mod.categories.length - 3);
 
   const handleShare = () => {

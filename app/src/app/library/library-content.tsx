@@ -239,7 +239,7 @@ export default function LibraryContent() {
         <section
           className="px-8 py-4 flex flex-col md:flex-row md:items-center gap-4 border-b sticky top-0 z-10 backdrop-blur-md shrink-0"
           style={{
-            borderColor: 'var(--border-color)',
+            borderColor: 'var(--ui-border)',
             backgroundColor: 'var(--ui-panel)',
           }}
         >
@@ -485,7 +485,7 @@ export default function LibraryContent() {
                       <div className="flex flex-col gap-1 mt-1">
                         {mod.authors && mod.authors.length > 0 && (
                           <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>
-                            by {mod.authors.join(', ')}
+                            {t('library.mod_item.by')} {mod.authors.join(', ')}
                           </p>
                         )}
                         <div className="flex items-center gap-2 text-xs">

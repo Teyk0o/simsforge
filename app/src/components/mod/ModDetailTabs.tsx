@@ -3,12 +3,13 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { CurseForgeMod } from '@/types/curseforge';
-import { formatFileSize, formatDate } from '@/utils/formatters';
+import { formatFileSize } from '@/utils/formatters';
 import { Download, Spinner } from '@phosphor-icons/react';
 import ImageLightbox from '@/components/mod/ImageLightbox';
 import { useToast } from '@/context/ToastContext';
 import { useProfiles } from '@/context/ProfileContext';
 import { modInstallationService } from '@/lib/services/ModInstallationService';
+import { useDateFormatters } from '@/hooks/useDateFormatters';
 import { useTranslation } from 'react-i18next';
 
 interface ModDetailTabsProps {
@@ -21,6 +22,7 @@ type TabId = 'description' | 'files' | 'images' | 'changelog';
 
 export default function ModDetailTabs({ mod, activeTab, onTabChange }: ModDetailTabsProps) {
   const { t } = useTranslation();
+  const { formatDate } = useDateFormatters();
   const { showToast } = useToast();
   const { refreshProfiles } = useProfiles();
   const [lightboxImage, setLightboxImage] = useState<number | null>(null);

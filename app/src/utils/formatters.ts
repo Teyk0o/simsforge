@@ -2,6 +2,9 @@
  * Utility functions for formatting data in the UI
  */
 
+import { formatDistanceToNow, format } from 'date-fns';
+import { getDateLocaleSync } from '@/lib/dateLocales';
+
 /**
  * Format download count to human-readable format
  * @example
@@ -21,32 +24,41 @@ export function formatDownloadCount(count: number): string {
 
 /**
  * Format ISO 8601 date to relative time or absolute date
+ * Uses date-fns for proper internationalization support
+ * @param isoDateStr - ISO 8601 date string
+ * @param language - Optional language code (e.g., 'fr-FR'). If not provided, uses en-US.
+ *                   Note: For React components, use the useDateFormatters hook instead for automatic locale detection.
  * @example
- * formatRelativeDate("2025-01-05T00:00:00Z") // "5d ago"
- * formatRelativeDate("2024-06-10T00:00:00Z") // "Jun 10, 2024"
+ * formatRelativeDate("2025-01-05T00:00:00Z") // "5 days ago" (en-US)
+ * formatRelativeDate("2025-01-05T00:00:00Z", "fr-FR") // "il y a 5 jours"
+ * formatRelativeDate("2024-06-10T00:00:00Z") // "January 10, 2025"
  */
-export function formatRelativeDate(isoDateStr: string): string {
+export function formatRelativeDate(
+  isoDateStr: string,
+  language?: string
+): string {
   try {
     const date = new Date(isoDateStr);
+    if (isNaN(date.getTime())) {
+      return 'Recently';
+    }
+
+    const locale = language ? getDateLocaleSync(language) : undefined;
     const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
+    const daysDiff = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
+    );
 
-    if (diffMins < 60) {
-      return `${diffMins}m ago`;
-    }
-    if (diffMins < 1440) {
-      return `${Math.floor(diffMins / 60)}h ago`;
-    }
-    if (diffMins < 43200) {
-      return `${Math.floor(diffMins / 1440)}d ago`;
+    // Use relative format for dates within the last 30 days
+    if (daysDiff <= 30) {
+      return formatDistanceToNow(date, {
+        addSuffix: true,
+        locale,
+      });
     }
 
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
+    // Fall back to absolute format for older dates
+    return format(date, 'PPP', { locale });
   } catch (error) {
     return 'Recently';
   }
@@ -71,17 +83,23 @@ export function formatFileSize(bytes: number): string {
 
 /**
  * Format ISO 8601 date to absolute date string
+ * Uses date-fns for proper internationalization support
+ * @param isoDateStr - ISO 8601 date string
+ * @param language - Optional language code (e.g., 'fr-FR'). If not provided, uses en-US.
+ *                   Note: For React components, use the useDateFormatters hook instead for automatic locale detection.
  * @example
  * formatDate("2025-01-10T00:00:00Z") // "January 10, 2025"
+ * formatDate("2025-01-10T00:00:00Z", "fr-FR") // "10 janvier 2025"
  */
-export function formatDate(isoDateStr: string): string {
+export function formatDate(isoDateStr: string, language?: string): string {
   try {
     const date = new Date(isoDateStr);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+    if (isNaN(date.getTime())) {
+      return 'Unknown date';
+    }
+
+    const locale = language ? getDateLocaleSync(language) : undefined;
+    return format(date, 'PPP', { locale });
   } catch (error) {
     return 'Unknown date';
   }

@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { useProfiles } from '@/context/ProfileContext';
 import { useUpdates } from '@/context/UpdateContext';
-import { MagnifyingGlass, DownloadSimple, Heart, GearSix } from '@phosphor-icons/react';
+import { MagnifyingGlass, DownloadSimple, UserList, GearSix } from '@phosphor-icons/react';
 import ProfileSelector from '@/components/profile/ProfileSelector';
 import UpdateCountBadge from '@/components/update/UpdateCountBadge';
 import { useTranslation } from 'react-i18next';
@@ -26,6 +26,7 @@ export default function Sidebar({ onThemeToggle, theme }: SidebarProps) {
   const getActiveNav = () => {
     if (pathname === '/' || pathname?.startsWith('/mods')) return 'browse';
     if (pathname === '/library') return 'library';
+    if (pathname === '/profiles') return 'profiles';
     return null;
   };
 
@@ -94,6 +95,7 @@ export default function Sidebar({ onThemeToggle, theme }: SidebarProps) {
           {[
             { id: 'browse', label: t('layout.sidebar.browse'), icon: MagnifyingGlass, href: '/' },
             { id: 'library', label: t('layout.sidebar.library'), icon: DownloadSimple, href: '/library', badge: updateCount },
+            { id: 'profiles', label: t('layout.sidebar.profiles'), icon: UserList, href: '/profiles' },
           ].map(({ id, label, icon: Icon, href, badge }) => {
             const isActive = getActiveNav() === id && !href.includes('filter=updates');
             return (

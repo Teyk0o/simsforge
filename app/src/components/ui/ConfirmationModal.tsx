@@ -77,14 +77,16 @@ export default function ConfirmationModal({
           <button
             onClick={onClose}
             disabled={isLoading}
-            className="p-1 rounded transition-colors"
+            className="p-1 rounded transition-colors cursor-pointer"
             style={{
               color: 'var(--text-secondary)',
               opacity: isLoading ? 0.5 : 1,
               cursor: isLoading ? 'not-allowed' : 'pointer',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.color = '#ef4444';
+              if (!isLoading) {
+                e.currentTarget.style.color = '#ef4444';
+              }
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.color = 'var(--text-secondary)';
@@ -112,12 +114,20 @@ export default function ConfirmationModal({
           <button
             onClick={onClose}
             disabled={isLoading}
-            className="flex-1 px-4 py-2 rounded transition-colors font-medium"
+            className="flex-1 px-4 py-2 rounded transition-colors font-medium cursor-pointer"
             style={{
               backgroundColor: 'var(--ui-hover)',
               color: 'var(--text-primary)',
               opacity: isLoading ? 0.5 : 1,
               cursor: isLoading ? 'not-allowed' : 'pointer',
+            }}
+            onMouseEnter={(e) => {
+              if (!isLoading) {
+                e.currentTarget.style.opacity = '0.8';
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.opacity = isLoading ? '0.5' : '1';
             }}
           >
             {finalCancelText}
@@ -125,11 +135,20 @@ export default function ConfirmationModal({
           <button
             onClick={handleConfirm}
             disabled={isLoading}
-            className="flex-1 px-4 py-2 rounded transition-colors font-medium text-white"
+            className="flex-1 px-4 py-2 rounded transition-colors font-medium text-white cursor-pointer"
             style={{
               backgroundColor: confirmButtonColor,
               opacity: isLoading ? 0.5 : 1,
               cursor: isLoading ? 'not-allowed' : 'pointer',
+            }}
+            onMouseEnter={(e) => {
+              if (!isLoading) {
+                const hoverColor = isDangerous ? '#dc2626' : '#3fb889';
+                e.currentTarget.style.backgroundColor = hoverColor;
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = confirmButtonColor;
             }}
           >
             {isLoading ? t('common.processing') : finalConfirmText}
