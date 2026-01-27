@@ -47,8 +47,19 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   // Initialize language on mount
   useEffect(() => {
     const initLanguage = async () => {
-      // Check for saved preference in localStorage first
-      const savedLang = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+      // Safe localStorage access (for test environment compatibility)
+      const getSavedLanguage = (): string | null => {
+        try {
+          if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+            return localStorage.getItem(LANGUAGE_STORAGE_KEY);
+          }
+        } catch (error) {
+          console.warn('localStorage access failed:', error);
+        }
+        return null;
+      };
+
+      const savedLang = getSavedLanguage();
 
       let initialLang: SupportedLanguage;
 
@@ -66,7 +77,13 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
         setLanguageState(initialLang);
 
         // Save to localStorage for future sessions
-        localStorage.setItem(LANGUAGE_STORAGE_KEY, initialLang);
+        try {
+          if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+            localStorage.setItem(LANGUAGE_STORAGE_KEY, initialLang);
+          }
+        } catch (error) {
+          console.warn('localStorage write failed:', error);
+        }
 
         // Ensure i18n is synced
         if (i18nInstance.language !== initialLang) {
@@ -93,11 +110,22 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const setLanguage = useCallback(
     (lang: SupportedLanguage) => {
       setLanguageState(lang);
-      localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
+
+      // Safe localStorage write (for test environment compatibility)
+      try {
+        if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+          localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
+        }
+      } catch (error) {
+        console.warn('localStorage write failed:', error);
+      }
+
       i18nInstance.changeLanguage(lang);
 
       // Update HTML lang attribute for accessibility
-      document.documentElement.lang = lang;
+      if (typeof document !== 'undefined') {
+        document.documentElement.lang = lang;
+      }
 
       // Preload date locale for the new language
       preloadDateLocale(lang).catch((error) => {
