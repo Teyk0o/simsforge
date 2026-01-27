@@ -94,6 +94,21 @@
       "remove_tooltip": "Удалить мод из профиля",
       "by": "от"
     },
+    "import_mods": "Импортировать моды",
+    "import_mods_tooltip": "Импортировать локальные файлы модов с вашего компьютера",
+    "local_badge": "Локальный",
+    "import_progress": {
+      "title": "Импорт модов",
+      "processing": "Обработка {{current}} из {{total}}",
+      "complete": "Импорт завершен!",
+      "summary": "{{successful}} из {{total}} мод(ов) импортировано"
+    },
+    "import_errors": {
+      "no_profile": "Нет активного профиля",
+      "unsupported_type": "Неподдерживаемый тип файла: {{extension}}",
+      "corrupted_zip": "Поврежденный ZIP-файл",
+      "no_mod_files": "Файлы модов не найдены в архиве"
+    },
     "remove_modal": {
       "title": "Удалить мод",
       "message": "Вы уверены, что хотите удалить «{{modName}}» из профиля? Это действие нельзя отменить.",

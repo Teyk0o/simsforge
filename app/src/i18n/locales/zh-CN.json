@@ -94,6 +94,21 @@
       "remove_tooltip": "从配置文件中移除模组",
       "by": "作者"
     },
+    "import_mods": "导入模组",
+    "import_mods_tooltip": "从计算机导入本地模组文件",
+    "local_badge": "本地",
+    "import_progress": {
+      "title": "导入模组",
+      "processing": "正在处理 {{current}}/{{total}}",
+      "complete": "导入完成！",
+      "summary": "已导入 {{successful}}/{{total}} 个模组"
+    },
+    "import_errors": {
+      "no_profile": "无活动配置文件",
+      "unsupported_type": "不支持的文件类型：{{extension}}",
+      "corrupted_zip": "ZIP文件已损坏",
+      "no_mod_files": "归档中未找到模组文件"
+    },
     "remove_modal": {
       "title": "移除模组",
       "message": "确定要从配置文件中移除「{{modName}}」吗？此操作无法撤销。",

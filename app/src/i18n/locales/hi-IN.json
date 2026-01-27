@@ -94,6 +94,21 @@
       "remove_tooltip": "प्रोफ़ाइल से मॉड हटाएँ",
       "by": "द्वारा"
     },
+    "import_mods": "मॉड आयात करें",
+    "import_mods_tooltip": "अपने कंप्यूटर से स्थानीय मॉड फ़ाइलें आयात करें",
+    "local_badge": "स्थानीय",
+    "import_progress": {
+      "title": "मॉड आयात किए जा रहे हैं",
+      "processing": "{{total}} में से {{current}} प्रोसेस हो रहा है",
+      "complete": "आयात पूर्ण!",
+      "summary": "{{total}} में से {{successful}} मॉड आयातित"
+    },
+    "import_errors": {
+      "no_profile": "कोई सक्रिय प्रोफ़ाइल नहीं",
+      "unsupported_type": "असमर्थित फ़ाइल प्रकार: {{extension}}",
+      "corrupted_zip": "दूषित ZIP फ़ाइल",
+      "no_mod_files": "संग्रह में कोई मॉड फ़ाइलें नहीं मिलीं"
+    },
     "remove_modal": {
       "title": "मॉड हटाएँ",
       "message": "क्या आप वाकई \"{{modName}}\" को अपनी प्रोफ़ाइल से हटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।",

@@ -9,10 +9,12 @@
  * Individual mod reference within a profile
  */
 export interface ProfileMod {
-  modId: number;
+  modId?: number | string;
+  localModId?: string;
+  isLocal?: boolean;
   modName: string;
-  versionId: number;
-  versionNumber: string;
+  versionId?: number;
+  versionNumber?: string;
   fileHash: string;
   fileName: string;
   installDate: string;
@@ -61,7 +63,7 @@ export interface CachedModFile {
  */
 export interface CachedMod {
   fileHash: string;
-  modId: number;
+  modId: number | string;
   fileName: string;
   fileSize: number;
   downloadedAt: string;

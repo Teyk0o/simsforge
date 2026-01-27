@@ -188,7 +188,9 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
 
     try {
       await updateCheckService.initialize();
-      const result = await updateCheckService.checkForUpdates(activeProfile.mods);
+      // Filter out local mods - only check CurseForge mods for updates
+      const modsToCheck = activeProfile.mods.filter((m) => !m.isLocal && typeof m.modId === 'number');
+      const result = await updateCheckService.checkForUpdates(modsToCheck);
 
       // Update local state
       const updatesMap = new Map<number, UpdateInfo>();
