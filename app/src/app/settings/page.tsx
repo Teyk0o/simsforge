@@ -860,6 +860,7 @@ export default function SettingsPage() {
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                   <Sliders size={20} className="text-brand-blue" /> {t('settings.mod_preferences.title')}
                 </h2>
+                <p className="text-sm text-gray-500 mt-1">{t('settings.mod_preferences.description')}</p>
               </div>
 
               <div className="bg-white dark:bg-ui-panel border border-gray-200 dark:border-ui-border rounded-xl p-6 shadow-sm space-y-6">
@@ -948,6 +949,72 @@ export default function SettingsPage() {
                     />
                   </button>
                 </div>
+              </div>
+            </section>
+
+            {/* SECTION: DISK PERFORMANCE */}
+            <section id="disk-performance">
+              <div className="mb-6">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <HardDrive size={20} className="text-brand-blue" /> {t('settings.disk_performance.title')}
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  {t('settings.disk_performance.description')}
+                </p>
+              </div>
+
+              <div className="bg-white dark:bg-ui-panel border border-gray-200 dark:border-ui-border rounded-xl p-6 shadow-sm space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-bold text-gray-900 dark:text-white">
+                      {diskConfig ? (
+                          <>
+                            {t('settings.disk_performance.detected', { type: diskType?.toUpperCase() || 'Unknown' })}
+                            <span className="ml-2 text-sm font-normal text-gray-500">
+                            {t('settings.disk_performance.speed', { speed: diskConfig.diskSpeedMBps })}
+                          </span>
+                          </>
+                      ) : (
+                          t('settings.disk_performance.not_benchmarked')
+                      )}
+                    </div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                      {diskConfig ? (
+                          <>
+                            {t('settings.disk_performance.concurrent_ops', { poolSize: diskConfig.poolSize })}
+                            <span className="mx-2">·</span>
+                            {t('settings.disk_performance.last_tested', { date: new Date(diskConfig.lastBenchmark).toLocaleDateString() })}
+                          </>
+                      ) : (
+                          t('settings.disk_performance.run_benchmark_desc')
+                      )}
+                    </div>
+                  </div>
+
+                  <button
+                      onClick={handleRunBenchmark}
+                      disabled={runningBenchmark}
+                      className="px-4 py-2 bg-gray-100 dark:bg-ui-hover border border-gray-300 dark:border-ui-border text-gray-900 dark:text-white font-bold text-sm rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {runningBenchmark ? (
+                        <>
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-gray-500 border-t-transparent" />
+                          {benchmarkProgress}%
+                        </>
+                    ) : (
+                        diskConfig ? t('settings.disk_performance.rerun_benchmark') : t('settings.disk_performance.run_benchmark')
+                    )}
+                  </button>
+                </div>
+
+                {runningBenchmark && (
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div
+                          className="bg-brand-green h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${benchmarkProgress}%` }}
+                      />
+                    </div>
+                )}
               </div>
             </section>
 
@@ -1045,78 +1112,13 @@ export default function SettingsPage() {
               </div>
             </section>
 
-            {/* SECTION: DISK PERFORMANCE */}
-            <section id="disk-performance">
-              <div className="mb-6">
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                  <HardDrive size={20} className="text-brand-blue" /> {t('settings.disk_performance.title')}
-                </h2>
-                <p className="text-sm text-gray-500 mt-1">
-                  {t('settings.disk_performance.description')}
-                </p>
-              </div>
-
-              <div className="bg-white dark:bg-ui-panel border border-gray-200 dark:border-ui-border rounded-xl p-6 shadow-sm space-y-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-bold text-gray-900 dark:text-white">
-                      {diskConfig ? (
-                        <>
-                          {t('settings.disk_performance.detected', { type: diskType?.toUpperCase() || 'Unknown' })}
-                          <span className="ml-2 text-sm font-normal text-gray-500">
-                            {t('settings.disk_performance.speed', { speed: diskConfig.diskSpeedMBps })}
-                          </span>
-                        </>
-                      ) : (
-                        t('settings.disk_performance.not_benchmarked')
-                      )}
-                    </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                      {diskConfig ? (
-                        <>
-                          {t('settings.disk_performance.concurrent_ops', { poolSize: diskConfig.poolSize })}
-                          <span className="mx-2">·</span>
-                          {t('settings.disk_performance.last_tested', { date: new Date(diskConfig.lastBenchmark).toLocaleDateString() })}
-                        </>
-                      ) : (
-                        t('settings.disk_performance.run_benchmark_desc')
-                      )}
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={handleRunBenchmark}
-                    disabled={runningBenchmark}
-                    className="px-4 py-2 bg-gray-100 dark:bg-ui-hover border border-gray-300 dark:border-ui-border text-gray-900 dark:text-white font-bold text-sm rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed flex items-center gap-2"
-                  >
-                    {runningBenchmark ? (
-                      <>
-                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-gray-500 border-t-transparent" />
-                        {benchmarkProgress}%
-                      </>
-                    ) : (
-                      diskConfig ? t('settings.disk_performance.rerun_benchmark') : t('settings.disk_performance.run_benchmark')
-                    )}
-                  </button>
-                </div>
-
-                {runningBenchmark && (
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                    <div
-                      className="bg-brand-green h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${benchmarkProgress}%` }}
-                    />
-                  </div>
-                )}
-              </div>
-            </section>
-
             {/* SECTION: DANGER ZONE */}
             <section id="danger" className="pb-10">
               <div className="mb-6">
                 <h2 className="text-lg font-bold text-brand-danger flex items-center gap-2">
-                  <Warning size={20} /> {t('settings.danger_zone.title')}
+                  <Warning size={20} className="text-red-500" /> {t('settings.danger_zone.title')}
                 </h2>
+                <p className="text-sm text-gray-500 mt-1">{t('settings.danger_zone.description')}</p>
               </div>
 
               <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/30 rounded-xl p-6 space-y-6">

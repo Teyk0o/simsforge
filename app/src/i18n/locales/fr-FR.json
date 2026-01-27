@@ -179,6 +179,7 @@
     },
     "mod_preferences": {
       "title": "Préférences des mods",
+      "description": "Configurez la gestion de vos mods installés par SimsForge.",
       "auto_updates": {
         "title": "Mises à jour automatiques",
         "description": "Téléchargez et installez les mises à jour des mods dès qu'elles sont disponibles."
@@ -220,6 +221,7 @@
     },
     "danger_zone": {
       "title": "Zone de danger",
+      "description": "Actions irréversibles pour réinitialiser ou effacer les données de l'application.",
       "clear_cache": {
         "title": "Vider le cache SimsForge",
         "description": "Peut résoudre les images manquantes ou les téléchargements bloqués.",

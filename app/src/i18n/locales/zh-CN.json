@@ -179,6 +179,7 @@
     },
     "mod_preferences": {
       "title": "模组偏好设置",
+      "description": "配置 SimsForge 如何管理您安装的模组。",
       "auto_updates": {
         "title": "自动更新",
         "description": "模组更新可用时立即下载并安装。"
@@ -220,6 +221,7 @@
     },
     "danger_zone": {
       "title": "危险区域",
+      "description": "用于重置或清除应用程序数据的不可逆操作。",
       "clear_cache": {
         "title": "清除 SimsForge 缓存",
         "description": "可解决缺少的图片或被阻止的下载。",
