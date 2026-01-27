@@ -43,31 +43,38 @@ describe('formatRelativeDate', () => {
 
   it('should format minutes ago', () => {
     const thirtyMinAgo = new Date('2025-06-15T11:30:00Z').toISOString();
-    expect(formatRelativeDate(thirtyMinAgo)).toBe('30m ago');
+    const result = formatRelativeDate(thirtyMinAgo);
+    expect(result).toContain('ago');
   });
 
   it('should format hours ago', () => {
     const threeHoursAgo = new Date('2025-06-15T09:00:00Z').toISOString();
-    expect(formatRelativeDate(threeHoursAgo)).toBe('3h ago');
+    const result = formatRelativeDate(threeHoursAgo);
+    expect(result).toContain('ago');
   });
 
   it('should format days ago', () => {
     const fiveDaysAgo = new Date('2025-06-10T12:00:00Z').toISOString();
-    expect(formatRelativeDate(fiveDaysAgo)).toBe('5d ago');
+    const result = formatRelativeDate(fiveDaysAgo);
+    expect(result).toContain('ago');
   });
 
   it('should format absolute date for older entries', () => {
     const oldDate = new Date('2024-06-10T00:00:00Z').toISOString();
     const result = formatRelativeDate(oldDate);
-    expect(result).toContain('Jun');
+    expect(result).toContain('June');
     expect(result).toContain('2024');
   });
 
   it('should handle invalid date gracefully', () => {
-    // new Date('invalid') does not throw, produces "Invalid Date" string
     const result = formatRelativeDate('not a valid date at all !!!');
-    expect(typeof result).toBe('string');
-    expect(result.length).toBeGreaterThan(0);
+    expect(result).toBe('Recently');
+  });
+
+  it('should format with en-US locale explicitly', () => {
+    const fiveDaysAgo = new Date('2025-06-10T12:00:00Z').toISOString();
+    const result = formatRelativeDate(fiveDaysAgo, 'en-US');
+    expect(result).toContain('ago');
   });
 });
 
@@ -103,8 +110,13 @@ describe('formatDate', () => {
 
   it('should handle invalid date gracefully', () => {
     const result = formatDate('not a valid date at all !!!');
-    expect(typeof result).toBe('string');
-    expect(result.length).toBeGreaterThan(0);
+    expect(result).toBe('Unknown date');
+  });
+
+  it('should format with en-US locale explicitly', () => {
+    const result = formatDate('2025-01-10T00:00:00Z', 'en-US');
+    expect(result).toContain('January');
+    expect(result).toContain('2025');
   });
 });
 

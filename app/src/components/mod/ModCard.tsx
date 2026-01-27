@@ -15,7 +15,8 @@ import { useToast } from '@/context/ToastContext';
 import { useProfiles } from '@/context/ProfileContext';
 import { modInstallationService } from '@/lib/services/ModInstallationService';
 import { userPreferencesService } from '@/lib/services/UserPreferencesService';
-import { formatDownloadCount, formatRelativeDate } from '@/utils/formatters';
+import { formatDownloadCount } from '@/utils/formatters';
+import { useDateFormatters } from '@/hooks/useDateFormatters';
 import { fakeScoreService } from '@/lib/services/FakeScoreService';
 import { submitFakeModReport } from '@/lib/fakeDetectionApi';
 import WarningBadge from './WarningBadge';
@@ -35,6 +36,7 @@ interface ModCardProps {
  */
 export default function ModCard({ mod, warningStatus }: ModCardProps) {
   const { t } = useTranslation();
+  const { formatRelativeDate } = useDateFormatters();
   const authorNames = mod.authors.map((a) => a.name).join(', ');
   const categoryNames = mod.categories.slice(0, 2);
   const { showToast, updateToast } = useToast();

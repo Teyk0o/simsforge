@@ -3,11 +3,11 @@
 import { useState } from 'react';
 import { CurseForgeMod } from '@/types/curseforge';
 import type { ModWarningStatus } from '@/types/fakeDetection';
-import { formatRelativeDate } from '@/utils/formatters';
 import { ShareNetwork, Heart, DownloadSimple, Spinner, Check, Warning } from '@phosphor-icons/react';
 import { useToast } from '@/context/ToastContext';
 import { useProfiles } from '@/context/ProfileContext';
 import { modInstallationService } from '@/lib/services/ModInstallationService';
+import { useDateFormatters } from '@/hooks/useDateFormatters';
 import { useTranslation } from 'react-i18next';
 import WarningBadge from './WarningBadge';
 
@@ -18,6 +18,7 @@ interface ModDetailHeaderProps {
 
 export default function ModDetailHeader({ mod, warningStatus }: ModDetailHeaderProps) {
   const { t } = useTranslation();
+  const { formatRelativeDate } = useDateFormatters();
   const { showToast, updateToast } = useToast();
   const { activeProfile, refreshProfiles } = useProfiles();
   const [isInstalling, setIsInstalling] = useState(false);

@@ -11,6 +11,7 @@ import i18n, {
   normalizeLanguage,
   type SupportedLanguage,
 } from '@/i18n';
+import { preloadDateLocale } from '@/lib/dateLocales';
 
 /**
  * Language context type definition
@@ -45,30 +46,39 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   // Initialize language on mount
   useEffect(() => {
-    const initLanguage = () => {
+    const initLanguage = async () => {
       // Check for saved preference in localStorage first
       const savedLang = localStorage.getItem(LANGUAGE_STORAGE_KEY);
 
+      let initialLang: SupportedLanguage;
+
       if (savedLang) {
-        const normalized = normalizeLanguage(savedLang);
-        setLanguageState(normalized);
+        initialLang = normalizeLanguage(savedLang);
+        setLanguageState(initialLang);
 
         // Ensure i18n is synced
-        if (i18nInstance.language !== normalized) {
-          i18nInstance.changeLanguage(normalized);
+        if (i18nInstance.language !== initialLang) {
+          i18nInstance.changeLanguage(initialLang);
         }
       } else {
         // Use detected language from i18n (browser/OS language)
-        const detected = normalizeLanguage(i18nInstance.language || navigator.language);
-        setLanguageState(detected);
+        initialLang = normalizeLanguage(i18nInstance.language || navigator.language);
+        setLanguageState(initialLang);
 
         // Save to localStorage for future sessions
-        localStorage.setItem(LANGUAGE_STORAGE_KEY, detected);
+        localStorage.setItem(LANGUAGE_STORAGE_KEY, initialLang);
 
         // Ensure i18n is synced
-        if (i18nInstance.language !== detected) {
-          i18nInstance.changeLanguage(detected);
+        if (i18nInstance.language !== initialLang) {
+          i18nInstance.changeLanguage(initialLang);
         }
+      }
+
+      // Preload date locale for initial language
+      try {
+        await preloadDateLocale(initialLang);
+      } catch (error) {
+        console.error('Failed to preload initial date locale:', error);
       }
 
       setIsReady(true);
@@ -88,6 +98,11 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
       // Update HTML lang attribute for accessibility
       document.documentElement.lang = lang;
+
+      // Preload date locale for the new language
+      preloadDateLocale(lang).catch((error) => {
+        console.error('Failed to preload date locale:', error);
+      });
     },
     [i18nInstance]
   );

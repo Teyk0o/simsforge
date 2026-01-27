@@ -485,7 +485,7 @@ export default function LibraryContent() {
                       <div className="flex flex-col gap-1 mt-1">
                         {mod.authors && mod.authors.length > 0 && (
                           <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>
-                            by {mod.authors.join(', ')}
+                            {t('library.mod_item.by')} {mod.authors.join(', ')}
                           </p>
                         )}
                         <div className="flex items-center gap-2 text-xs">

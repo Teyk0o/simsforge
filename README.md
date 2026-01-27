@@ -1,7 +1,7 @@
 ![banner.png](assets/banner.png)
 
 ![Backend Coverage](https://img.shields.io/badge/Coverage_96.4%25-C21325?style=for-the-badge&logo=jest&logoColor=white)
-![Frontend Tests](https://img.shields.io/badge/195_tests_passed-6E9F18?style=for-the-badge&logo=vitest&logoColor=white)
+![Frontend Tests](https://img.shields.io/badge/218_tests_passed-6E9F18?style=for-the-badge&logo=vitest&logoColor=white)
 
 SimsForge is an open-source mod manager for The Sims 4. It provides a desktop application for mod discovery, installation, and management through integration with CurseForge, along with a system for detecting and reporting fake/malicious mods to protect the community.
 
@@ -32,6 +32,7 @@ simsforge/
 - **HTTP Client**: Axios 1.13
 - **UI Components**: Phosphor Icons 2.1
 - **i18n**: i18next 24.2 + react-i18next 16.2 + i18next-browser-languagedetector 8.1
+- **Date Formatting**: date-fns 4.1 with locale support
 - **Utilities**: Tailwind Merge, clsx
 
 **Key Features**:
@@ -240,6 +241,22 @@ The i18n system uses `i18next` with:
 - Translation files located in `app/src/i18n/locales/`
 - Fallback to English (US) if selected language is unavailable
 
+### Date Localization
+
+Dates throughout the application are automatically localized based on the selected language using **date-fns** with dynamic locale imports for optimal bundle size.
+
+**Features:**
+- **Relative Dates**: "5 days ago", "il y a 5 jours" (dates within 30 days)
+- **Absolute Dates**: "January 10, 2025", "10 janvier 2025" (older dates)
+- **Automatic Loading**: Locale is preloaded when language changes
+- **No Flickering**: Smooth transitions with proper loading states
+- **Tree-shaking**: Only active locale is bundled (~2-5KB per locale)
+
+**Implementation Details:**
+- Hook: `useDateFormatters()` for React components (auto-detects current language)
+- Utilities: `formatRelativeDate()`, `formatDate()` with optional locale parameter
+- Module: `app/src/lib/dateLocales.ts` manages locale caching and dynamic imports
+
 ### Adding Translations
 
 Translation files are JSON-based and located in `app/src/i18n/locales/[locale].json`:
@@ -322,10 +339,14 @@ npm run test:coverage
 ```
 
 Test suites cover:
-- **Utilities**: Formatters, path sanitizer, text normalizer, concurrency pool
-- **Hooks**: useDebounce
+- **Utilities**: Formatters (with localization), path sanitizer, text normalizer, concurrency pool
+- **Hooks**: useDebounce, useDateFormatters (date localization with all 7 languages)
 - **Services**: FakeScoreService, LogEnablerService, GameLogService, DiskPerformanceService
+- **Date Localization**: dateLocales module (locale imports, caching, fallbacks)
 - **API Client**: Axios instance creation, interceptors, HTTP helpers
+- **i18n**: Translations, language detection, locale loading
+
+**Test Statistics**: 218 tests covering all frontend modules
 
 ## Code Quality
 

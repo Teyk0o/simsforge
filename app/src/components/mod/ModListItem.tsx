@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { CurseForgeMod } from '@/types/curseforge';
-import { formatDownloadCount, formatRelativeDate } from '@/utils/formatters';
+import { formatDownloadCount } from '@/utils/formatters';
 import { DownloadSimple, Spinner, Check } from "@phosphor-icons/react";
 import { useToast } from '@/context/ToastContext';
 import { useProfiles } from '@/context/ProfileContext';
@@ -12,6 +12,7 @@ import { modInstallationService } from '@/lib/services/ModInstallationService';
 import { userPreferencesService } from '@/lib/services/UserPreferencesService';
 import { fakeScoreService } from '@/lib/services/FakeScoreService';
 import { submitFakeModReport } from '@/lib/fakeDetectionApi';
+import { useDateFormatters } from '@/hooks/useDateFormatters';
 import { useTranslation } from 'react-i18next';
 import WarningBadge from './WarningBadge';
 import FakeModWarningPopup from './FakeModWarningPopup';
@@ -25,6 +26,7 @@ interface ModListItemProps {
 
 export default function ModListItem({ mod, warningStatus }: ModListItemProps) {
   const { t } = useTranslation();
+  const { formatRelativeDate } = useDateFormatters();
   const authorNames = mod.authors.map((a) => a.name).join(', ');
   const categoryNames = mod.categories.slice(0, 2);
   const { showToast, updateToast } = useToast();
