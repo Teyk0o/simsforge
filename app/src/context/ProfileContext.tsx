@@ -30,8 +30,8 @@ export interface ProfileContextType {
   deleteProfile: (profileId: string) => Promise<void>;
   activateProfile: (profileId: string | null) => Promise<void>;
   addModToProfile: (profileId: string, mod: ProfileMod) => Promise<void>;
-  removeModFromProfile: (profileId: string, modId: number) => Promise<void>;
-  toggleModInProfile: (profileId: string, modId: number, enabled: boolean) => Promise<void>;
+  removeModFromProfile: (profileId: string, modId: number | string, localModId?: string) => Promise<void>;
+  toggleModInProfile: (profileId: string, modId: number | string, enabled: boolean, localModId?: string) => Promise<void>;
   getModsPath: () => string | null;
 }
 
@@ -294,9 +294,9 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
    * Remove a mod from a profile
    */
   const removeModFromProfile = useCallback(
-    async (profileId: string, modId: number) => {
+    async (profileId: string, modId: number | string, localModId?: string) => {
       try {
-        await profileService.removeModFromProfile(profileId, modId);
+        await profileService.removeModFromProfile(profileId, modId, localModId);
 
         // If removing a mod from the active profile, re-activate it
         // to sync the file system immediately
@@ -329,9 +329,9 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
    * Toggle a mod enabled/disabled in a profile
    */
   const toggleModInProfile = useCallback(
-    async (profileId: string, modId: number, enabled: boolean) => {
+    async (profileId: string, modId: number | string, enabled: boolean, localModId?: string) => {
       try {
-        await profileService.toggleModInProfile(profileId, modId, enabled);
+        await profileService.toggleModInProfile(profileId, modId, enabled, localModId);
 
         // If toggling a mod in the active profile, re-activate it
         // to sync the file system immediately

@@ -94,6 +94,21 @@
       "remove_tooltip": "Remover mod do perfil",
       "by": "por"
     },
+    "import_mods": "Importar Mods",
+    "import_mods_tooltip": "Importar arquivos de mods locais do seu computador",
+    "local_badge": "Local",
+    "import_progress": {
+      "title": "Importando Mods",
+      "processing": "Processando {{current}} de {{total}}",
+      "complete": "Importação Concluída!",
+      "summary": "{{successful}} de {{total}} mod(s) importado(s)"
+    },
+    "import_errors": {
+      "no_profile": "Nenhum perfil ativo",
+      "unsupported_type": "Tipo de arquivo não suportado: {{extension}}",
+      "corrupted_zip": "Arquivo ZIP corrompido",
+      "no_mod_files": "Nenhum arquivo de mod encontrado no arquivo"
+    },
     "remove_modal": {
       "title": "Remover Mod",
       "message": "Tem certeza que deseja remover «{{modName}}» do seu perfil? Esta ação não pode ser desfeita.",

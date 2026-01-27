@@ -221,8 +221,14 @@ export class ProfileService {
       throw new Error(`Profile ${profileId} not found`);
     }
 
-    // Check if mod already exists
-    const existingIndex = profile.mods.findIndex((m) => m.modId === mod.modId);
+    // Check if mod already exists (compare modId AND localModId for local mods)
+    const existingIndex = profile.mods.findIndex((m) => {
+      if (mod.isLocal && mod.localModId) {
+        return m.localModId === mod.localModId;
+      }
+      return m.modId === mod.modId;
+    });
+
     if (existingIndex >= 0) {
       // Update existing mod
       profile.mods[existingIndex] = mod;
@@ -237,13 +243,18 @@ export class ProfileService {
   /**
    * Remove mod from profile
    */
-  async removeModFromProfile(profileId: string, modId: number): Promise<void> {
+  async removeModFromProfile(profileId: string, modId: number | string, localModId?: string): Promise<void> {
     const profile = await this.getProfile(profileId);
     if (!profile) {
       throw new Error(`Profile ${profileId} not found`);
     }
 
-    profile.mods = profile.mods.filter((m) => m.modId !== modId);
+    profile.mods = profile.mods.filter((m) => {
+      if (localModId) {
+        return m.localModId !== localModId;
+      }
+      return m.modId !== modId;
+    });
     await this.updateProfile(profileId, { mods: profile.mods });
   }
 
@@ -299,15 +310,21 @@ export class ProfileService {
    */
   async toggleModInProfile(
     profileId: string,
-    modId: number,
-    enabled: boolean
+    modId: number | string,
+    enabled: boolean,
+    localModId?: string
   ): Promise<void> {
     const profile = await this.getProfile(profileId);
     if (!profile) {
       throw new Error(`Profile ${profileId} not found`);
     }
 
-    const mod = profile.mods.find((m) => m.modId === modId);
+    const mod = profile.mods.find((m) => {
+      if (localModId) {
+        return m.localModId === localModId;
+      }
+      return m.modId === modId;
+    });
     if (!mod) {
       throw new Error(`Mod ${modId} not found in profile ${profileId}`);
     }

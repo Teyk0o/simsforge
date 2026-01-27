@@ -13,6 +13,12 @@ import { getBatchWarningStatus } from '@/lib/fakeDetectionApi';
 import { userPreferencesService } from '@/lib/services/UserPreferencesService';
 import { useTranslation } from 'react-i18next';
 import type { ModWarningStatus } from '@/types/fakeDetection';
+import { ImportModsButton } from './components/ImportModsButton';
+import { LocalModAvatar } from './components/LocalModAvatar';
+import { LocalModBadge } from './components/LocalModBadge';
+import { ImportProgressModal } from './components/ImportProgressModal';
+import { localModImportService } from '@/lib/services/LocalModImportService';
+import type { ImportSummary } from '@/lib/services/LocalModImportService';
 
 /**
  * Library content component that handles displaying and managing mods
@@ -47,7 +53,8 @@ export default function LibraryContent() {
   const [warningStatuses, setWarningStatuses] = useState<Record<number, ModWarningStatus>>({});
   const [confirmationModal, setConfirmationModal] = useState<{
     isOpen: boolean;
-    modId: number | null;
+    modId: number | string | null;
+    localModId?: string;
     modName: string;
     isLoading: boolean;
   }>({
@@ -56,6 +63,14 @@ export default function LibraryContent() {
     modName: '',
     isLoading: false,
   });
+  const [isImporting, setIsImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState({
+    currentFile: '',
+    currentIndex: 0,
+    totalFiles: 0,
+    stage: 'analyzing' as 'analyzing' | 'extracting' | 'installing' | 'complete',
+  });
+  const [importSummary, setImportSummary] = useState<ImportSummary | null>(null);
 
   // Set filter from URL query parameter
   useEffect(() => {
@@ -72,8 +87,14 @@ export default function LibraryContent() {
 
     const fetchWarnings = async () => {
       try {
-        const modIds = activeProfile.mods.map((mod) => mod.modId);
-        const statuses = await getBatchWarningStatus(modIds);
+        // Filter out local mods (only CurseForge mods have warnings)
+        const curseForgeModIds = activeProfile.mods
+          .filter((mod) => !mod.isLocal && typeof mod.modId === 'number')
+          .map((mod) => mod.modId as number);
+
+        if (curseForgeModIds.length === 0) return;
+
+        const statuses = await getBatchWarningStatus(curseForgeModIds);
         setWarningStatuses(statuses || {});
       } catch (err) {
         console.error('[Library] Failed to fetch warning statuses:', err);
@@ -107,7 +128,7 @@ export default function LibraryContent() {
     } else if (filterStatus === 'disabled') {
       mods = mods.filter((m) => !m.enabled);
     } else if (filterStatus === 'updates') {
-      mods = mods.filter((m) => hasUpdate(m.modId));
+      mods = mods.filter((m) => !m.isLocal && typeof m.modId === 'number' && hasUpdate(m.modId));
     }
 
     // Search by name
@@ -134,20 +155,21 @@ export default function LibraryContent() {
     return mods;
   }, [activeProfile, searchTerm, filterStatus, sortBy, hasUpdate]);
 
-  const handleToggleMod = async (modId: number, enabled: boolean) => {
+  const handleToggleMod = async (modId: number | string, enabled: boolean, localModId?: string) => {
     try {
       if (activeProfile) {
-        await toggleModInProfile(activeProfile.id, modId, !enabled);
+        await toggleModInProfile(activeProfile.id, modId, !enabled, localModId);
       }
     } catch (error) {
       console.error('Failed to toggle mod:', error);
     }
   };
 
-  const handleRemoveModClick = (modId: number, modName: string) => {
+  const handleRemoveModClick = (modId: number | string, modName: string, localModId?: string) => {
     setConfirmationModal({
       isOpen: true,
       modId,
+      localModId,
       modName,
       isLoading: false,
     });
@@ -158,7 +180,11 @@ export default function LibraryContent() {
 
     try {
       setConfirmationModal((prev) => ({ ...prev, isLoading: true }));
-      await removeModFromProfile(activeProfile.id, confirmationModal.modId);
+      await removeModFromProfile(
+        activeProfile.id,
+        confirmationModal.modId,
+        confirmationModal.localModId
+      );
       setConfirmationModal({
         isOpen: false,
         modId: null,
@@ -185,6 +211,44 @@ export default function LibraryContent() {
     await updateAllMods();
   };
 
+  const handleImportMods = async () => {
+    setIsImporting(true);
+    setImportSummary(null);
+
+    try {
+      const summary = await localModImportService.importModFiles(
+        (progress) => {
+          setImportProgress({
+            currentFile: progress.currentFile,
+            currentIndex: progress.currentIndex,
+            totalFiles: progress.totalFiles,
+            stage: progress.stage,
+          });
+        }
+      );
+
+      setImportSummary(summary);
+      if (summary.successful > 0) {
+        // Refresh profiles to show new mods (discreet refresh)
+        await refreshProfiles();
+      }
+    } catch (error) {
+      console.error('[Library] Import failed:', error);
+      setImportSummary({
+        total: 0,
+        successful: 0,
+        failed: 1,
+        errors: [{ fileName: 'Unknown', error: String(error) }],
+        importedMods: [],
+      });
+    }
+  };
+
+  const handleCloseImportModal = () => {
+    setIsImporting(false);
+    setImportSummary(null);
+  };
+
   return (
     <main
       className="flex-1 flex flex-col min-w-0 bg-gray-50 dark:bg-ui-dark"
@@ -198,12 +262,18 @@ export default function LibraryContent() {
           backgroundColor: 'var(--ui-panel)',
         }}
       >
-        <h1
-          className="text-xl font-bold"
-          style={{ color: 'var(--text-primary)' }}
-        >
-          {t('library.title')}
-        </h1>
+        <div className="flex items-center gap-4">
+          <h1
+            className="text-xl font-bold"
+            style={{ color: 'var(--text-primary)' }}
+          >
+            {t('library.title')}
+          </h1>
+          <ImportModsButton
+            disabled={!activeProfile || isLoading}
+            onClick={handleImportMods}
+          />
+        </div>
 
         <div className="flex items-center gap-4">
           {/* Update All Button */}
@@ -425,9 +495,14 @@ export default function LibraryContent() {
             <div className="space-y-2">
               {filteredMods.map((mod) => (
                 <Link
-                  key={mod.modId}
-                  href={`/mods?id=${mod.modId}`}
+                  key={mod.isLocal ? mod.localModId : mod.modId}
+                  href={mod.isLocal ? '#' : `/mods?id=${mod.modId}`}
                   className="block"
+                  onClick={(e) => {
+                    if (mod.isLocal) {
+                      e.preventDefault();
+                    }
+                  }}
                 >
                   <div
                     className="flex items-center gap-4 p-4 rounded-lg border transition-all cursor-pointer group"
@@ -447,7 +522,9 @@ export default function LibraryContent() {
                   >
                     {/* Mod Image */}
                     <div className="relative h-16 w-16 rounded-md overflow-hidden flex-shrink-0" style={{ backgroundColor: '#1a1a1a' }}>
-                      {mod.logo ? (
+                      {mod.isLocal ? (
+                        <LocalModAvatar modName={mod.modName} size={64} />
+                      ) : mod.logo ? (
                         <Image
                           src={mod.logo}
                           alt={mod.modName}
@@ -460,7 +537,7 @@ export default function LibraryContent() {
                           📦
                         </div>
                       )}
-                      {warningStatuses[mod.modId] && (warningStatuses[mod.modId].hasWarning || warningStatuses[mod.modId].creatorBanned) && (
+                      {!mod.isLocal && typeof mod.modId === 'number' && warningStatuses[mod.modId] && (warningStatuses[mod.modId].hasWarning || warningStatuses[mod.modId].creatorBanned) && (
                         <div
                           className="absolute top-0 right-0 w-5 h-5 flex items-center justify-center rounded-bl-md"
                           style={{ backgroundColor: warningStatuses[mod.modId].creatorBanned ? '#dc2626' : '#f59e0b' }}
@@ -480,7 +557,8 @@ export default function LibraryContent() {
                         >
                           {mod.modName}
                         </h3>
-                        {hasUpdate(mod.modId) && <UpdateBadge modId={mod.modId} />}
+                        {mod.isLocal && <LocalModBadge />}
+                        {!mod.isLocal && typeof mod.modId === 'number' && hasUpdate(mod.modId) && <UpdateBadge modId={mod.modId} />}
                       </div>
                       <div className="flex flex-col gap-1 mt-1">
                         {mod.authors && mod.authors.length > 0 && (
@@ -506,8 +584,8 @@ export default function LibraryContent() {
 
                     {/* Actions */}
                     <div className="flex items-center gap-2">
-                      {/* Update Button (only shown if update available) */}
-                      {hasUpdate(mod.modId) && (
+                      {/* Update Button (only shown if update available and not local) */}
+                      {!mod.isLocal && typeof mod.modId === 'number' && hasUpdate(mod.modId) && (
                         <button
                           onClick={(e) => {
                             e.preventDefault();
@@ -534,7 +612,7 @@ export default function LibraryContent() {
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          handleToggleMod(mod.modId, mod.enabled);
+                          handleToggleMod(mod.modId || mod.localModId!, mod.enabled, mod.localModId);
                         }}
                         disabled={isLoading}
                         className="p-2 rounded transition-colors"
@@ -561,7 +639,7 @@ export default function LibraryContent() {
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          handleRemoveModClick(mod.modId, mod.modName);
+                          handleRemoveModClick(mod.modId || mod.localModId!, mod.modName, mod.localModId);
                         }}
                         disabled={isLoading}
                         className="p-2 rounded transition-colors"
@@ -607,6 +685,14 @@ export default function LibraryContent() {
         cancelText={t('common.cancel')}
         isDangerous={true}
         isLoading={confirmationModal.isLoading}
+      />
+
+      {/* Import Progress Modal */}
+      <ImportProgressModal
+        isOpen={isImporting}
+        progress={importProgress}
+        summary={importSummary}
+        onClose={handleCloseImportModal}
       />
     </main>
   );

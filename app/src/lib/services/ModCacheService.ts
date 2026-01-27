@@ -64,7 +64,7 @@ export class ModCacheService {
    * Returns cached mod info and checks for duplicates
    */
   async addToCache(
-    modId: number,
+    modId: number | string,
     fileName: string,
     sourcePath: string,
     profileId: string
