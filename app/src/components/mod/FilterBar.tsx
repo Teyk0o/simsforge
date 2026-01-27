@@ -5,6 +5,7 @@ import { CaretDown, WarningCircle, LockKey, CaretRight } from '@phosphor-icons/r
 import ViewToggle from '@/components/mod/ViewToggle';
 import { ViewMode } from '@/hooks/useViewMode';
 import { useTranslation } from 'react-i18next';
+import { useCategoryLocalization } from '@/utils/categoryTranslation';
 
 interface FilterBarProps {
   onSortChange: (sort: 'downloads' | 'date' | 'trending' | 'relevance') => void;
@@ -18,76 +19,168 @@ interface FilterBarProps {
 }
 
 interface CategoryGroup {
-  name: string;
-  description: string;
-  subcategories: string[];
+  id: string;
+  subcategories: Array<{ key: string; displayName: string }>;
 }
 
+// Maps category group IDs to their translation keys and display names
+// displayName is the actual CurseForge category name (what the API expects)
 const CATEGORY_GROUPS: CategoryGroup[] = [
   {
-    name: 'Sims, âges, corps',
-    description: 'Tout ce qui touche au Sim lui-même',
+    id: 'sims_ages_body',
     subcategories: [
-      'Adult', 'Teen', 'Toddler', 'Infant', 'Child', 'Elder', 'Young Adult',
-      'Masculine', 'Feminine',
-      'Body', 'Body Sliders', 'Body Accessories', 'Body and Face Presets', 'Facial / Body Hair',
-      'Face Sliders', 'Skin Details', 'Skins', 'Skintones', 'Eye Color', 'Hairstyles', 'Makeup',
-      'Likes/Dislikes', 'Traits', 'Aspirations', 'Activities and Skills', 'Career', 'Careers',
-      'Club', 'Community', 'Roommates', 'Default', 'Overrides', 'Bug Fixes', 'Gameplay', 'Misc'
+      { key: 'adult', displayName: 'Adult' },
+      { key: 'teen', displayName: 'Teen' },
+      { key: 'toddler', displayName: 'Toddler' },
+      { key: 'infant', displayName: 'Infant' },
+      { key: 'child', displayName: 'Child' },
+      { key: 'elder', displayName: 'Elder' },
+      { key: 'young_adult', displayName: 'Young Adult' },
+      { key: 'masculine', displayName: 'Masculine' },
+      { key: 'feminine', displayName: 'Feminine' },
+      { key: 'body', displayName: 'Body' },
+      { key: 'body_sliders', displayName: 'Body Sliders' },
+      { key: 'body_accessories', displayName: 'Body Accessories' },
+      { key: 'body_and_face_presets', displayName: 'Body and Face Presets' },
+      { key: 'facial_body_hair', displayName: 'Facial / Body Hair' },
+      { key: 'face_sliders', displayName: 'Face Sliders' },
+      { key: 'skin_details', displayName: 'Skin Details' },
+      { key: 'skins', displayName: 'Skins' },
+      { key: 'skintones', displayName: 'Skintones' },
+      { key: 'eye_color', displayName: 'Eye Color' },
+      { key: 'hairstyles', displayName: 'Hairstyles' },
+      { key: 'makeup', displayName: 'Makeup' },
+      { key: 'likes_dislikes', displayName: 'Likes/Dislikes' },
+      { key: 'traits', displayName: 'Traits' },
+      { key: 'aspirations', displayName: 'Aspirations' },
+      { key: 'activities_and_skills', displayName: 'Activities and Skills' },
+      { key: 'career', displayName: 'Career' },
+      { key: 'careers', displayName: 'Careers' },
+      { key: 'club', displayName: 'Club' },
+      { key: 'community', displayName: 'Community' },
+      { key: 'roommates', displayName: 'Roommates' },
+      { key: 'default', displayName: 'Default' },
+      { key: 'overrides', displayName: 'Overrides' },
+      { key: 'bug_fixes', displayName: 'Bug Fixes' },
+      { key: 'gameplay', displayName: 'Gameplay' },
+      { key: 'misc', displayName: 'Misc' }
     ]
   },
   {
-    name: 'Vêtements et style',
-    description: 'Tout ce qui est porté par le Sim',
+    id: 'clothing_style',
     subcategories: [
-      'Clothing', 'Shirts', 'Pants', 'Skirts', 'Swimwear', 'Sleepwear',
-      'Underwear and Socks', 'Shoes', 'Styled Looks',
-      'Head Accessories', 'Pet Accessories', 'Jewelry', 'Occult', 'Costumes'
+      { key: 'clothing', displayName: 'Clothing' },
+      { key: 'shirts', displayName: 'Shirts' },
+      { key: 'pants', displayName: 'Pants' },
+      { key: 'skirts', displayName: 'Skirts' },
+      { key: 'swimwear', displayName: 'Swimwear' },
+      { key: 'sleepwear', displayName: 'Sleepwear' },
+      { key: 'underwear_and_socks', displayName: 'Underwear and Socks' },
+      { key: 'shoes', displayName: 'Shoes' },
+      { key: 'styled_looks', displayName: 'Styled Looks' },
+      { key: 'head_accessories', displayName: 'Head Accessories' },
+      { key: 'pet_accessories', displayName: 'Pet Accessories' },
+      { key: 'jewelry', displayName: 'Jewelry' },
+      { key: 'occult', displayName: 'Occult' },
+      { key: 'costumes', displayName: 'Costumes' }
     ]
   },
   {
-    name: 'Construction intérieure',
-    description: 'Tout ce qui est à l\'intérieur de la maison',
+    id: 'interior_construction',
     subcategories: [
-      'Rooms', 'Living Room', 'Dining Room', 'Kitchen', 'Bathroom', 'Bedroom',
-      'Kids Room', 'Study', 'Office',
-      'Build Mode', 'Buy Mode', 'Furniture', 'Decor', 'Functional Objects',
-      'Comfort', 'Electronics', 'Appliances', 'Entertainment',
-      'Floor Tiles', 'Walls', 'Wallpapers', 'Doors', 'Windows', 'Stairs',
-      'Roof', 'Roofing', 'Platform Trim', 'Lighting', 'Lighting and Shaders',
-      'Storage', 'House', 'Household', 'Households'
+      { key: 'rooms', displayName: 'Rooms' },
+      { key: 'living_room', displayName: 'Living Room' },
+      { key: 'dining_room', displayName: 'Dining Room' },
+      { key: 'kitchen', displayName: 'Kitchen' },
+      { key: 'bathroom', displayName: 'Bathroom' },
+      { key: 'bedroom', displayName: 'Bedroom' },
+      { key: 'kids_room', displayName: 'Kids Room' },
+      { key: 'study', displayName: 'Study' },
+      { key: 'office', displayName: 'Office' },
+      { key: 'build_mode', displayName: 'Build Mode' },
+      { key: 'buy_mode', displayName: 'Buy Mode' },
+      { key: 'furniture', displayName: 'Furniture' },
+      { key: 'decor', displayName: 'Decor' },
+      { key: 'functional_objects', displayName: 'Functional Objects' },
+      { key: 'comfort', displayName: 'Comfort' },
+      { key: 'electronics', displayName: 'Electronics' },
+      { key: 'appliances', displayName: 'Appliances' },
+      { key: 'entertainment', displayName: 'Entertainment' },
+      { key: 'floor_tiles', displayName: 'Floor Tiles' },
+      { key: 'walls', displayName: 'Walls' },
+      { key: 'wallpapers', displayName: 'Wallpapers' },
+      { key: 'doors', displayName: 'Doors' },
+      { key: 'windows', displayName: 'Windows' },
+      { key: 'stairs', displayName: 'Stairs' },
+      { key: 'roof', displayName: 'Roof' },
+      { key: 'roofing', displayName: 'Roofing' },
+      { key: 'platform_trim', displayName: 'Platform Trim' },
+      { key: 'lighting', displayName: 'Lighting' },
+      { key: 'lighting_and_shaders', displayName: 'Lighting and Shaders' },
+      { key: 'storage', displayName: 'Storage' },
+      { key: 'house', displayName: 'House' },
+      { key: 'household', displayName: 'Household' },
+      { key: 'households', displayName: 'Households' }
     ]
   },
   {
-    name: 'Construction extérieure et mondes',
-    description: 'Ce qui touche aux terrains, jardins et mondes',
+    id: 'exterior_worlds',
     subcategories: [
-      'Outdoors', 'Landscaping', 'Park', 'Venue', 'Bar', 'Shop',
-      'Recreation Center', 'Worlds', 'World Replacements', 'Terrain Paints',
-      'Water Overlays', 'Map Replacements', 'Lots', 'Foundation'
+      { key: 'outdoors', displayName: 'Outdoors' },
+      { key: 'landscaping', displayName: 'Landscaping' },
+      { key: 'park', displayName: 'Park' },
+      { key: 'venue', displayName: 'Venue' },
+      { key: 'bar', displayName: 'Bar' },
+      { key: 'shop', displayName: 'Shop' },
+      { key: 'recreation_center', displayName: 'Recreation Center' },
+      { key: 'worlds', displayName: 'Worlds' },
+      { key: 'world_replacements', displayName: 'World Replacements' },
+      { key: 'terrain_paints', displayName: 'Terrain Paints' },
+      { key: 'water_overlays', displayName: 'Water Overlays' },
+      { key: 'map_replacements', displayName: 'Map Replacements' },
+      { key: 'lots', displayName: 'Lots' },
+      { key: 'foundation', displayName: 'Foundation' }
     ]
   },
   {
-    name: 'Animaux et créatures',
-    description: 'Tout ce qui concerne les animaux',
+    id: 'animals_creatures',
     subcategories: [
-      'Pets', 'Cats', 'Dogs', 'Other Pets', 'Pet Care', 'Occult Creatures'
+      { key: 'pets', displayName: 'Pets' },
+      { key: 'cats', displayName: 'Cats' },
+      { key: 'dogs', displayName: 'Dogs' },
+      { key: 'other_pets', displayName: 'Other Pets' },
+      { key: 'pet_care', displayName: 'Pet Care' },
+      { key: 'occult_creatures', displayName: 'Occult Creatures' }
     ]
   },
   {
-    name: 'Langues et culture',
-    description: 'Localisation et thèmes culturels',
+    id: 'languages_culture',
     subcategories: [
-      'Translations', 'French', 'German', 'Chinese', 'Czech', 'Polish',
-      'Portuguese', 'Russian', 'Spanish', 'Thai', 'Highschool', 'Entertainment'
+      { key: 'translations', displayName: 'Translations' },
+      { key: 'french', displayName: 'French' },
+      { key: 'german', displayName: 'German' },
+      { key: 'chinese', displayName: 'Chinese' },
+      { key: 'czech', displayName: 'Czech' },
+      { key: 'polish', displayName: 'Polish' },
+      { key: 'portuguese', displayName: 'Portuguese' },
+      { key: 'russian', displayName: 'Russian' },
+      { key: 'spanish', displayName: 'Spanish' },
+      { key: 'thai', displayName: 'Thai' },
+      { key: 'highschool', displayName: 'Highschool' },
+      { key: 'entertainment', displayName: 'Entertainment' }
     ]
   },
   {
-    name: 'Fichiers, scénarios et divers',
-    description: 'Tout ce qui ne rentre pas ailleurs',
+    id: 'files_scenarios_misc',
     subcategories: [
-      'Mods', 'Save Files', 'Scenarios', 'Events', 'Recipes', 'Poses and Animations',
-      'Create a Sim', 'Other'
+      { key: 'mods', displayName: 'Mods' },
+      { key: 'save_files', displayName: 'Save Files' },
+      { key: 'scenarios', displayName: 'Scenarios' },
+      { key: 'events', displayName: 'Events' },
+      { key: 'recipes', displayName: 'Recipes' },
+      { key: 'poses_and_animations', displayName: 'Poses and Animations' },
+      { key: 'create_a_sim', displayName: 'Create a Sim' },
+      { key: 'other', displayName: 'Other' }
     ]
   }
 ];
@@ -103,9 +196,14 @@ export default function FilterBar({
   onViewModeChange,
 }: FilterBarProps) {
   const { t } = useTranslation();
+  const localizeCategory = useCategoryLocalization();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-  const [activeGroup, setActiveGroup] = useState<string | null>(CATEGORY_GROUPS[0]?.name || null);
+  const [activeGroup, setActiveGroup] = useState<string | null>(CATEGORY_GROUPS[0]?.id || null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Helper function to get category name and description from translations
+  const getCategoryGroupName = (groupId: string) => t(`mods.filter.category_groups.${groupId}.name`);
+  const getCategoryGroupDescription = (groupId: string) => t(`mods.filter.category_groups.${groupId}.description`);
 
   const SORT_OPTIONS = [
     { value: 'relevance' as const, label: t('mods.filter.relevance') },
@@ -151,7 +249,9 @@ export default function FilterBar({
             style={{ backgroundColor: 'var(--ui-panel)', borderColor: 'var(--ui-border)' }}
           >
             <span>{t('mods.filter.category_label')}</span>
-            <span className="text-brand-green">{selectedCategory || t('mods.filter.none')}</span>
+            <span className="text-brand-green">
+              {selectedCategory ? localizeCategory(selectedCategory) : t('mods.filter.none')}
+            </span>
             <CaretDown size={16} className={`transition-transform ${openDropdown === 'category' ? 'rotate-180' : ''}`} style={{ color: 'var(--text-secondary)' }} />
           </button>
           {openDropdown === 'category' && (
@@ -188,32 +288,32 @@ export default function FilterBar({
 
                 {CATEGORY_GROUPS.map((group) => (
                   <button
-                    key={group.name}
-                    onClick={() => setActiveGroup(group.name)}
+                    key={group.id}
+                    onClick={() => setActiveGroup(group.id)}
                     className={`w-full text-left px-3 py-2 border-b transition-colors ${
-                      activeGroup === group.name
+                      activeGroup === group.id
                         ? 'font-medium'
                         : ''
                     }`}
                     style={{
                       borderColor: 'var(--ui-border)',
-                      backgroundColor: activeGroup === group.name ? 'var(--ui-hover)' : 'transparent',
-                      color: activeGroup === group.name ? 'var(--text-primary)' : 'var(--text-primary)',
+                      backgroundColor: activeGroup === group.id ? 'var(--ui-hover)' : 'transparent',
+                      color: activeGroup === group.id ? 'var(--text-primary)' : 'var(--text-primary)',
                       cursor: 'pointer',
                     }}
                     onMouseEnter={(e) => {
-                      if (activeGroup !== group.name) {
+                      if (activeGroup !== group.id) {
                         e.currentTarget.style.backgroundColor = 'var(--ui-hover)';
                       }
                     }}
                     onMouseLeave={(e) => {
-                      if (activeGroup !== group.name) {
+                      if (activeGroup !== group.id) {
                         e.currentTarget.style.backgroundColor = 'transparent';
                       }
                     }}
                   >
-                    <div className="text-sm font-medium truncate">{group.name}</div>
-                    <div className="text-xs truncate" style={{ color: 'var(--text-tertiary)' }}>{group.description}</div>
+                    <div className="text-sm font-medium truncate">{getCategoryGroupName(group.id)}</div>
+                    <div className="text-xs truncate" style={{ color: 'var(--text-tertiary)' }}>{getCategoryGroupDescription(group.id)}</div>
                   </button>
                 ))}
               </div>
@@ -222,34 +322,37 @@ export default function FilterBar({
               <div className="flex-1 overflow-y-auto p-3">
                 {activeGroup && (
                   <div className="space-y-1">
-                    {CATEGORY_GROUPS.find(g => g.name === activeGroup)?.subcategories.map((subcat) => (
-                      <button
-                        key={subcat}
-                        onClick={() => handleCategorySelect(subcat)}
-                        className={`block text-left px-3 py-2 text-sm rounded transition-colors whitespace-nowrap ${
-                          selectedCategory === subcat
-                            ? 'bg-brand-green/10 text-brand-green'
-                            : ''
-                        }`}
-                        style={{
-                          backgroundColor: selectedCategory === subcat ? undefined : 'transparent',
-                          color: selectedCategory === subcat ? undefined : 'var(--text-primary)',
-                          cursor: 'pointer',
-                        }}
-                        onMouseEnter={(e) => {
-                          if (selectedCategory !== subcat) {
-                            e.currentTarget.style.backgroundColor = 'var(--ui-hover)';
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (selectedCategory !== subcat) {
-                            e.currentTarget.style.backgroundColor = 'transparent';
-                          }
-                        }}
-                      >
-                        {subcat}
-                      </button>
-                    ))}
+                    {CATEGORY_GROUPS.find(g => g.id === activeGroup)?.subcategories.map((subcat) => {
+                      const localizedName = t(`mods.filter.categories.${subcat.key}`);
+                      return (
+                        <button
+                          key={subcat.key}
+                          onClick={() => handleCategorySelect(subcat.displayName)}
+                          className={`block text-left px-3 py-2 text-sm rounded transition-colors whitespace-nowrap ${
+                            selectedCategory === subcat.displayName
+                              ? 'bg-brand-green/10 text-brand-green'
+                              : ''
+                          }`}
+                          style={{
+                            backgroundColor: selectedCategory === subcat.displayName ? undefined : 'transparent',
+                            color: selectedCategory === subcat.displayName ? undefined : 'var(--text-primary)',
+                            cursor: 'pointer',
+                          }}
+                          onMouseEnter={(e) => {
+                            if (selectedCategory !== subcat.displayName) {
+                              e.currentTarget.style.backgroundColor = 'var(--ui-hover)';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (selectedCategory !== subcat.displayName) {
+                              e.currentTarget.style.backgroundColor = 'transparent';
+                            }
+                          }}
+                        >
+                          {localizedName}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>

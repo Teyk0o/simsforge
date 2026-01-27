@@ -14,6 +14,7 @@ import { fakeScoreService } from '@/lib/services/FakeScoreService';
 import { submitFakeModReport } from '@/lib/fakeDetectionApi';
 import { useDateFormatters } from '@/hooks/useDateFormatters';
 import { useTranslation } from 'react-i18next';
+import { useCategoryLocalization } from '@/utils/categoryTranslation';
 import WarningBadge from './WarningBadge';
 import FakeModWarningPopup from './FakeModWarningPopup';
 import type { ModWarningStatus, FakeScoreResult, ZipAnalysis } from '@/types/fakeDetection';
@@ -27,8 +28,9 @@ interface ModListItemProps {
 export default function ModListItem({ mod, warningStatus }: ModListItemProps) {
   const { t } = useTranslation();
   const { formatRelativeDate } = useDateFormatters();
+  const localizeCategory = useCategoryLocalization();
   const authorNames = mod.authors.map((a) => a.name).join(', ');
-  const categoryNames = mod.categories.slice(0, 2);
+  const categoryNames = mod.categories.slice(0, 2).map(cat => localizeCategory(cat));
   const { showToast, updateToast } = useToast();
   const { refreshProfiles, activeProfile } = useProfiles();
   const [isInstalling, setIsInstalling] = useState(false);

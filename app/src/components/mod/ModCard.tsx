@@ -22,6 +22,7 @@ import { submitFakeModReport } from '@/lib/fakeDetectionApi';
 import WarningBadge from './WarningBadge';
 import FakeModWarningPopup from './FakeModWarningPopup';
 import { useTranslation } from 'react-i18next';
+import { useCategoryLocalization } from '@/utils/categoryTranslation';
 import type { ModWarningStatus, FakeScoreResult, ZipAnalysis } from '@/types/fakeDetection';
 
 interface ModCardProps {
@@ -37,8 +38,9 @@ interface ModCardProps {
 export default function ModCard({ mod, warningStatus }: ModCardProps) {
   const { t } = useTranslation();
   const { formatRelativeDate } = useDateFormatters();
+  const localizeCategory = useCategoryLocalization();
   const authorNames = mod.authors.map((a) => a.name).join(', ');
-  const categoryNames = mod.categories.slice(0, 2);
+  const categoryNames = mod.categories.slice(0, 2).map(cat => localizeCategory(cat));
   const { showToast, updateToast } = useToast();
   const { refreshProfiles, activeProfile } = useProfiles();
   const [isInstalling, setIsInstalling] = useState(false);
