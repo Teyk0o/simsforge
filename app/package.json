@@ -25,7 +25,7 @@
     "@tauri-apps/plugin-shell": "^2.3.4",
     "@tauri-apps/plugin-updater": "^2.9.0",
     "@tauri-apps/plugin-upload": "^2.4.0",
-    "axios": "^1.13.3",
+    "axios": "^1.13.4",
     "clsx": "^2.1.1",
     "country-flag-icons": "^1.6.8",
     "date-fns": "^4.1.0",
