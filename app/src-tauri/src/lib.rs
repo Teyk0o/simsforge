@@ -740,3 +740,122 @@ pub fn run() {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+
+    fn create_test_dir() -> std::path::PathBuf {
+        let dir = std::env::temp_dir().join(format!("simsforge_test_{}", Uuid::new_v4()));
+        fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    fn cleanup(dir: &Path) {
+        let _ = fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn test_copy_file_to_copies_file() {
+        let dir = create_test_dir();
+        let source = dir.join("source.package");
+        let target = dir.join("subdir").join("target.package");
+
+        fs::write(&source, b"test content").unwrap();
+
+        let result = copy_file_to(
+            source.to_str().unwrap().to_string(),
+            target.to_str().unwrap().to_string(),
+        );
+
+        assert!(result.is_ok());
+        assert!(target.exists());
+        assert_eq!(fs::read(&target).unwrap(), b"test content");
+
+        cleanup(&dir);
+    }
+
+    #[test]
+    fn test_copy_file_to_creates_parent_dirs() {
+        let dir = create_test_dir();
+        let source = dir.join("source.ts4script");
+        let target = dir.join("a").join("b").join("c").join("target.ts4script");
+
+        fs::write(&source, b"script data").unwrap();
+
+        let result = copy_file_to(
+            source.to_str().unwrap().to_string(),
+            target.to_str().unwrap().to_string(),
+        );
+
+        assert!(result.is_ok());
+        assert!(target.exists());
+
+        cleanup(&dir);
+    }
+
+    #[test]
+    fn test_copy_file_to_error_on_missing_source() {
+        let result = copy_file_to(
+            "/nonexistent/source.package".to_string(),
+            "/tmp/target.package".to_string(),
+        );
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_calculate_file_hash_deterministic() {
+        let dir = create_test_dir();
+        let file = dir.join("test.package");
+        fs::write(&file, b"deterministic content").unwrap();
+
+        let hash1 = calculate_file_hash(file.to_str().unwrap().to_string()).unwrap();
+        let hash2 = calculate_file_hash(file.to_str().unwrap().to_string()).unwrap();
+
+        assert_eq!(hash1, hash2);
+        assert!(!hash1.is_empty());
+        assert_eq!(hash1.len(), 64); // SHA-256 hex
+
+        cleanup(&dir);
+    }
+
+    #[test]
+    fn test_calculate_file_hash_different_content() {
+        let dir = create_test_dir();
+        let file1 = dir.join("a.package");
+        let file2 = dir.join("b.package");
+        fs::write(&file1, b"content A").unwrap();
+        fs::write(&file2, b"content B").unwrap();
+
+        let hash1 = calculate_file_hash(file1.to_str().unwrap().to_string()).unwrap();
+        let hash2 = calculate_file_hash(file2.to_str().unwrap().to_string()).unwrap();
+
+        assert_ne!(hash1, hash2);
+
+        cleanup(&dir);
+    }
+
+    #[test]
+    fn test_copy_dir_recursive_copies_all_files() {
+        let dir = create_test_dir();
+        let src = dir.join("src");
+        let dst = dir.join("dst");
+
+        fs::create_dir_all(src.join("sub")).unwrap();
+        fs::write(src.join("a.package"), b"file a").unwrap();
+        fs::write(src.join("sub").join("b.ts4script"), b"file b").unwrap();
+        fs::create_dir_all(&dst).unwrap();
+
+        let result = copy_dir_recursive(&src, &dst);
+        assert!(result.is_ok());
+        assert_eq!(fs::read(dst.join("a.package")).unwrap(), b"file a");
+        assert_eq!(
+            fs::read(dst.join("sub").join("b.ts4script")).unwrap(),
+            b"file b"
+        );
+
+        cleanup(&dir);
+    }
+}

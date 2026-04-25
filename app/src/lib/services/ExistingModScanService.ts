@@ -78,9 +78,21 @@ export class ExistingModScanService {
         }
       );
 
-      const scanResult = await invoke<ScanResult>('scan_mods_folder', {
-        modsPath,
-      });
+      let scanResult: ScanResult;
+      try {
+        scanResult = await invoke<ScanResult>('scan_mods_folder', {
+          modsPath,
+        });
+      } catch (error) {
+        return {
+          profileId: '',
+          profileName: '',
+          imported: 0,
+          skipped: 0,
+          errors: [{ name: 'scan', error: error instanceof Error ? error.message : String(error) }],
+          totalFiles: 0,
+        };
+      }
 
       unlisten();
       unlisten = null;
