@@ -128,6 +128,71 @@ export class ModCacheService {
   }
 
   /**
+   * Add a group of mod files to cache using a pre-computed hash.
+   * Used by the existing mods scanner where files are already on disk.
+   */
+  async addGroupToCache(
+    modId: string,
+    groupName: string,
+    filePaths: string[],
+    combinedHash: string,
+    totalSize: number,
+    profileId: string
+  ): Promise<CachedMod> {
+    await this.ensureInitialized();
+
+    const index = await this.getIndex();
+    let cachedMod = index.entries[combinedHash];
+
+    if (cachedMod) {
+      if (!cachedMod.usedByProfiles.includes(profileId)) {
+        cachedMod.usedByProfiles.push(profileId);
+        index.entries[combinedHash] = cachedMod;
+        await this.saveIndex(index);
+      }
+      return cachedMod;
+    }
+
+    const cacheEntryDir = await join(this.cacheDir!, combinedHash);
+    const cacheFilesDir = await join(cacheEntryDir, 'files');
+    await mkdir(cacheFilesDir, { recursive: true });
+
+    const cachedFiles: CachedModFile[] = [];
+
+    for (const filePath of filePaths) {
+      const fileName = await basename(filePath);
+      const targetPath = await join(cacheFilesDir, fileName);
+      await invoke('copy_file_to', { source: filePath, target: targetPath });
+      cachedFiles.push({
+        relativePath: fileName,
+        fileName,
+        fileSize: 0,
+      });
+    }
+
+    cachedMod = {
+      fileHash: combinedHash,
+      modId,
+      fileName: groupName,
+      fileSize: totalSize,
+      downloadedAt: new Date().toISOString(),
+      usedByProfiles: [profileId],
+      files: cachedFiles,
+    };
+
+    const metadataPath = await join(cacheEntryDir, 'metadata.json');
+    await writeFile(
+      metadataPath,
+      new TextEncoder().encode(JSON.stringify(cachedMod, null, 2))
+    );
+
+    index.entries[combinedHash] = cachedMod;
+    await this.saveIndex(index);
+
+    return cachedMod;
+  }
+
+  /**
    * Get cached mod by hash
    */
   async getCachedMod(fileHash: string): Promise<CachedMod | null> {
@@ -311,22 +376,32 @@ export class ModCacheService {
     sourcePath: string,
     destDir: string
   ): Promise<CachedModFile[]> {
-    // Extract ZIP to cache directory
-    try {
-      await invoke('extract_zip', {
-        zipPath: sourcePath,
-        destDir,
+    const lowerPath = sourcePath.toLowerCase();
+    const isZip = lowerPath.endsWith('.zip');
+
+    if (isZip) {
+      try {
+        await invoke('extract_zip', {
+          zipPath: sourcePath,
+          destDir,
+        });
+      } catch (error) {
+        console.error('Failed to extract zip:', error);
+        throw new Error(`Failed to extract mod: ${error}`);
+      }
+    } else {
+      const fileName = await basename(sourcePath);
+      const targetPath = await join(destDir, fileName);
+      await invoke('copy_file_to', {
+        source: sourcePath,
+        target: targetPath,
       });
-    } catch (error) {
-      console.error('Failed to extract zip:', error);
-      throw new Error(`Failed to extract mod: ${error}`);
     }
 
-    // Find all .package files
-    const packageFiles = await this.findPackageFiles(destDir);
+    // Find all mod files (.package and .ts4script)
+    const modFiles = await this.findModFiles(destDir);
 
-    return packageFiles.map((filePath) => {
-      // Calculate relative path from destDir
+    return modFiles.map((filePath) => {
       const relativePath = filePath
         .substring(destDir.length)
         .replace(/^[\\\/]/, '');
@@ -335,12 +410,12 @@ export class ModCacheService {
       return {
         relativePath,
         fileName,
-        fileSize: 0, // Size will be calculated if needed
+        fileSize: 0,
       };
     });
   }
 
-  private async findPackageFiles(dir: string): Promise<string[]> {
+  private async findModFiles(dir: string): Promise<string[]> {
     const results: string[] = [];
 
     try {
@@ -350,10 +425,13 @@ export class ModCacheService {
         const fullPath = await join(dir, entry.name);
 
         if (entry.isDirectory) {
-          const subResults = await this.findPackageFiles(fullPath);
+          const subResults = await this.findModFiles(fullPath);
           results.push(...subResults);
-        } else if (entry.name.endsWith('.package')) {
-          results.push(fullPath);
+        } else {
+          const lower = entry.name.toLowerCase();
+          if (lower.endsWith('.package') || lower.endsWith('.ts4script')) {
+            results.push(fullPath);
+          }
         }
       }
     } catch (error) {

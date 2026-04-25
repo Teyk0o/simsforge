@@ -5,16 +5,19 @@ import { useProfiles } from '@/context/ProfileContext';
 import { useToast } from '@/context/ToastContext';
 import CreateProfileModal from '@/components/profile/CreateProfileModal';
 import ConfirmationModal from '@/components/ui/ConfirmationModal';
-import { Trash, PencilSimple, CheckCircle, Plus } from '@phosphor-icons/react';
+import { ScanExistingModsModal } from '@/components/profile/ScanExistingModsModal';
+import { Trash, PencilSimple, CheckCircle, Plus, FolderOpen } from '@phosphor-icons/react';
 import { useTranslation } from 'react-i18next';
 import Layout from '@/components/layouts/Layout';
 
 export default function ProfilesPage() {
   const { t } = useTranslation();
-  const { profiles, activeProfile, activateProfile, deleteProfile, updateProfile, isLoading, isInitialized } =
+  const { profiles, activeProfile, activateProfile, deleteProfile, updateProfile, refreshProfiles, isLoading, isInitialized, getModsPath } =
     useProfiles();
   const { showToast } = useToast();
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showScanModal, setShowScanModal] = useState(false);
+  const modsPath = getModsPath();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [editDescription, setEditDescription] = useState('');
@@ -115,28 +118,54 @@ export default function ProfilesPage() {
           {t('profiles.title')}
         </h1>
 
-        <button
-          onClick={() => setShowCreateModal(true)}
-          disabled={isLoading}
-          className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer"
-          style={{
-            backgroundColor: '#46C89B',
-            color: '#fff',
-            opacity: isLoading ? 0.6 : 1,
-            cursor: isLoading ? 'not-allowed' : 'pointer',
-          }}
-          onMouseEnter={(e) => {
-            if (!isLoading) {
-              e.currentTarget.style.backgroundColor = '#3fb889';
-            }
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = '#46C89B';
-          }}
-        >
-          <Plus size={18} weight="fill" />
-          {t('profiles.create_profile')}
-        </button>
+        <div className="flex items-center gap-2">
+          {modsPath && (
+            <button
+              onClick={() => setShowScanModal(true)}
+              disabled={isLoading}
+              className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer"
+              style={{
+                backgroundColor: 'var(--ui-hover)',
+                color: 'var(--text-primary)',
+                opacity: isLoading ? 0.6 : 1,
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+              }}
+              onMouseEnter={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.backgroundColor = 'var(--ui-active)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--ui-hover)';
+              }}
+            >
+              <FolderOpen size={18} />
+              {t('profiles.scan_existing', 'Scan Existing Mods')}
+            </button>
+          )}
+          <button
+            onClick={() => setShowCreateModal(true)}
+            disabled={isLoading}
+            className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer"
+            style={{
+              backgroundColor: '#46C89B',
+              color: '#fff',
+              opacity: isLoading ? 0.6 : 1,
+              cursor: isLoading ? 'not-allowed' : 'pointer',
+            }}
+            onMouseEnter={(e) => {
+              if (!isLoading) {
+                e.currentTarget.style.backgroundColor = '#3fb889';
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#46C89B';
+            }}
+          >
+            <Plus size={18} weight="fill" />
+            {t('profiles.create_profile')}
+          </button>
+        </div>
       </header>
 
       {/* Content */}
@@ -404,6 +433,16 @@ export default function ProfilesPage() {
         <CreateProfileModal
           onClose={() => setShowCreateModal(false)}
           onCreated={() => setShowCreateModal(false)}
+        />
+      )}
+
+      {/* Scan Existing Mods Modal */}
+      {modsPath && (
+        <ScanExistingModsModal
+          isOpen={showScanModal}
+          modsPath={modsPath}
+          onClose={() => setShowScanModal(false)}
+          onComplete={() => refreshProfiles()}
         />
       )}
 

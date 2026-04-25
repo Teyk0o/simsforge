@@ -1,12 +1,15 @@
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+use std::collections::HashMap;
 use std::fs::{copy as fs_copy, create_dir_all, metadata, read_dir, remove_dir_all, File};
 use std::io::{copy, Read, Write};
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Mutex;
 use std::time::Instant;
 use uuid::Uuid;
+use walkdir::WalkDir;
 use zip::ZipArchive;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -408,6 +411,246 @@ fn get_or_create_machine_id(app_handle: tauri::AppHandle) -> Result<String, Stri
     Ok(new_id)
 }
 
+#[derive(Serialize, Clone)]
+struct ScannedModFile {
+    path: String,
+    file_name: String,
+    size: u64,
+}
+
+#[derive(Serialize, Clone)]
+struct ScannedModGroup {
+    group_name: String,
+    is_folder: bool,
+    files: Vec<ScannedModFile>,
+    total_size: u64,
+    combined_hash: String,
+}
+
+#[derive(Serialize, Clone)]
+struct ScanProgress {
+    current: usize,
+    total: usize,
+    current_group: String,
+}
+
+#[derive(Serialize)]
+struct ScanResult {
+    groups: Vec<ScannedModGroup>,
+    total_files: usize,
+    total_groups: usize,
+    errors: Vec<String>,
+}
+
+#[tauri::command]
+fn scan_mods_folder(app_handle: tauri::AppHandle, mods_path: String) -> Result<ScanResult, String> {
+    use tauri::Emitter;
+
+    let root = Path::new(&mods_path);
+    if !root.exists() {
+        return Err(format!("Mods folder does not exist: {}", mods_path));
+    }
+
+    let mod_extensions = ["package", "ts4script"];
+
+    // Phase 1: Walk directory and group files by parent folder
+    // Files directly in Mods/ → each is its own group
+    // Files in Mods/SubFolder/ → grouped together
+    let mut folder_groups: HashMap<String, Vec<PathBuf>> = HashMap::new();
+    let mut root_files: Vec<PathBuf> = Vec::new();
+
+    for entry in WalkDir::new(root).min_depth(1).into_iter().filter_map(|e| e.ok()) {
+        let path = entry.path();
+        if !path.is_file() {
+            continue;
+        }
+        let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("");
+        if !mod_extensions.iter().any(|&me| me.eq_ignore_ascii_case(ext)) {
+            continue;
+        }
+
+        // Determine if this file is directly in root or in a subfolder
+        let parent = path.parent().unwrap_or(root);
+        if parent == root {
+            root_files.push(path.to_path_buf());
+        } else {
+            // Use the first-level subfolder as group key
+            let relative = path.strip_prefix(root).unwrap();
+            let top_folder = relative.iter().next().unwrap().to_str().unwrap_or("unknown");
+            folder_groups
+                .entry(top_folder.to_string())
+                .or_default()
+                .push(path.to_path_buf());
+        }
+    }
+
+    let total_groups = folder_groups.len() + root_files.len();
+    let processed = AtomicUsize::new(0);
+    let errors = Mutex::new(Vec::<String>::new());
+
+    // Phase 2: Process folder groups in parallel
+    let folder_results: Vec<ScannedModGroup> = folder_groups
+        .into_par_iter()
+        .filter_map(|(folder_name, files)| {
+            let current = processed.fetch_add(1, Ordering::Relaxed) + 1;
+            let _ = app_handle.emit("scan-progress", ScanProgress {
+                current,
+                total: total_groups,
+                current_group: folder_name.clone(),
+            });
+
+            let mut mod_files = Vec::new();
+            let mut total_size: u64 = 0;
+            let mut hasher = Sha256::new();
+            // Sort files for deterministic hash
+            let mut sorted_files = files.clone();
+            sorted_files.sort();
+
+            for file_path in &sorted_files {
+                match metadata(file_path) {
+                    Ok(meta) => {
+                        let size = meta.len();
+                        total_size += size;
+                        let file_name = file_path.file_name()
+                            .and_then(|n| n.to_str())
+                            .unwrap_or("unknown")
+                            .to_string();
+                        mod_files.push(ScannedModFile {
+                            path: file_path.to_str().unwrap_or("").to_string(),
+                            file_name,
+                            size,
+                        });
+                    }
+                    Err(e) => {
+                        errors.lock().unwrap().push(format!("{}: {}", file_path.display(), e));
+                        continue;
+                    }
+                }
+
+                // Hash file content
+                match File::open(file_path) {
+                    Ok(mut f) => {
+                        let mut buffer = [0u8; 64 * 1024];
+                        loop {
+                            match f.read(&mut buffer) {
+                                Ok(0) => break,
+                                Ok(n) => hasher.update(&buffer[..n]),
+                                Err(e) => {
+                                    errors.lock().unwrap().push(format!("{}: {}", file_path.display(), e));
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        errors.lock().unwrap().push(format!("{}: {}", file_path.display(), e));
+                    }
+                }
+            }
+
+            if mod_files.is_empty() {
+                return None;
+            }
+
+            let combined_hash = format!("{:x}", hasher.finalize());
+            Some(ScannedModGroup {
+                group_name: folder_name,
+                is_folder: true,
+                files: mod_files,
+                total_size,
+                combined_hash,
+            })
+        })
+        .collect();
+
+    // Phase 3: Process root-level files in parallel
+    let root_results: Vec<ScannedModGroup> = root_files
+        .par_iter()
+        .filter_map(|file_path| {
+            let file_name = file_path.file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or("unknown")
+                .to_string();
+
+            let current = processed.fetch_add(1, Ordering::Relaxed) + 1;
+            let _ = app_handle.emit("scan-progress", ScanProgress {
+                current,
+                total: total_groups,
+                current_group: file_name.clone(),
+            });
+
+            let meta = match metadata(file_path) {
+                Ok(m) => m,
+                Err(e) => {
+                    errors.lock().unwrap().push(format!("{}: {}", file_path.display(), e));
+                    return None;
+                }
+            };
+
+            let mut hasher = Sha256::new();
+            match File::open(file_path) {
+                Ok(mut f) => {
+                    let mut buffer = [0u8; 64 * 1024];
+                    loop {
+                        match f.read(&mut buffer) {
+                            Ok(0) => break,
+                            Ok(n) => hasher.update(&buffer[..n]),
+                            Err(e) => {
+                                errors.lock().unwrap().push(format!("{}: {}", file_path.display(), e));
+                                return None;
+                            }
+                        }
+                    }
+                }
+                Err(e) => {
+                    errors.lock().unwrap().push(format!("{}: {}", file_path.display(), e));
+                    return None;
+                }
+            }
+
+            let mod_name = file_name
+                .rsplit_once('.')
+                .map(|(name, _)| name.to_string())
+                .unwrap_or(file_name.clone());
+
+            Some(ScannedModGroup {
+                group_name: mod_name,
+                is_folder: false,
+                files: vec![ScannedModFile {
+                    path: file_path.to_str().unwrap_or("").to_string(),
+                    file_name,
+                    size: meta.len(),
+                }],
+                total_size: meta.len(),
+                combined_hash: format!("{:x}", hasher.finalize()),
+            })
+        })
+        .collect();
+
+    let mut all_groups = folder_results;
+    all_groups.extend(root_results);
+    let total_files: usize = all_groups.iter().map(|g| g.files.len()).sum();
+    let total_groups_count = all_groups.len();
+    let errs = errors.into_inner().unwrap();
+
+    Ok(ScanResult {
+        groups: all_groups,
+        total_files,
+        total_groups: total_groups_count,
+        errors: errs,
+    })
+}
+
+#[tauri::command]
+fn copy_file_to(source: String, target: String) -> Result<(), String> {
+    if let Some(parent) = Path::new(&target).parent() {
+        create_dir_all(parent).map_err(|e| format!("Failed to create directory: {}", e))?;
+    }
+    fs_copy(&source, &target)
+        .map_err(|e| format!("Failed to copy {} to {}: {}", source, target, e))?;
+    Ok(())
+}
+
 /// Helper function to recursively copy directories using parallel processing
 fn copy_dir_recursive(src: &Path, dst: &Path) -> std::io::Result<()> {
     let entries: Vec<_> = read_dir(src)?.collect::<Result<Vec<_>, std::io::Error>>()?;
@@ -490,7 +733,9 @@ pub fn run() {
             copy_directory,
             analyze_zip_content,
             get_or_create_machine_id,
-            benchmark_disk_speed
+            benchmark_disk_speed,
+            scan_mods_folder,
+            copy_file_to
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
